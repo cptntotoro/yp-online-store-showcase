@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yandex Practicum Blog | Ошибка API</title>
+    <title>Ошибка API | GeekStore</title>
     <meta name="description" content="Yandex Practicum Blog | Ошибка API">
-    <link rel="icon" type="image/png" th:href="@{/web/images/favicon.ico}"/>
-    <link rel="stylesheet" th:href="@{/web/styles/common.css}">
-    <link rel="stylesheet" type="text/css" th:href="@{/web/styles/error.css}">
+    <link rel="icon" type="image/png" th:href="@{/images/favicon.ico}"/>
+    <link rel="stylesheet" th:href="@{/styles/common.css}">
+    <link rel="stylesheet" type="text/css" th:href="@{/styles/error.css}">
 </head>
 <body>
-<div th:replace="~{fragments/header :: header}"></div>
+<div th:replace="~{../fragments/header :: header}"></div>
 
 <main class="main-error">
     <div class="error-container">
@@ -41,6 +41,6 @@
     </div>
 </main>
 
-<div th:replace="~{fragments/footer :: footer}"></div>
+<div th:replace="~{../fragments/footer :: footer}"></div>
 </body>
 </html>

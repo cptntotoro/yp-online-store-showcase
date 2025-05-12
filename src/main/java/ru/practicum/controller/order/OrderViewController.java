@@ -1,4 +1,4 @@
-package ru.practicum.controller;
+package ru.practicum.controller.order;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -9,44 +9,44 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import ru.practicum.model.CartItem;
 import ru.practicum.model.Order;
-import ru.practicum.service.OrderService;
-import ru.practicum.service.ProductService;
-import ru.practicum.service.ShoppingCartService;
+import ru.practicum.service.cart.ShoppingCartService;
+import ru.practicum.service.order.OrderService;
+import ru.practicum.service.product.ProductService;
 
 import java.util.List;
+import java.util.UUID;
 
 @Controller
 @RequestMapping("/orders")
 @RequiredArgsConstructor
-public class OrderController {
+public class OrderViewController {
     private final OrderService orderService;
     private final ShoppingCartService cartService;
     private final ProductService productService;
 
     @GetMapping
     public String showOrderList(Model model) {
-        List<Order> orders = orderService.getAllOrders();
+        List<Order> orders = orderService.getAll();
         model.addAttribute("orders", orders);
-        return "orders/list";
+        return "order/orders";
     }
 
-    @GetMapping("/{id}")
-    public String showOrderDetails(@PathVariable Long id, Model model) {
-        Order order = orderService.getOrderById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+    @GetMapping("/{uuid}")
+    public String showOrderDetails(@PathVariable UUID uuid, Model model) {
+        Order order = orderService.getByUuid(uuid);
         model.addAttribute("order", order);
         return "orders/details";
     }
 
     @PostMapping("/checkout")
     public String checkout() {
-        List<CartItem> cartItems = cartService.getCartItems();
+        List<CartItem> cartItems = cartService.getAll();
         if (cartItems.isEmpty()) {
             return "redirect:/cart";
         }
 
-        Order order = orderService.createOrder(cartItems);
-        cartService.clearCart();
-        return "redirect:/orders/" + order.getId();
+        Order order = orderService.add(cartItems);
+        cartService.clear();
+        return "redirect:/orders/" + order.getUuid();
     }
 }

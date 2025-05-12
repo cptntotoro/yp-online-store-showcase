@@ -3,36 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Your Cart | GeekStore</title>
+    <title>Корзина | GeekStore</title>
+    <link rel="icon" type="image/png" th:href="@{/images/favicon.ico}"/>
     <link rel="stylesheet" type="text/css" th:href="@{/styles/base.css}">
     <link rel="stylesheet" type="text/css" th:href="@{/styles/components.css}">
     <link rel="stylesheet" type="text/css" th:href="@{/styles/layout.css}">
     <link rel="stylesheet" type="text/css" th:href="@{/styles/product/cart.css}">
 </head>
 <body>
-<header class="header">
-    <div class="container">
-        <nav class="nav">
-            <a href="/" class="logo">GeekStore</a>
-            <div class="nav-links">
-                <a href="/products" class="nav-link">Products</a>
-                <a href="/cart" class="nav-link">
-                    Cart <span class="cart-count" th:text="${@shoppingCartService.getTotalItems()}">0</span>
-                </a>
-                <a href="/orders" class="nav-link">Orders</a>
-            </div>
-        </nav>
-    </div>
-</header>
+<div th:replace="~{../fragments/header :: header}"></div>
 
 <main class="main">
     <div class="container">
-        <h1 class="text-2xl font-bold mb-6">Your Shopping Cart</h1>
+        <h1 class="text-2xl font-bold mb-6">Корзина</h1>
 
         <div th:if="${items.empty}" class="empty-cart shadow rounded p-8 text-center">
             <div class="empty-icon text-4xl mb-4">🛒</div>
-            <p class="empty-text">Your cart is empty</p>
-            <a href="/products" class="btn btn-primary">Continue Shopping</a>
+            <p class="empty-text">Ваша корзина пуста</p>
+            <a href="/products" class="btn btn-primary">Продолжить покупки</a>
         </div>
 
         <div th:unless="${items.empty}">
@@ -63,7 +51,7 @@
                             </button>
                         </form>
                         <form th:action="@{/cart/remove/{id}(id=${item.product.id})}" method="post" class="mt-2">
-                            <button type="submit" class="btn btn-danger btn-sm">Remove</button>
+                            <button type="submit" class="btn btn-danger btn-sm">Удалить</button>
                         </form>
                     </div>
                 </div>
@@ -84,14 +72,17 @@
                 </div>
 
                 <div class="flex justify-between mt-6">
-                    <a href="/products" class="btn btn-outline">Continue Shopping</a>
+                    <a href="/products" class="btn btn-outline">Продолжить покупки</a>
                     <form th:action="@{/orders/checkout}" method="post">
-                        <button type="submit" class="btn btn-primary">Checkout</button>
+                        <button type="submit" class="btn btn-primary">Оплата</button>
                     </form>
                 </div>
             </div>
         </div>
     </div>
 </main>
+
+<div th:replace="~{../fragments/footer :: footer}"></div>
+
 </body>
 </html>

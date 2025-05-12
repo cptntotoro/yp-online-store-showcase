@@ -1,33 +1,35 @@
-package ru.practicum.service;
+package ru.practicum.service.order;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import ru.practicum.exception.order.OrderNotFoundException;
 import ru.practicum.model.CartItem;
 import ru.practicum.model.Order;
 import ru.practicum.model.OrderItem;
 import ru.practicum.model.Product;
-import ru.practicum.repository.OrderRepository;
+import ru.practicum.repository.order.OrderRepository;
+import ru.practicum.service.product.ProductServiceImpl;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class OrderService {
+public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
-    private final ProductService productService;
+    private final ProductServiceImpl productService;
 
-    public Order createOrder(List<CartItem> cartItems) {
+    @Override
+    public Order add(List<CartItem> cartItems) {
         Order order = new Order();
         order.setCreatedAt(LocalDateTime.now());
 
         Set<OrderItem> orderItems = cartItems.stream()
                 .map(cartItem -> {
-                    Product product = productService.getProductById(cartItem.getProductId())
-                            .orElseThrow(() -> new RuntimeException("Product not found"));
+                    Product product = productService.getByUuid(cartItem.getProductUuid());
 
                     return OrderItem.builder()
                             .product(product)
@@ -41,11 +43,13 @@ public class OrderService {
         return orderRepository.save(order);
     }
 
-    public List<Order> getAllOrders() {
+    @Override
+    public List<Order> getAll() {
         return orderRepository.findAll();
     }
 
-    public Optional<Order> getOrderById(Long id) {
-        return orderRepository.findById(id);
+    @Override
+    public Order getByUuid(UUID uuid) {
+        return orderRepository.findById(uuid).orElseThrow(() -> new OrderNotFoundException("Заказ не найден"));
     }
 }

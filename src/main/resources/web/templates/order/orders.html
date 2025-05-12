@@ -3,38 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Your Orders | GeekStore</title>
+    <title>Заказы | GeekStore</title>
+    <link rel="icon" type="image/png" th:href="@{/images/favicon.ico}"/>
     <link rel="stylesheet" type="text/css" th:href="@{/styles/base.css}">
     <link rel="stylesheet" type="text/css" th:href="@{/styles/components.css}">
     <link rel="stylesheet" type="text/css" th:href="@{/styles/layout.css}">
-    <link rel="stylesheet" type="text/css" th:href="@{/styles/product/orders.css}">
+    <link rel="stylesheet" type="text/css" th:href="@{/styles/order/orders.css}">
 </head>
 <body>
-<header class="header">
-    <div class="container">
-        <nav class="nav">
-            <a href="/" class="logo">GeekStore</a>
-            <div class="nav-links">
-                <a href="/products" class="nav-link">Products</a>
-                <a href="/cart" class="nav-link">
-                    Cart <span th:if="${@shoppingCartService.getTotalItems()} > 0"
-                               class="cart-count"
-                               th:text="${@shoppingCartService.getTotalItems()}">0</span>
-                </a>
-                <a href="/orders" class="nav-link">Orders</a>
-            </div>
-        </nav>
-    </div>
-</header>
+<div th:replace="~{../fragments/header :: header}"></div>
 
 <main class="main">
     <div class="container">
-        <h1 class="text-2xl font-bold mb-6">Your Orders</h1>
+        <h1 class="text-2xl font-bold mb-6">Заказы</h1>
 
         <div th:if="${orders.empty}" class="empty-cart shadow rounded p-8 text-center">
             <div class="empty-icon text-4xl mb-4">📦</div>
-            <p class="empty-text">You haven't placed any orders yet</p>
-            <a href="/products" class="btn btn-primary mt-4">Start Shopping</a>
+            <p class="empty-text">У вас пока нет заказов</p>
+            <a href="/products" class="btn btn-primary mt-4">Начать покупки</a>
         </div>
 
         <div th:unless="${orders.empty}" class="space-y-4">
@@ -46,7 +32,7 @@
                             <p class="order-date"
                                th:text="${#temporals.format(order.createdAt, 'MMMM dd, yyyy hh:mm a')}"></p>
                         </div>
-                        <span class="order-status status-completed">Completed</span>
+                        <span class="order-status status-completed">Завершен</span>
                     </div>
 
                     <div class="order-items-preview">
@@ -60,7 +46,7 @@
                     </div>
 
                     <div class="summary-row mt-4">
-                        <span>Total:</span>
+                        <span>Итого:</span>
                         <span class="font-bold"
                               th:text="'$' + ${#numbers.formatDecimal(order.totalPrice, 1, 2)}"></span>
                     </div>
@@ -69,5 +55,8 @@
         </div>
     </div>
 </main>
+
+<div th:replace="~{../fragments/footer :: footer}"></div>
+
 </body>
 </html>

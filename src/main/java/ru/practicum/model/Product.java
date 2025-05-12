@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Positive;
 import lombok.*;
 
 import java.util.Set;
+import java.util.UUID;
 
 @Entity
 @Table(name = "products")
@@ -16,8 +17,8 @@ import java.util.Set;
 @Builder
 public class Product {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "product_uuid")
+    private UUID uuid;
 
     @NotBlank
     private String name;

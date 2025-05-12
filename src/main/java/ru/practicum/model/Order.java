@@ -5,6 +5,7 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.Set;
+import java.util.UUID;
 
 @Entity
 @Table(name = "orders")
@@ -15,8 +16,8 @@ import java.util.Set;
 @Builder
 public class Order {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "order_uuid")
+    private UUID uuid;
 
     private LocalDateTime createdAt;
 

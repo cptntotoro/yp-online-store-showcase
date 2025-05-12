@@ -1,12 +1,13 @@
-package ru.practicum.repository;
+package ru.practicum.repository.product;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import ru.practicum.model.Product;
 
-import java.awt.print.Pageable;
+import java.util.UUID;
 
-public interface ProductRepository extends JpaRepository<Product, Long> {
+public interface ProductRepository extends JpaRepository<Product, UUID> {
     Page<Product> findByNameContainingIgnoreCase(String name, Pageable pageable);
     Page<Product> findAllByOrderByPriceAsc(Pageable pageable);
     Page<Product> findAllByOrderByPriceDesc(Pageable pageable);

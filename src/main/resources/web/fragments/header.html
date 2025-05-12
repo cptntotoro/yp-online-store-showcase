@@ -6,9 +6,21 @@
   </head>
 
   <body>
-    <header class="header" th:fragment="header">
-      <a class="header__logo" th:href="@{/posts}">Yandex Practicum Blog</a>
-      <a class="header__btn">Добавить пост</a>
-    </header>
+  <header class="header" th:fragment="header">
+    <div class="container">
+      <nav class="nav">
+        <a href="/" class="logo">GeekStore</a>
+        <div class="nav-links">
+          <a href="/products" class="nav-link">Товары</a>
+          <a href="/cart" class="nav-link">
+<!--            Cart <span th:if="${@shoppingCartService.getTotalItems()} > 0"-->
+<!--                       class="cart-count"-->
+<!--                       th:text="${@shoppingCartService.getTotalItems()}">0</span>-->
+          </a>
+          <a href="/orders" class="nav-link">Заказы</a>
+        </div>
+      </nav>
+    </div>
+  </header>
   </body>
 </html>

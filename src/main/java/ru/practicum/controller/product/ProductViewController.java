@@ -1,8 +1,9 @@
-package ru.practicum.controller;
+package ru.practicum.controller.product;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -10,14 +11,14 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import ru.practicum.model.Product;
-import ru.practicum.service.ProductService;
+import ru.practicum.service.product.ProductService;
 
-import java.awt.print.Pageable;
+import java.util.UUID;
 
 @Controller
 @RequestMapping("/products")
 @RequiredArgsConstructor
-public class ProductController {
+public class ProductViewController {
     private final ProductService productService;
 
     @GetMapping
@@ -32,22 +33,21 @@ public class ProductController {
         Page<Product> productPage;
 
         if (search != null && !search.isEmpty()) {
-            productPage = productService.searchProducts(search, pageable);
+            productPage = productService.search(search, pageable);
         } else if (sort != null && !sort.isEmpty()) {
-            productPage = productService.getProductsSorted(sort, pageable);
+            productPage = productService.getSorted(sort, pageable);
         } else {
-            productPage = productService.getAllProducts(pageable);
+            productPage = productService.getAll(pageable);
         }
 
         model.addAttribute("products", productPage);
-        return "products/list";
+        return "product/catalog";
     }
 
-    @GetMapping("/{id}")
-    public String showProductDetails(@PathVariable Long id, Model model) {
-        Product product = productService.getProductById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
+    @GetMapping("/{uuid}")
+    public String showProductDetails(@PathVariable UUID uuid, Model model) {
+        Product product = productService.getByUuid(uuid);
         model.addAttribute("product", product);
-        return "products/details";
+        return "product/product";
     }
 }

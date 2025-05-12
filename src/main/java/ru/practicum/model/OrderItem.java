@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Positive;
 import lombok.*;
 
+import java.util.UUID;
+
 @Entity
 @Table(name = "order_items")
 @Getter
@@ -13,18 +15,18 @@ import lombok.*;
 @Builder
 public class OrderItem {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "order_item_uuid")
+    private UUID uuid;
 
     @ManyToOne
-    @JoinColumn(name = "product_id")
+    @JoinColumn(name = "product_uuid")
     private Product product;
 
     @Positive
     private int quantity;
 
     @ManyToOne
-    @JoinColumn(name = "order_id")
+    @JoinColumn(name = "order_uuid")
     private Order order;
 
     @Transient
