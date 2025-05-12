@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Корзина | GeekStore</title>
+    <link rel="icon" type="image/png" th:href="@{/images/favicon.ico}"/>
+    <link rel="stylesheet" type="text/css" th:href="@{/styles/base.css}">
+    <link rel="stylesheet" type="text/css" th:href="@{/styles/components.css}">
+    <link rel="stylesheet" type="text/css" th:href="@{/styles/layout.css}">
+    <link rel="stylesheet" type="text/css" th:href="@{/styles/cart/cart.css}">
+
+    <th:block th:include="~{../fragments/header :: header-head}"></th:block>
+    <th:block th:include="~{../fragments/footer :: footer-head}"></th:block>
+    <th:block th:include="~{../fragments/notification :: notification-head}"></th:block>
+    <th:block th:include="~{../fragments/cart-controls :: cart-controls-head}"></th:block>
+
+    <script type="text/javascript" th:src="@{/scripts/api-config.js}"></script>
+
+</head>
+<body>
+<div th:replace="~{../fragments/header :: header}"></div>
+<div th:replace="~{../fragments/notification :: notification}"></div>
+
+<main class="main">
+    <div class="container">
+        <h1 class="text-2xl font-bold mb-6">Корзина</h1>
+
+        <!-- Отображение пустой корзины -->
+        <div th:if="${cart == null or cart.items.empty}" class="empty-cart shadow rounded p-8 text-center">
+            <div class="empty-icon text-4xl mb-4">🛒</div>
+            <p class="empty-text">Ваша корзина пуста</p>
+            <a href="/products" class="btn btn-primary">Продолжить покупки</a>
+        </div>
+
+        <!-- Основной блок корзины -->
+        <div th:unless="${cart == null or cart.items.empty}">
+            <div class="space-y-4">
+                <div th:each="item : ${cart.items}" class="card cart-item shadow-sm"
+                     th:data-product-uuid="${item.product.uuid}"
+                     th:data-item-uuid="${item.uuid}">
+                    <img th:src="${item.product.imageUrl}" alt="Product image" class="cart-item-img">
+                    <div class="cart-item-details">
+                        <h3 class="cart-item-title" th:text="${item.product.name}"></h3>
+                        <div class="price-calculation">
+                            <span class="item-price"
+                                  th:text="${#numbers.formatDecimal(item.product.price, 1, 2, 'COMMA')} + ' ₽'"></span>
+                            <span class="multiply-sign">×</span>
+                            <span class="item-quantity" th:text="${item.quantity}"></span>
+                            <span class="equals-sign">=</span>
+                            <span class="item-total"
+                                  th:text="${#numbers.formatDecimal(item.product.price * item.quantity, 1, 2, 'COMMA')} + ' ₽'"></span>
+                        </div>
+                    </div>
+
+                    <div th:replace="~{../fragments/cart-controls :: cart-controls(isCartPage=true, item=${item})}"></div>
+                </div>
+            </div>
+
+            <!-- Блок итогов -->
+            <div class="cart-summary shadow rounded mt-8">
+                <div class="summary-row">
+                    <span>Доставка:</span>
+                    <span>Бесплатно</span>
+                </div>
+                <div class="summary-row summary-total">
+                    <span>Всего:</span>
+                    <span class="summary-total-value" th:text="${#numbers.formatDecimal(cart.totalPrice, 1, 2, 'COMMA')} + ' ₽'"></span>
+                </div>
+
+                <div class="flex justify-between mt-6">
+                    <a href="/products" class="btn btn-outline">Продолжить покупки</a>
+                    <a th:href="@{/payment/checkout}" class="btn btn-primary">Оплата</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<div th:replace="~{../fragments/footer :: footer}"></div>
+</body>
+</html>

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Детали заказа | GeekStore</title>
+    <link rel="icon" type="image/png" th:href="@{/images/favicon.ico}"/>
+    <link rel="stylesheet" type="text/css" th:href="@{/styles/base.css}">
+    <link rel="stylesheet" type="text/css" th:href="@{/styles/components.css}">
+    <link rel="stylesheet" type="text/css" th:href="@{/styles/layout.css}">
+    <link rel="stylesheet" type="text/css" th:href="@{/styles/order/order.css}">
+
+    <th:block th:include="~{../fragments/header :: header-head}"></th:block>
+    <th:block th:include="~{../fragments/footer :: footer-head}"></th:block>
+</head>
+<body>
+<div th:replace="~{../fragments/header :: header}"></div>
+
+<main class="main">
+    <div class="container">
+        <div class="order-header">
+            <h1 class="order-title">Заказ #<span th:text="${order.uuid}"></span></h1>
+            <div class="order-status-badge" th:classappend="'status-' + ${order.status.name()}">
+                <span th:text="${order.status.getDisplayName()}"></span>
+            </div>
+        </div>
+
+        <div class="order-details shadow rounded">
+            <div class="order-section">
+                <h2 class="section-title">Информация о заказе</h2>
+                <div class="detail-row">
+                    <span class="detail-label">Дата создания:</span>
+                    <span class="detail-value"
+                          th:text="${#temporals.format(order.createdAt, 'dd.MM.yyyy HH:mm')}"></span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Статус:</span>
+                    <span class="detail-value" th:text="${order.status.getDisplayName()}"></span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Сумма заказа:</span>
+                    <span class="detail-value"
+                          th:text="${#numbers.formatDecimal(order.totalPrice, 1, 2, 'COMMA')} + ' ₽'"></span>
+                </div>
+            </div>
+
+            <div class="order-section">
+                <h2 class="section-title">Состав заказа</h2>
+                <div class="order-items">
+                    <div th:each="item : ${order.items}" class="order-item">
+                        <img th:src="${item.product.imageUrl}" alt="Изображение товара" class="item-image">
+                        <div class="item-details">
+                            <h3 class="item-name" th:text="${item.product.name}"></h3>
+                            <div class="item-price-quantity">
+                <span class="item-price"
+                      th:text="${#numbers.formatDecimal(item.product.price, 1, 2, 'COMMA')} + ' ₽'"></span>
+                                <span class="item-quantity">× <span th:text="${item.quantity}"></span></span>
+                                <span class="item-total"
+                                      th:text="${#numbers.formatDecimal(item.product.price * item.quantity, 1, 2, 'COMMA')} + ' ₽'"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="order-section">
+                <h2 class="section-title">Доставка</h2>
+                <div class="detail-row">
+                    <span class="detail-label">Способ доставки:</span>
+                    <span class="detail-value">Курьерская доставка</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Стоимость доставки:</span>
+                    <span class="detail-value">Бесплатно</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="order-actions">
+            <a th:href="@{/orders}" class="btn btn-outline">← Вернуться к списку заказов</a>
+            <a th:if="${order.status.name() == 'PAID' or order.status.name() == 'CREATED'}"
+               th:href="@{/orders/checkout/cancel/{uuid}(uuid=${order.uuid})}"
+               class="btn btn-danger">Отменить заказ</a>
+
+            <a th:if="${order.status.name() == 'CREATED'}" th:href="@{/payment/checkout}" class="btn btn-primary">Оплатить
+                заказ</a>
+
+        </div>
+    </div>
+</main>
+
+<div th:replace="~{../fragments/footer :: footer}"></div>
+</body>
+</html>

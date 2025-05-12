@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Заказы | GeekStore</title>
+    <link rel="icon" type="image/png" th:href="@{/images/favicon.ico}"/>
+    <link rel="stylesheet" type="text/css" th:href="@{/styles/base.css}">
+    <link rel="stylesheet" type="text/css" th:href="@{/styles/components.css}">
+    <link rel="stylesheet" type="text/css" th:href="@{/styles/layout.css}">
+    <link rel="stylesheet" type="text/css" th:href="@{/styles/order/orders.css}">
+
+    <th:block th:include="~{../fragments/header :: header-head}"></th:block>
+    <th:block th:include="~{../fragments/footer :: footer-head}"></th:block>
+</head>
+<body>
+<div th:replace="~{../fragments/header :: header}"></div>
+
+<main class="main">
+    <div class="container">
+        <h1 class="text-2xl font-bold mb-6">Заказы</h1>
+
+        <div th:if="${not hasOrders}" class="empty-orders shadow rounded p-8 text-center">
+            <div class="empty-icon text-4xl mb-4">📦</div>
+            <p class="empty-text">У вас пока нет заказов</p>
+            <a href="/products" class="btn btn-primary mt-4">Начать покупки</a>
+        </div>
+
+        <div th:if="${hasOrders}" class="space-y-4">
+            <div th:each="order : ${orders}" class="order-card">
+                <a th:href="@{/orders/{uuid}(uuid=${order.uuid})}" class="block">
+                    <div class="order-header">
+                        <div>
+                            <h3 class="order-id" th:text="'Order #' + ${order.uuid}"></h3>
+                            <p class="order-date"
+                               th:text="${#temporals.format(order.createdAt, 'dd.MM.yyyy HH:mm')}"></p>
+                        </div>
+                        <div class="order-status-badge" th:classappend="'status-' + ${order.status.name()}">
+                            <span th:text="${order.status.getDisplayName()}"></span>
+                        </div>
+                    </div>
+
+                    <div class="order-items-preview">
+                        <h2 class="section-title">Состав заказа</h2>
+                        <div class="order-items">
+                            <div th:each="item : ${order.items}" class="order-item">
+                                <img th:src="${item.product.imageUrl}" alt="Изображение товара" class="item-image">
+                                <div class="item-details">
+                                    <h3 class="item-name" th:text="${item.product.name}"></h3>
+                                    <div class="item-price-quantity">
+                                        <span class="item-price"
+                                              th:text="${#numbers.formatDecimal(item.product.price, 1, 2, 'COMMA')} + ' ₽'"></span>
+                                        <span class="item-quantity">× <span th:text="${item.quantity}"></span></span>
+                                        <span class="item-total"
+                                              th:text="${#numbers.formatDecimal(item.product.price * item.quantity, 1, 2, 'COMMA')} + ' ₽'"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="summary-row mt-4">
+                        <span>Итого:</span>
+                        <span class="font-bold"
+                              th:text="${#numbers.formatDecimal(order.totalPrice, 1, 2)} + ' ₽'"></span>
+                    </div>
+                </a>
+            </div>
+
+            <!-- Блок общей суммы заказов -->
+            <div th:if="${hasOrders}" class="total-summary-card mb-6">
+                <div class="total-summary-content">
+                    <div class="total-summary-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2L1 12h3v9h16v-9h3L12 2zm0 4.5l5.5 5.5H14v5h-4v-5H6.5L12 6.5z"/>
+                        </svg>
+                    </div>
+                    <div class="total-summary-text">
+                        <h3 class="total-summary-title">Общая сумма всех заказов</h3>
+                        <p class="total-summary-amount"
+                           th:text="${#numbers.formatDecimal(cartTotal, 1, 2, 'COMMA')} + ' ₽'"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<div th:replace="~{../fragments/footer :: footer}"></div>
+
+</body>
+</html>

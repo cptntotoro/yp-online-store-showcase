@@ -1,0 +1,87 @@
+version: '3.8'
+
+services:
+  app:
+    profiles: ["prod"]
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      # DB config
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - SPRING_DATASOURCE_HIKARI_CONNECTION_TIMEOUT=20000
+      - SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE=5
+      # DB init
+      - SPRING_SQL_INIT_MODE=always
+      - SPRING_SQL_INIT_SCHEMA_LOCATIONS=classpath:schema.sql
+      - SPRING_SQL_INIT_DATA_LOCATIONS=classpath:data.sql
+      - SPRING_SQL_INIT_CONTINUE_ON_ERROR=true
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  postgres:
+    profiles: ["prod"]
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  test:
+    profiles: ["test"]
+    build:
+      context: .
+      dockerfile: Dockerfile-test
+    depends_on:
+      test_db:
+        condition: service_healthy
+    environment:
+      - SPRING_PROFILES_ACTIVE=test
+      # DB config
+      - TEST_DATASOURCE_URL=jdbc:postgresql://test_db:5432/test_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - SPRING_DATASOURCE_HIKARI_CONNECTION_TIMEOUT=20000
+      - SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE=5
+      # DB init
+      - SPRING_SQL_INIT_MODE=always
+      - SPRING_SQL_INIT_SCHEMA_LOCATIONS=classpath:test-schema.sql
+
+  test_db:
+    profiles: ["test"]
+    image: postgres:14-alpine
+    environment:
+      POSTGRES_DB: test_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d test_db" ]
+      interval: 2s
+      timeout: 2s
+      retries: 10
+    volumes:
+      - test_db_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
+  test_db_data:

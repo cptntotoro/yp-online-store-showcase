@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Каталог товаров | GeekStore</title>
+    <link rel="icon" type="image/png" th:href="@{/images/favicon.ico}"/>
+    <link rel="stylesheet" type="text/css" th:href="@{/styles/base.css}">
+    <link rel="stylesheet" type="text/css" th:href="@{/styles/components.css}">
+    <link rel="stylesheet" type="text/css" th:href="@{/styles/layout.css}">
+    <link rel="stylesheet" type="text/css" th:href="@{/styles/product/catalog.css}">
+
+    <th:block th:include="~{../fragments/header :: header-head}"></th:block>
+    <th:block th:include="~{../fragments/footer :: footer-head}"></th:block>
+    <th:block th:include="~{../fragments/notification :: notification-head}"></th:block>
+    <th:block th:include="~{../fragments/cart-controls :: cart-controls-head}"></th:block>
+
+    <script type="text/javascript" th:src="@{/scripts/api-config.js}"></script>
+</head>
+
+<body>
+<div th:replace="~{../fragments/header :: header}"></div>
+<div th:replace="~{../fragments/notification :: notification}"></div>
+
+<main class="main">
+    <div class="container">
+        <div class="filters shadow rounded">
+            <form th:action="@{/products}" method="get" class="flex gap-4 items-center">
+                <div class="filter-group">
+                    <input type="text"
+                           name="search"
+                           placeholder="Название товара..."
+                           th:value="${param.search}"
+                           class="form-control">
+                </div>
+                <div class="filter-group">
+                    <select name="sort" class="form-control select-control">
+                        <option value="">Сортировать</option>
+                        <option value="price-asc" th:selected="${param.sort == 'price-asc'}">Цена: Сначала дешевые
+                        </option>
+                        <option value="price-desc" th:selected="${param.sort == 'price-desc'}">Цена: Сначала дорогие
+                        </option>
+                        <option value="name-asc" th:selected="${param.sort == 'name-asc'}">Название: По алфавиту
+                        </option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <select name="size" class="form-control select-control">
+                        <option value="10" th:selected="${param.size == '10'}">10</option>
+                        <option value="20" th:selected="${param.size == '20'}">20</option>
+                        <option value="50" th:selected="${param.size == '50'}">50</option>
+                        <option value="100" th:selected="${param.size == '100'}">100</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">Подтвердить</button>
+            </form>
+        </div>
+
+        <div class="product-container gap-6">
+            <div th:each="product : ${products}" class="card" th:data-product-uuid="${product.uuid}">
+                <a th:href="@{/products/{uuid}(uuid=${product.uuid})}">
+                    <img th:src="${product.imageUrl}" th:alt="${product.name}" class="card-img">
+                </a>
+                <div class="card-body">
+                    <a th:href="@{/products/{uuid}(uuid=${product.uuid})}">
+                        <h3 class="card-title" th:text="${product.name}"></h3>
+                    </a>
+                    <p class="card-text" th:text="${product.description}"></p>
+                    <div class="price-controls-container mt-4">
+                            <span class="card-price"
+                                  th:text="${#numbers.formatDecimal(product.price, 1, 2)} + ' ₽'"></span>
+
+                        <div th:replace="~{../fragments/cart-controls :: cart-controls(isCartPage=false)}"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div th:if="${products.totalPages > 1}" class="pagination mt-8">
+                <!-- Первая страница -->
+                <a th:href="@{/products(size=${param.size},page=0,search=${param.search},sort=${param.sort})}"
+                   class="page-link"
+                   th:classappend="${products.number == 0} ? 'disabled'">Первая</a>
+
+                <!-- Предыдущая страница -->
+                <a th:href="@{/products(size=${param.size},page=${products.hasPrevious() ? products.number-1 : 0},search=${param.search},sort=${param.sort})}"
+                   class="page-link"
+                   th:classappend="${!products.hasPrevious()} ? 'disabled'">Предыдущая</a>
+
+                <!-- Номера страниц -->
+                <th:block th:with="
+        start=${T(java.lang.Math).max(1, products.number - 2)},
+        end=${T(java.lang.Math).min(products.number + 3, products.totalPages)}">
+        <span th:each="i : ${#numbers.sequence(start, end)}">
+            <a th:href="@{/products(size=${param.size},page=${i-1},search=${param.search},sort=${param.sort})}"
+               class="page-link"
+               th:classappend="${products.number == i-1} ? 'active'"
+               th:text="${i}">1</a>
+        </span>
+                </th:block>
+
+                <!-- Следующая страница -->
+                <a th:href="@{/products(size=${param.size},page=${products.hasNext() ? products.number+1 : products.totalPages-1},search=${param.search},sort=${param.sort})}"
+                   class="page-link"
+                   th:classappend="${!products.hasNext()} ? 'disabled'">Следующая</a>
+
+                <!-- Последняя страница -->
+                <a th:href="@{/products(size=${param.size},page=${products.totalPages-1},search=${param.search},sort=${param.sort})}"
+                   class="page-link"
+                   th:classappend="${products.number == products.totalPages-1} ? 'disabled'">Последняя</a>
+            </div>
+        </div>
+    </div>
+</main>
+
+<div th:replace="~{../fragments/footer :: footer}"></div>
+
+</body>
+</html>

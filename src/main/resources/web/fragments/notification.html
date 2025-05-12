@@ -1,0 +1,10 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="notification-head">
+    <link rel="stylesheet" th:href="@{/styles/fragments/notification.css}">
+    <script type="text/javascript" th:src="@{/scripts/fragments/notification.js}"></script>
+</head>
+<body>
+    <div th:fragment="notification" class="notification-container" aria-live="polite"></div>
+</body>
+</html>

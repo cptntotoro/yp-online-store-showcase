@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru">
+<head th:fragment="header-head">
+    <link rel="stylesheet" th:href="@{/styles/fragments/header.css}">
+</head>
+
+<body>
+<header class="header" th:fragment="header">
+    <div class="container">
+        <nav class="nav">
+            <a href="/products" class="logo">GeekStore</a>
+            <div class="nav-links">
+                <a href="/products/add" class="nav-link">Добавить товары</a>
+                <a href="/orders" class="nav-link">Заказы</a>
+                <a href="/cart" class="nav-link">
+                    🛒
+                    <span class="cart-total"
+                          th:text="${cart.totalPrice != null
+                        ? (cart.totalPrice == 0 ? '0,00'
+                        : #numbers.formatDecimal(cart.totalPrice, 0, 2, 'COMMA')) : '0,00'} + ' ₽'">
+                </span>
+                </a>
+            </div>
+        </nav>
+    </div>
+</header>
+</body>
+</html>

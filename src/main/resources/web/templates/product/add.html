@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Добавить товары | GeekStore</title>
+
+    <link rel="icon" type="image/png" th:href="@{/images/favicon.ico}"/>
+    <link rel="stylesheet" type="text/css" th:href="@{/styles/base.css}">
+    <link rel="stylesheet" type="text/css" th:href="@{/styles/components.css}">
+    <link rel="stylesheet" type="text/css" th:href="@{/styles/layout.css}">
+
+    <th:block th:include="~{../fragments/header :: header-head}"></th:block>
+    <th:block th:include="~{../fragments/footer :: footer-head}"></th:block>
+
+    <script type="text/javascript" th:src="@{/scripts/product/add.js}"></script>
+</head>
+<body>
+<div th:replace="~{../fragments/header :: header}"></div>
+
+<main class="main container">
+    <h1 class="text-xl font-bold mb-4">Добавить товары</h1>
+
+    <form th:action="@{/products/add}" th:object="${productList}" method="post" id="productForm">
+        <div id="product-container">
+            <!-- Первый блок товара -->
+            <div class="product-block card p-4 mt-6">
+                <div class="grid grid-cols-1 gap-4">
+                    <input type="text" name="products[0].name" class="form-control" placeholder="Название" required/>
+                    <textarea name="products[0].description" class="form-control" placeholder="Описание"
+                              required></textarea>
+                    <input type="number" step="0.01" name="products[0].price" class="form-control" placeholder="Цена"
+                           min="1" max="10000000" required/>
+                    <input type="text" name="products[0].imageUrl" class="form-control"
+                           placeholder="Ссылка на изображение" required/>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex gap-4 mt-6">
+            <button class="btn btn-outline" type="button" onclick="addProductBlock()">Добавить ещё товар</button>
+            <button class="btn btn-primary" type="submit">Сохранить все</button>
+        </div>
+    </form>
+</main>
+
+<div th:replace="~{../fragments/footer :: footer}"></div>
+</body>
+</html>

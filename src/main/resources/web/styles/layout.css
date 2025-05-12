@@ -1,0 +1,16 @@
+.main {
+    display: flex;
+    flex-direction: column;
+    margin: 0 auto;
+    align-items: center;
+    min-height: calc(100vh - 4.5rem);
+    padding: 2rem 0;
+    max-width: 800px;
+}
+
+.grid {
+    display: grid;
+    gap: 1.5rem;
+}
+
+.grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }

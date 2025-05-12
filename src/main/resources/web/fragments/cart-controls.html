@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru">
+<head th:fragment="cart-controls-head">
+    <link rel="stylesheet" th:href="@{/styles/fragments/cart-controls.css}">
+    <script type="text/javascript" th:src="@{/scripts/product/cart-controls.js}"></script>
+</head>
+
+<body>
+<div class="cart-controls" th:fragment="cart-controls">
+    <!-- Для страницы корзины -->
+    <div th:if="${isCartPage}" class="item-controls">
+        <div class="quantity-controls">
+            <button class="btn btn-sm btn-secondary quantity-btn minus">-</button>
+            <input type="number"
+                   name="quantity"
+                   class="form-control quantity-input"
+                   th:value="${item != null ? item.quantity : 1}"
+                   min="1"
+                   max="99">
+            <button class="btn btn-sm btn-secondary quantity-btn plus">+</button>
+        </div>
+        <button data-cart="true" th:if="${item != null}" type="submit"
+                class="cart-action-btn btn btn-danger btn-sm in-cart">Удалить
+        </button>
+    </div>
+
+    <!-- Для других страниц -->
+    <div th:if="${!isCartPage}" class="item-controls">
+        <div class="quantity-controls d-none">
+            <button class="btn btn-sm btn-secondary quantity-btn minus">-</button>
+            <input type="number"
+                   class="form-control quantity-input"
+                   value="1"
+                   min="1">
+            <button class="btn btn-sm btn-secondary quantity-btn plus">+</button>
+        </div>
+        <button class="btn btn-primary btn-sm cart-action-btn">Добавить в корзину</button>
+    </div>
+</div>
+</body>
+</html>

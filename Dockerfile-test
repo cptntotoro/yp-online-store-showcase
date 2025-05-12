@@ -1,0 +1,10 @@
+FROM maven:3.9.6-eclipse-temurin-21 as test-builder
+WORKDIR /app
+COPY pom.xml .
+COPY src ./src
+
+# Установка TestContainers и зависимостей
+RUN mvn dependency:resolve-plugins dependency:resolve
+
+# Запуск тестов
+CMD ["mvn", "test"]

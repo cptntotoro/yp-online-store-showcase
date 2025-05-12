@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${product.name} + ' | GeekStore'">Детали заказа | GeekStore</title>
+    <link rel="icon" type="image/png" th:href="@{/images/favicon.ico}"/>
+    <link rel="stylesheet" type="text/css" th:href="@{/styles/base.css}">
+    <link rel="stylesheet" type="text/css" th:href="@{/styles/components.css}">
+    <link rel="stylesheet" type="text/css" th:href="@{/styles/layout.css}">
+    <link rel="stylesheet" type="text/css" th:href="@{/styles/product/product.css}">
+
+    <th:block th:include="~{../fragments/header :: header-head}"></th:block>
+    <th:block th:include="~{../fragments/footer :: footer-head}"></th:block>
+    <th:block th:include="~{../fragments/notification :: notification-head}"></th:block>
+    <th:block th:include="~{../fragments/cart-controls :: cart-controls-head}"></th:block>
+
+    <script type="text/javascript" th:src="@{/scripts/api-config.js}"></script>
+</head>
+<body>
+<div th:replace="~{../fragments/header :: header}"></div>
+<div th:replace="~{../fragments/notification :: notification}"></div>
+
+<main class="main">
+    <div class="container">
+        <a href="/products" class="back-link">
+            ← Назад к товарам
+        </a>
+
+        <div class="product-detail shadow">
+            <div class="product-detail-container card" th:data-product-uuid="${product.uuid}">
+                <div class="product-detail-gallery">
+                    <img th:src="${product.imageUrl}"
+                         th:alt="${product.name}"
+                         class="product-detail-image">
+                </div>
+
+                <div class="product-detail-info">
+                    <h1 class="product-detail-title" th:text="${product.name}"></h1>
+
+                    <div class="product-detail-meta">
+                        <span>В наличии</span>
+                    </div>
+
+                    <div class="product-detail-price"
+                         th:text="${#numbers.formatDecimal(product.price, 1, 2)} + ' ₽'"></div>
+
+                    <div class="product-detail-description"
+                         th:text="${product.description}"></div>
+
+                    <div class="product-detail-actions">
+                        <div th:replace="~{../fragments/cart-controls :: cart-controls(isCartPage=false)}"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<div th:replace="~{../fragments/footer :: footer}"></div>
+</body>
+</html>
