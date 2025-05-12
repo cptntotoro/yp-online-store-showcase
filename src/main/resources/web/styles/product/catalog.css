@@ -1,0 +1,74 @@
+/* Фильтры */
+.filters {
+    background-color: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 1.25rem;
+    margin-bottom: 2rem;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.filter-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--gray-dark);
+}
+
+/* Пагинация */
+.pagination {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 3rem;
+}
+
+.page-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: var(--radius);
+    font-weight: 500;
+    color: var(--gray-dark);
+    transition: var(--transition);
+}
+
+.page-link:hover {
+    background-color: var(--gray-light);
+    color: var(--dark);
+}
+
+.page-link.active {
+    background-color: var(--primary);
+    color: white;
+}
+
+.page-link.disabled {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+/* Адаптивность товаров */
+@media (max-width: 640px) {
+    .product-grid {
+        grid-template-columns: repeat(1, minmax(0, 1fr));
+    }
+}
+
+@media (min-width: 640px) and (max-width: 1024px) {
+    .product-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (min-width: 1024px) {
+    .product-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}

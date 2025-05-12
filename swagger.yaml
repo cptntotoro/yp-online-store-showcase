@@ -1,0 +1,419 @@
+openapi: 3.0.1
+info:
+  title: Blog API
+  version: 1.0.0
+  description: API для управления постами и комментариями блога
+servers:
+  - url: http://localhost:9090
+    description: Локальный сервер разработки
+tags:
+  - name: Posts
+    description: Операции с постами
+  - name: Comments
+    description: Операции с комментариями
+paths:
+  /posts:
+    get:
+      tags: [Posts]
+      summary: Получение списка постов с пагинацией
+      parameters:
+        - name: from
+          in: query
+          description: Начальная позиция
+          required: true
+          schema:
+            type: integer
+            example: 1
+        - name: size
+          in: query
+          description: Количество постов
+          required: true
+          schema:
+            type: integer
+            example: 10
+      responses:
+        '200':
+          description: Успешное получение списка постов
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PostNewsfeedDto'
+    post:
+      tags: [Posts]
+      summary: Создание нового поста
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PostAddDto'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostAddDto'
+      responses:
+        '200':
+          description: Пост успешно создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostViewDto'
+
+  /posts/{postUuid}:
+    get:
+      tags: [Posts]
+      summary: Получение конкретного поста по его идентификатору
+      parameters:
+        - name: postUuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+            example: 64172a40-90bf-464a-95a1-0b603f74f08e
+      responses:
+        '200':
+          description: Успешное получение поста
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostViewDto'
+    post:
+      tags: [Posts]
+      summary: Обновление существующего поста
+      parameters:
+        - name: postUuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PostUpdateDto'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostUpdateDto'
+      responses:
+        '200':
+          description: Пост успешно обновлен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostViewDto'
+    delete:
+      tags: [Posts]
+      summary: Удаление поста
+      parameters:
+        - name: postUuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Пост успешно удален
+
+  /posts/tag/{tagUuid}:
+    get:
+      tags: [Posts]
+      summary: Получение постов по тегу
+      parameters:
+        - name: tagUuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+            example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+      responses:
+        '200':
+          description: Успешное получение постов
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PostNewsfeedDto'
+
+  /posts/{postUuid}/like:
+    put:
+      tags: [Posts]
+      summary: Поставить лайк посту
+      parameters:
+        - name: postUuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '202':
+          description: Лайк успешно поставлен
+
+  /posts/{postUuid}/comments:
+    post:
+      tags: [Comments]
+      summary: Добавление комментария к посту
+      parameters:
+        - name: postUuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CommentAddDto'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommentAddDto'
+      responses:
+        '200':
+          description: Комментарий успешно добавлен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommentViewDto'
+
+  /posts/{postUuid}/comments/{commentUuid}:
+    post:
+      tags: [Comments]
+      summary: Обновление комментария
+      parameters:
+        - name: postUuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: commentUuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommentUpdateDto'
+      responses:
+        '200':
+          description: Комментарий успешно обновлен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommentViewDto'
+    delete:
+      tags: [Comments]
+      summary: Удаление комментария
+      parameters:
+        - name: postUuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: commentUuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Комментарий успешно удален
+
+components:
+  schemas:
+    # Comment DTOs
+    CommentBaseDto:
+      type: object
+      properties:
+        content:
+          type: string
+          description: Содержимое комментария
+          example: "Это пример комментария"
+      required:
+        - content
+    
+    CommentAddDto:
+      allOf:
+        - $ref: '#/components/schemas/CommentBaseDto'
+    
+    CommentUpdateDto:
+      allOf:
+        - $ref: '#/components/schemas/CommentBaseDto'
+    
+    CommentViewDto:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          description: UUID комментария
+          example: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+        content:
+          type: string
+          description: Содержимое комментария
+          example: "Это пример комментария"
+        dateTime:
+          type: string
+          format: date-time
+          description: Дата и время создания комментария
+          example: "2023-05-15T12:00:00Z"
+    
+    # Post DTOs
+    PostBaseDto:
+      type: object
+      properties:
+        title:
+          type: string
+          description: Заголовок поста
+          example: "Новый пост"
+        imageUrl:
+          type: string
+          format: url
+          description: URL изображения поста
+          example: "https://example.com/image.jpg"
+        content:
+          type: string
+          description: Содержимое поста
+          example: "Это содержимое нового поста"
+        tags:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: Список UUID тегов
+          example: ["3fa85f64-5717-4562-b3fc-2c963f66afa6"]
+      required:
+        - title
+        - content
+    
+    PostAddDto:
+      allOf:
+        - $ref: '#/components/schemas/PostBaseDto'
+    
+    PostUpdateDto:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          description: UUID поста
+          example: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+        title:
+          type: string
+          description: Заголовок поста
+          example: "Обновленный пост"
+        imageUrl:
+          type: string
+          format: url
+          description: URL изображения поста
+          example: "https://example.com/new-image.jpg"
+        content:
+          type: string
+          description: Содержимое поста
+          example: "Это обновленное содержимое поста"
+        tags:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: Список UUID тегов
+          example: ["3fa85f64-5717-4562-b3fc-2c963f66afa6"]
+      required:
+        - title
+        - content
+    
+    PostNewsfeedDto:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          description: UUID поста
+          example: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+        title:
+          type: string
+          description: Заголовок поста
+          example: "Пример поста"
+        imageUrl:
+          type: string
+          format: url
+          description: URL изображения поста
+          example: "https://example.com/image.jpg"
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/TagViewDto'
+          description: Список тегов
+        commentsCounter:
+          type: integer
+          description: Количество комментариев
+          example: 5
+        likesCounter:
+          type: integer
+          description: Количество лайков
+          example: 10
+        preview:
+          type: string
+          description: Превью содержимого
+          example: "Краткое содержание поста..."
+    
+    PostViewDto:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          description: UUID поста
+          example: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+        title:
+          type: string
+          description: Заголовок поста
+          example: "Пример поста"
+        imageUrl:
+          type: string
+          format: url
+          description: URL изображения поста
+          example: "https://example.com/image.jpg"
+        content:
+          type: string
+          description: Полное содержимое поста
+          example: "Это полное содержимое поста..."
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/TagViewDto'
+          description: Список тегов
+        likesCounter:
+          type: integer
+          description: Количество лайков
+          example: 10
+        comments:
+          type: array
+          items:
+            $ref: '#/components/schemas/CommentViewDto'
+          description: Список комментариев
+    
+    # Tag DTO
+    TagViewDto:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          description: UUID тега
+          example: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+        title:
+          type: string
+          description: Название тега
+          example: "Программирование"

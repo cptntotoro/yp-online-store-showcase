@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru">
+  <head>
+    <meta charset="UTF-8">
+  </head>
+
+  <body>
+    <div th:fragment="post(post)" class="post">
+      <a th:href="@{'/posts/' + ${post.uuid}}">
+        <h2 class="post-newsfeed-title" th:text="${post.title}"></h2>
+      </a>
+      <img th:src="${post.imageUrl}" alt="Картинка поста" class="post-image">
+      <div class="post-excerpt" th:utext="${post.preview}"></div>
+      <div class="post-tags">
+        <a class="tag" th:each="tag:${post.tags}" th:text="${tag.title}" th:href="@{'/posts/tag/' + ${tag.uuid}}"></a>
+      </div>
+      <div class="post-meta">
+        <span class="post-meta-comments">&#128172; <span th:text="${post.commentsCounter}"></span></span>
+        <span class="post-meta-likes">&#10084;&#65039; <span th:text="${post.likesCounter}"></span></span>
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,123 @@
+/* Список заказов */
+.order-card {
+    background-color: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    transition: var(--transition);
+    cursor: pointer;
+}
+
+.order-card:hover {
+    transform: translateY(-0.25rem);
+    box-shadow: var(--shadow-md);
+}
+
+.order-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+.order-id {
+    font-weight: 600;
+    color: var(--primary);
+}
+
+.order-date {
+    color: var(--gray);
+    font-size: 0.875rem;
+}
+
+.order-status {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--radius-full);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.status-completed {
+    background-color: #dcfce7;
+    color: #166534;
+}
+
+.order-items-preview {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.order-item-img {
+    width: 3rem;
+    height: 3rem;
+    object-fit: cover;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--gray-light);
+}
+
+.order-more-items {
+    width: 3rem;
+    height: 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--gray-light);
+    border-radius: var(--radius-sm);
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+/* Детали заказа */
+.order-details {
+    background-color: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 1.5rem;
+}
+
+.order-detail-item {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--gray-light);
+}
+
+.order-detail-item:last-child {
+    border-bottom: none;
+}
+
+.order-detail-img {
+    width: 5rem;
+    height: 5rem;
+    object-fit: cover;
+    border-radius: var(--radius-sm);
+}
+
+.order-detail-info {
+    flex: 1;
+}
+
+.order-detail-name {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.order-detail-price {
+    color: var(--primary);
+    font-weight: 600;
+}
+
+.order-detail-quantity {
+    color: var(--gray);
+}
+
+.order-detail-total {
+    font-weight: 600;
+    min-width: 6rem;
+    text-align: right;
+}

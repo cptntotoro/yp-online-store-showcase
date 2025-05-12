@@ -1,0 +1,110 @@
+/* product-details.css */
+.product-detail {
+    background-color: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    margin-top: 2rem;
+}
+
+.product-detail-container {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+}
+
+@media (min-width: 768px) {
+    .product-detail-container {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+.product-detail-gallery {
+    position: relative;
+}
+
+.product-detail-image {
+    width: 100%;
+    height: auto;
+    max-height: 500px;
+    object-fit: contain;
+    border-radius: var(--radius-sm);
+    background-color: var(--gray-light);
+    padding: 1rem;
+}
+
+.product-detail-info {
+    padding: 1.5rem;
+}
+
+.product-detail-title {
+    font-size: 1.75rem;
+    margin-bottom: 0.5rem;
+    color: var(--dark);
+}
+
+.product-detail-price {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary);
+    margin: 1rem 0;
+}
+
+.product-detail-meta {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    font-size: 0.875rem;
+    color: var(--gray-dark);
+}
+
+.product-detail-description {
+    line-height: 1.6;
+    margin-bottom: 2rem;
+    color: var(--gray-dark);
+}
+
+.product-detail-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.quantity-selector {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.quantity-input {
+    width: 60px;
+    text-align: center;
+    padding: 0.5rem;
+    border: 1px solid var(--gray-light);
+    border-radius: var(--radius-sm);
+}
+
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--primary);
+    margin-bottom: 1rem;
+}
+
+.back-link:hover {
+    text-decoration: underline;
+}
+
+/* Дополнения к базовым стилям */
+.product-section {
+    margin-top: 3rem;
+}
+
+.section-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--gray-light);
+}

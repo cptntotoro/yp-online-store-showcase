@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="'Order #' + ${order.id} + ' | GeekStore'">Order Details | GeekStore</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/styles/base.css}">
+    <link rel="stylesheet" type="text/css" th:href="@{/styles/components.css}">
+    <link rel="stylesheet" type="text/css" th:href="@{/styles/layout.css}">
+    <link rel="stylesheet" type="text/css" th:href="@{/styles/product/details.css}">
+</head>
+<body>
+<header class="header">
+    <div class="container">
+        <nav class="nav">
+            <a href="/" class="logo">GeekStore</a>
+            <div class="nav-links">
+                <a href="/products" class="nav-link">Products</a>
+                <a href="/cart" class="nav-link">
+                    Cart <span th:if="${@shoppingCartService.getTotalItems()} > 0"
+                               class="cart-count"
+                               th:text="${@shoppingCartService.getTotalItems()}">0</span>
+                </a>
+                <a href="/orders" class="nav-link">Orders</a>
+            </div>
+        </nav>
+    </div>
+</header>
+
+<main class="main">
+    <div class="container">
+        <a href="/products" class="back-link">
+            ← Back to Products
+        </a>
+
+        <div class="product-detail shadow">
+            <div class="product-detail-container">
+                <div class="product-detail-gallery">
+                    <img th:src="${product.imageUrl}"
+                         th:alt="${product.name}"
+                         class="product-detail-image">
+                </div>
+
+                <div class="product-detail-info">
+                    <h1 class="product-detail-title" th:text="${product.name}"></h1>
+
+                    <div class="product-detail-meta">
+                        <span>SKU: <span th:text="${product.id}"></span></span>
+                        <span>|</span>
+                        <span>In Stock</span>
+                    </div>
+
+                    <div class="product-detail-price"
+                         th:text="'$' + ${#numbers.formatDecimal(product.price, 1, 2)}"></div>
+
+                    <div class="product-detail-description"
+                         th:text="${product.description}"></div>
+
+                    <div class="product-detail-actions">
+                        <form th:action="@{/cart/add/{id}(id=${product.id})}" method="post"
+                              class="flex items-center gap-4">
+                            <div class="quantity-selector">
+                                <label for="quantity" class="text-sm font-semibold">Qty:</label>
+                                <input type="number"
+                                       id="quantity"
+                                       name="quantity"
+                                       value="1"
+                                       min="1"
+                                       class="quantity-input">
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                Add to Cart
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="product-section">
+            <h2 class="section-title">Product Details</h2>
+            <div class="prose max-w-none" th:text="${product.fullDescription}">
+                <!-- Полное описание товара -->
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+    // Валидация количества
+    document.getElementById('quantity').addEventListener('change', function () {
+        if (this.value < 1) this.value = 1;
+    });
+</script>
+</body>
+</html>

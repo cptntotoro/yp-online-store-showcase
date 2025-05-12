@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Orders | GeekStore</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/styles/base.css}">
+    <link rel="stylesheet" type="text/css" th:href="@{/styles/components.css}">
+    <link rel="stylesheet" type="text/css" th:href="@{/styles/layout.css}">
+    <link rel="stylesheet" type="text/css" th:href="@{/styles/product/orders.css}">
+</head>
+<body>
+<header class="header">
+    <div class="container">
+        <nav class="nav">
+            <a href="/" class="logo">GeekStore</a>
+            <div class="nav-links">
+                <a href="/products" class="nav-link">Products</a>
+                <a href="/cart" class="nav-link">
+                    Cart <span th:if="${@shoppingCartService.getTotalItems()} > 0"
+                               class="cart-count"
+                               th:text="${@shoppingCartService.getTotalItems()}">0</span>
+                </a>
+                <a href="/orders" class="nav-link">Orders</a>
+            </div>
+        </nav>
+    </div>
+</header>
+
+<main class="main">
+    <div class="container">
+        <h1 class="text-2xl font-bold mb-6">Your Orders</h1>
+
+        <div th:if="${orders.empty}" class="empty-cart shadow rounded p-8 text-center">
+            <div class="empty-icon text-4xl mb-4">📦</div>
+            <p class="empty-text">You haven't placed any orders yet</p>
+            <a href="/products" class="btn btn-primary mt-4">Start Shopping</a>
+        </div>
+
+        <div th:unless="${orders.empty}" class="space-y-4">
+            <div th:each="order : ${orders}" class="order-card">
+                <a th:href="@{/orders/{id}(id=${order.id})}" class="block">
+                    <div class="order-header">
+                        <div>
+                            <h3 class="order-id" th:text="'Order #' + ${order.id}"></h3>
+                            <p class="order-date"
+                               th:text="${#temporals.format(order.createdAt, 'MMMM dd, yyyy hh:mm a')}"></p>
+                        </div>
+                        <span class="order-status status-completed">Completed</span>
+                    </div>
+
+                    <div class="order-items-preview">
+                        <img th:each="item : ${#lists.subList(order.items, 0, min(3, order.items.size()))}"
+                             th:src="${item.product.imageUrl}"
+                             alt="Product image"
+                             class="order-item-img">
+                        <div th:if="${order.items.size() > 3}" class="order-more-items">
+                            +<span th:text="${order.items.size() - 3}"></span>
+                        </div>
+                    </div>
+
+                    <div class="summary-row mt-4">
+                        <span>Total:</span>
+                        <span class="font-bold"
+                              th:text="'$' + ${#numbers.formatDecimal(order.totalPrice, 1, 2)}"></span>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+</main>
+</body>
+</html>

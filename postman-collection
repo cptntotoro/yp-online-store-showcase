@@ -1,0 +1,734 @@
+{
+	"info": {
+		"_postman_id": "6dbdacab-45a6-4073-b173-965420ab77e6",
+		"name": "Blog API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "26102268"
+	},
+	"item": [
+		{
+			"name": "Post",
+			"item": [
+				{
+					"name": "Get all posts (paginated)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Тесты для запроса \"Get all posts (paginated)\"",
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.text();",
+									"    ",
+									"    // Извлекаем post_uuid из ссылок формата /posts/{post_uuid}",
+									"    const postUuidRegex = /\\/posts\\/([a-f0-9-]+)/g;",
+									"    let postMatches;",
+									"    const postUuids = [];",
+									"    ",
+									"    while ((postMatches = postUuidRegex.exec(response)) !== null) {",
+									"        postUuids.push(postMatches[1]);",
+									"    }",
+									"    ",
+									"    if (postUuids.length > 0) {",
+									"        pm.collectionVariables.set(\"post_uuid\", postUuids[0]);",
+									"        console.log(\"Установлен post_uuid:\", postUuids[0]);",
+									"        ",
+									"        // Сохраняем все UUID постов в массив для возможного использования",
+									"        pm.collectionVariables.set(\"all_post_uuids\", JSON.stringify(postUuids));",
+									"    }",
+									"    ",
+									"    // Извлекаем tag_uuid из ссылок формата /posts/tag/{tag_uuid}",
+									"    const tagUuidRegex = /\\/posts\\/tag\\/([a-f0-9-]+)/g;",
+									"    let tagMatches;",
+									"    const tagUuids = [];",
+									"    ",
+									"    while ((tagMatches = tagUuidRegex.exec(response)) !== null) {",
+									"        tagUuids.push(tagMatches[1]);",
+									"    }",
+									"    ",
+									"    if (tagUuids.length > 0) {",
+									"        pm.collectionVariables.set(\"tag_uuid\", tagUuids[0]);",
+									"        console.log(\"Установлен tag_uuid:\", tagUuids[0]);",
+									"        ",
+									"        // Сохраняем все UUID тегов в массив для возможного использования",
+									"        pm.collectionVariables.set(\"all_tag_uuids\", JSON.stringify(tagUuids));",
+									"    }",
+									"}",
+									"",
+									"// Базовые тесты для проверки ответа",
+									"pm.test(\"Status code is 200\", function() {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response time is acceptable\", function() {",
+									"    pm.expect(pm.response.responseTime).to.be.below(500);",
+									"});",
+									"",
+									"pm.test(\"Response has valid content type\", function() {",
+									"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"text/html\");",
+									"});",
+									"",
+									"pm.test(\"Response contains posts data\", function() {",
+									"    pm.expect(pm.response.text()).to.include(\"/posts/\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/posts?from=1&size=10",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"posts"
+							],
+							"query": [
+								{
+									"key": "from",
+									"value": "1"
+								},
+								{
+									"key": "size",
+									"value": "10"
+								}
+							]
+						},
+						"description": "Получение списка постов с пагинацией"
+					},
+					"response": []
+				},
+				{
+					"name": "Get post by UUID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Тесты для запроса \"Get post by UUID\"",
+									"pm.test(\"Status code is 200\", function() {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response is HTML\", function() {",
+									"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"text/html\");",
+									"});",
+									"",
+									"pm.test(\"Post content is present\", function() {",
+									"    const responseText = pm.response.text();",
+									"    pm.expect(responseText).to.include(\"<article class=\\\"post\\\"\");",
+									"    pm.expect(responseText).to.include(\"<h1 class=\\\"post-title\\\"\");",
+									"    pm.expect(responseText).to.include(\"<div class=\\\"post-content\\\"\");",
+									"});",
+									"",
+									"pm.test(\"Post UUID matches requested\", function() {",
+									"    const responseText = pm.response.text();",
+									"    const postUuid = pm.collectionVariables.get(\"post_uuid\");",
+									"    pm.expect(responseText).to.include(`value=\"${postUuid}\"`);",
+									"    pm.expect(responseText).to.include(`/posts/${postUuid}/comments`);",
+									"});",
+									"",
+									"pm.test(\"Post tags are present\", function() {",
+									"    const responseText = pm.response.text();",
+									"    pm.expect(responseText).to.include(\"<div class=\\\"post-tags\\\"\");",
+									"    pm.expect(responseText).to.include(\"<a class=\\\"tag\\\" href=\\\"/posts/tag/\");",
+									"});",
+									"",
+									"pm.test(\"Comments section is present\", function() {",
+									"    const responseText = pm.response.text();",
+									"    pm.expect(responseText).to.include(\"<section class=\\\"comments-section\\\"\");",
+									"    pm.expect(responseText).to.include(\"<form class=\\\"add-comment-form\\\"\");",
+									"});",
+									"",
+									"// Извлекаем tag_uuid из ссылок на теги",
+									"const responseText = pm.response.text();",
+									"const tagUuidRegex = /\\/posts\\/tag\\/([a-f0-9-]+)/g;",
+									"let tagMatches;",
+									"const tagUuids = [];",
+									"",
+									"while ((tagMatches = tagUuidRegex.exec(responseText)) !== null) {",
+									"    tagUuids.push(tagMatches[1]);",
+									"}",
+									"",
+									"if (tagUuids.length > 0) {",
+									"    pm.collectionVariables.set(\"tag_uuid\", tagUuids[0]);",
+									"    console.log(\"Установлен tag_uuid:\", tagUuids[0]);",
+									"    ",
+									"    // Сохраняем все UUID тегов в массив для возможного использования",
+									"    pm.collectionVariables.set(\"all_tag_uuids\", JSON.stringify(tagUuids));",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/posts/{{post_uuid}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"posts",
+								"{{post_uuid}}"
+							]
+						},
+						"description": "Получение конкретного поста по его идентификатору"
+					},
+					"response": []
+				},
+				{
+					"name": "Create new post",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Тесты для запроса \"Create new post\"",
+									"pm.test(\"Status code is 200\", function() {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response is HTML\", function() {",
+									"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"text/html\");",
+									"});",
+									"",
+									"const responseText = pm.response.text();",
+									"",
+									"pm.test(\"Post content matches created data\", function() {",
+									"    pm.expect(responseText).to.include(\"<h1 class=\\\"post-title\\\">Новый пост</h1>\");",
+									"    pm.expect(responseText).to.include(\"<p>Содержание нового поста\");",
+									"    pm.expect(responseText).to.include(\"https://example.com/image.jpg\");",
+									"});",
+									"",
+									"pm.test(\"Post contains selected tags\", function() {",
+									"    const tagUuid = pm.collectionVariables.get(\"tag_uuid\");",
+									"    pm.expect(responseText).to.include(`/posts/tag/${tagUuid}`);",
+									"});",
+									"",
+									"// Извлекаем UUID созданного поста",
+									"const postUuidRegex = /<article class=\\\"post\\\" value=\\\"([a-f0-9-]+)\\\"/;",
+									"const postMatch = responseText.match(postUuidRegex);",
+									"if (postMatch && postMatch[1]) {",
+									"    pm.collectionVariables.set(\"post_uuid\", postMatch[1]);",
+									"    console.log(\"Установлен post_uuid из созданного поста:\", postMatch[1]);",
+									"}",
+									"",
+									"// Извлекаем UUID тегов из HTML",
+									"const tagUuidRegex = /\\/posts\\/tag\\/([a-f0-9-]+)/g;",
+									"let tagMatches;",
+									"const tagUuids = [];",
+									"",
+									"while ((tagMatches = tagUuidRegex.exec(responseText)) !== null) {",
+									"    tagUuids.push(tagMatches[1]);",
+									"}",
+									"",
+									"if (tagUuids.length > 0) {",
+									"    pm.collectionVariables.set(\"tag_uuid\", tagUuids[0]);",
+									"    pm.collectionVariables.set(\"all_tag_uuids\", JSON.stringify(tagUuids));",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "title",
+									"value": "Новый пост",
+									"type": "text"
+								},
+								{
+									"key": "content",
+									"value": "Содержание нового поста",
+									"type": "text"
+								},
+								{
+									"key": "imageUrl",
+									"value": "https://example.com/image.jpg",
+									"type": "text"
+								},
+								{
+									"key": "tags",
+									"value": "{{tag_uuid}}",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/posts",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"posts"
+							]
+						},
+						"description": "Создание нового поста"
+					},
+					"response": []
+				},
+				{
+					"name": "Update post",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Тесты для запроса \"Update post\"",
+									"pm.test(\"Status code is 200\", function() {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response is HTML\", function() {",
+									"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"text/html\");",
+									"});",
+									"",
+									"const responseText = pm.response.text();",
+									"",
+									"pm.test(\"Post title is updated\", function() {",
+									"    pm.expect(responseText).to.include(\"<h1 class=\\\"post-title\\\">Обновленный заголовок</h1>\");",
+									"});",
+									"",
+									"pm.test(\"Post content is updated\", function() {",
+									"    pm.expect(responseText).to.include(\"<p>Обновленное содержание\");",
+									"});",
+									"",
+									"pm.test(\"Post image is updated\", function() {",
+									"    pm.expect(responseText).to.include(\"https://example.com/new-image.jpg\");",
+									"});",
+									"",
+									"pm.test(\"Post contains selected tags\", function() {",
+									"    const tagUuid = pm.collectionVariables.get(\"tag_uuid\");",
+									"    pm.expect(responseText).to.include(`/posts/tag/${tagUuid}`);",
+									"});",
+									"",
+									"// Извлекаем UUID комментариев из HTML",
+									"const commentUuidRegex = /id=\\\"edit-form-([a-f0-9-]+)\\\"/g;",
+									"let commentMatches;",
+									"const commentUuids = [];",
+									"",
+									"while ((commentMatches = commentUuidRegex.exec(responseText)) !== null) {",
+									"    commentUuids.push(commentMatches[1]);",
+									"}",
+									"",
+									"if (commentUuids.length > 0) {",
+									"    pm.collectionVariables.set(\"comment_uuid\", commentUuids[0]);",
+									"    pm.collectionVariables.set(\"all_comment_uuids\", JSON.stringify(commentUuids));",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "title",
+									"value": "Обновленный заголовок",
+									"type": "text"
+								},
+								{
+									"key": "content",
+									"value": "Обновленное содержание",
+									"type": "text"
+								},
+								{
+									"key": "imageUrl",
+									"value": "https://example.com/new-image.jpg",
+									"type": "text"
+								},
+								{
+									"key": "tags",
+									"value": "{{tag_uuid}}",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/posts/{{post_uuid}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"posts",
+								"{{post_uuid}}"
+							]
+						},
+						"description": "Обновление существующего поста"
+					},
+					"response": []
+				},
+				{
+					"name": "Get posts by tag",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Тесты для запроса \"Get posts by tag\"",
+									"pm.test(\"Status code is 200\", function() {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response contains posts with specified tag\", function() {",
+									"    const responseText = pm.response.text();",
+									"    pm.expect(responseText).to.include(\"/posts/\");",
+									"    pm.expect(responseText).to.include(\"/posts/tag/\" + pm.collectionVariables.get(\"tag_uuid\"));",
+									"});",
+									"",
+									"pm.test(\"Response time is acceptable\", function() {",
+									"    pm.expect(pm.response.responseTime).to.be.below(500);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/posts/tag/{{tag_uuid}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"posts",
+								"tag",
+								"{{tag_uuid}}"
+							]
+						},
+						"description": "Получение постов по тегу"
+					},
+					"response": []
+				},
+				{
+					"name": "Set like to post",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 202 (Accepted)\", function() {",
+									"    pm.response.to.have.status(202);",
+									"});",
+									"",
+									"pm.test(\"Response is empty\", function() {",
+									"    pm.expect(pm.response.text()).to.be.empty;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/posts/{{post_uuid}}/like",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"posts",
+								"{{post_uuid}}",
+								"like"
+							]
+						},
+						"description": "Поставить лайк посту"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Comment",
+			"item": [
+				{
+					"name": "Add comment to post",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Тесты для запроса \"Add comment to post\"",
+									"pm.test(\"Status code is 200\", function() {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response is HTML\", function() {",
+									"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"text/html\");",
+									"});",
+									"",
+									"const responseText = pm.response.text();",
+									"",
+									"pm.test(\"Comment is present in response\", function() {",
+									"    pm.expect(responseText).to.include(\"Новый комментарий\");",
+									"});",
+									"",
+									"pm.test(\"Post content remains unchanged\", function() {",
+									"    pm.expect(responseText).to.include(\"<h1 class=\\\"post-title\\\">Обновленный заголовок</h1>\");",
+									"    pm.expect(responseText).to.include(\"<p>Обновленное содержание\");",
+									"});",
+									"",
+									"// Извлекаем UUID нового комментария",
+									"const commentUuidRegex = /id=\\\"edit-form-([a-f0-9-]+)\\\"/;",
+									"const commentMatch = responseText.match(commentUuidRegex);",
+									"if (commentMatch && commentMatch[1]) {",
+									"    pm.collectionVariables.set(\"comment_uuid\", commentMatch[1]);",
+									"    console.log(\"Установлен comment_uuid:\", commentMatch[1]);",
+									"    ",
+									"    // Добавляем UUID в массив всех комментариев",
+									"    let allCommentUuids = JSON.parse(pm.collectionVariables.get(\"all_comment_uuids\") || [];",
+									"    allCommentUuids.push(commentMatch[1]);",
+									"    pm.collectionVariables.set(\"all_comment_uuids\", JSON.stringify(allCommentUuids));",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "content",
+									"value": "Новый комментарий",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/posts/{{post_uuid}}/comments",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"posts",
+								"{{post_uuid}}",
+								"comments"
+							]
+						},
+						"description": "Добавление комментария к посту"
+					},
+					"response": []
+				},
+				{
+					"name": "Update comment",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200 (OK)\", function() {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response is empty\", function() {",
+									"    pm.expect(pm.response.text()).to.be.empty;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"content\": \"Updated comment text\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/posts/{{post_uuid}}/comments/{{comment_uuid}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"posts",
+								"{{post_uuid}}",
+								"comments",
+								"{{comment_uuid}}"
+							]
+						},
+						"description": "Обновление комментария"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete comment",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 204 (No Content)\", function() {",
+									"    pm.response.to.have.status(204);",
+									"});",
+									"",
+									"pm.test(\"Response is empty\", function() {",
+									"    pm.expect(pm.response.text()).to.be.empty;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/posts/{{post_uuid}}/comments/{{comment_uuid}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"posts",
+								"{{post_uuid}}",
+								"comments",
+								"{{comment_uuid}}"
+							]
+						},
+						"description": "Удаление комментария"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete post",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 204 (No Content)\", function() {",
+									"    pm.response.to.have.status(204);",
+									"});",
+									"",
+									"pm.test(\"Response is empty\", function() {",
+									"    pm.expect(pm.response.text()).to.be.empty;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/posts/{{post_uuid}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"posts",
+								"{{post_uuid}}"
+							]
+						},
+						"description": "Удаление поста"
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"exec": [
+					""
+				],
+				"type": "text/javascript"
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"exec": [
+					""
+				],
+				"type": "text/javascript"
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:9090"
+		},
+		{
+			"key": "post_uuid",
+			"value": "64172a40-90bf-464a-95a1-0b603f74f08e"
+		},
+		{
+			"key": "tag_uuid",
+			"value": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+		},
+		{
+			"key": "comment_uuid",
+			"value": ""
+		},
+		{
+			"key": "all_post_uuids",
+			"value": "[]"
+		},
+		{
+			"key": "all_tag_uuids",
+			"value": "[]"
+		},
+		{
+			"key": "all_comment_uuids",
+			"value": "[]"
+		}
+	]
+}

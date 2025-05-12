@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Post Modal</title>
+</head>
+<body>
+<div th:fragment="post-form(post, actionUrl, modalTitle)" class="modal post-modal" id="postModal">
+    <div class="post-modal-content">
+        <!-- Крестик для закрытия модального окна -->
+        <button class="close-modal-btn" id="closeModalButton">&times;</button>
+
+        <!-- Заголовок модального окна -->
+        <h1 class="post-modal-header" th:text="${modalTitle}"></h1>
+
+            <!-- Форма добавления/редактирования поста -->
+            <form class="post-content-form" th:action="${actionUrl}" method="POST" th:object="${modifyPost}">
+
+                <!-- Поле заголовка -->
+                <div class="post-content-form-field">
+                    <label class="post-content-form-label" for="post-title">Название</label>
+                    <input class="form-input" type="text" id="post-title" th:field="*{title}" required/>
+                    <small class="post-content-form-note">Заголовок поста. 3-120 символов</small>
+                </div>
+
+                <!-- Поле URL картинки -->
+                <div class="post-content-form-field">
+                    <label class="post-content-form-label" for="post-imageUrl">URL картинки</label>
+                    <input class="form-input" type="url" id="post-imageUrl" th:field="*{imageUrl}"
+                           placeholder="https://..." required/>
+                    <small class="post-content-form-note">URL картинки</small>
+                </div>
+
+                <!-- Поле тела поста -->
+                <div class="post-content-form-field">
+                    <label class="post-content-form-label" for="post-content">Тело поста</label>
+                    <textarea class="form-input" id="post-content" th:field="*{content}" required></textarea>
+                    <small class="post-content-form-note">Тело поста</small>
+                </div>
+
+                <!-- Поле выбора тегов -->
+                <div class="post-content-form-field">
+                    <label class="post-content-form-label">Тег</label>
+                    <div class="tag-checkbox-selector">
+                        <label class="tag-checkbox-selector-label" th:each="tag : ${tags}" th:for="${'tag-' + tag.uuid}">
+                            <input class="tag-checkbox" type="checkbox" th:value="${tag.uuid}" th:field="*{tags}"
+                                   th:id="${'tag-' + tag.uuid}">
+                            <span class="tag-title" th:text="${tag.title}"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Кнопка сохранения -->
+                <button class="btn btn-large save-post-btn" type="submit">Сохранить пост</button>
+            </form>
+    </div>
+</div>
+</body>
+</html>

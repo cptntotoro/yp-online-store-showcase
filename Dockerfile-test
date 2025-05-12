@@ -1,0 +1,29 @@
+# Используем образ с Gradle и JDK 21
+FROM gradle:8.6-jdk21
+
+# Устанавливаем postgresql-client для проверки доступности БД
+RUN apt-get update && \
+    apt-get install -y postgresql-client && \
+    rm -rf /var/lib/apt/lists/*
+
+# Рабочая директория
+WORKDIR /app
+
+# Копируем ВСЕ исходные файлы (и main и test)
+COPY build.gradle .
+COPY src ./src
+COPY wait-for-db.sh /wait-for-db.sh
+
+# Устанавливаем права на скрипт и исправляем формат строк
+RUN chmod +x /wait-for-db.sh && \
+    sed -i 's/\r$//' /wait-for-db.sh
+
+# Тестовые переменные окружения
+ENV SPRING_PROFILES_ACTIVE=test \
+    GRADLE_OPTS="-Dorg.gradle.daemon=false -Dorg.gradle.caching=true"
+
+# Кэшируем зависимости и компилируем проект
+RUN gradle compileJava compileTestJava --no-daemon
+
+# Команда запуска тестов
+CMD ["/wait-for-db.sh", "test_db", "gradle", "test"]

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Catalog | GeekStore</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/styles/base.css}">
+    <link rel="stylesheet" type="text/css" th:href="@{/styles/components.css}">
+    <link rel="stylesheet" type="text/css" th:href="@{/styles/layout.css}">
+    <link rel="stylesheet" type="text/css" th:href="@{/styles/product/catalog.css}">
+</head>
+
+<body>
+<header class="header">
+    <div class="container">
+        <nav class="nav">
+            <a href="/" class="logo">GeekStore</a>
+            <div class="nav-links">
+                <a href="/products" class="nav-link">Products</a>
+                <a href="/cart" class="nav-link">
+                    Cart <span th:if="${@shoppingCartService.getTotalItems()} > 0"
+                               class="cart-count"
+                               th:text="${@shoppingCartService.getTotalItems()}">0</span>
+                </a>
+                <a href="/orders" class="nav-link">Orders</a>
+            </div>
+        </nav>
+    </div>
+</header>
+
+<main class="main">
+    <div class="container">
+        <div class="filters shadow rounded">
+            <form th:action="@{/products}" method="get" class="flex gap-4 items-center">
+                <div class="filter-group">
+                    <input type="text"
+                           name="search"
+                           placeholder="Search products..."
+                           th:value="${param.search}"
+                           class="form-control">
+                </div>
+                <div class="filter-group">
+                    <select name="sort" class="form-control select-control">
+                        <option value="">Sort by</option>
+                        <option value="price-asc" th:selected="${param.sort == 'price-asc'}">Price: Low to High</option>
+                        <option value="price-desc" th:selected="${param.sort == 'price-desc'}">Price: High to Low
+                        </option>
+                        <option value="name-asc" th:selected="${param.sort == 'name-asc'}">Name: A-Z</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <select name="size" class="form-control select-control">
+                        <option value="10" th:selected="${param.size == '10'}">10 per page</option>
+                        <option value="20" th:selected="${param.size == '20'}">20 per page</option>
+                        <option value="50" th:selected="${param.size == '50'}">50 per page</option>
+                        <option value="100" th:selected="${param.size == '100'}">100 per page</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">Apply</button>
+            </form>
+        </div>
+
+        <div class="product-grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div th:each="product : ${products}" class="card">
+                <a th:href="@{/products/{id}(id=${product.id})}">
+                    <img th:src="${product.imageUrl}" alt="Product image" class="card-img">
+                </a>
+                <div class="card-body">
+                    <a th:href="@{/products/{id}(id=${product.id})}">
+                        <h3 class="card-title" th:text="${product.name}">Product Name</h3>
+                    </a>
+                    <p class="card-text" th:text="${product.description}">Product description</p>
+                    <div class="flex justify-between items-center mt-4">
+                        <span class="card-price"
+                              th:text="'$' + ${#numbers.formatDecimal(product.price, 1, 2)}">$0.00</span>
+                        <form th:action="@{/cart/add/{id}(id=${product.id})}" method="post" class="flex gap-2">
+                            <input type="number" name="quantity" value="1" min="1" class="form-control w-16">
+                            <button type="submit" class="btn btn-primary btn-sm">Add</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div th:if="${products.totalPages > 1}" class="pagination mt-8">
+            <a th:href="@{/products(size=${param.size},page=0,search=${param.search},sort=${param.sort})}"
+               class="page-link"
+               th:classappend="${products.number == 0} ? 'disabled'">First</a>
+            <a th:href="@{/products(size=${param.size},page=${products.number-1},search=${param.search},sort=${param.sort})}"
+               class="page-link"
+               th:classappend="${!products.hasPrevious()} ? 'disabled'">Previous</a>
+
+            <span th:each="i : ${#numbers.sequence(max(1, products.number-2), min(products.number+3, products.totalPages))}">
+                            <a th:href="@{/products(size=${param.size},page=${i-1},search=${param.search},sort=${param.sort})}"
+                               class="page-link"
+                               th:classappend="${products.number == i-1} ? 'active'"
+                               th:text="${i}">1</a>
+                        </span>
+
+            <a th:href="@{/products(size=${param.size},page=${products.number+1},search=${param.search},sort=${param.sort})}"
+               class="page-link"
+               th:classappend="${!products.hasNext()} ? 'disabled'">Next</a>
+            <a th:href="@{/products(size=${param.size},page=${products.totalPages-1},search=${param.search},sort=${param.sort})}"
+               class="page-link"
+               th:classappend="${products.number == products.totalPages-1} ? 'disabled'">Last</a>
+        </div>
+    </div>
+</main>
+
+<script>
+    document.querySelectorAll('input[type="number"]').forEach(input => {
+        input.addEventListener('change', function () {
+            if (this.value < 1) this.value = 1;
+        });
+    });
+</script>
+</body>
+</html>

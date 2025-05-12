@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru">
+  <head>
+    <meta charset="UTF-8">
+  </head>
+
+  <body>
+    <div th:fragment="comment(postUuid, comment)" class="comment" th:if="${comment != null}" th:value="${comment.uuid}" th:id="'comment-' + ${comment.uuid}">
+      <img th:src="@{/images/avatar-placeholder.png}" alt="Аватар" class="comment-avatar">
+      <div class="comment-body">
+        <div class="comment-author">Неопознанный робокоп</div>
+        <div class="comment-text" th:text="${comment.content}" th:onclick="toggleEditCommentForm([[${comment.uuid}]], true)"></div>
+        <div class="comment-date" th:text="${#temporals.format(comment.dateTime, 'dd.MM.yyyy HH:mm:ss')}"></div>
+
+        <!-- Форма редактирования комментария -->
+        <form class="edit-comment-form" th:id="'edit-form-' + ${comment.uuid}">
+          <textarea class="form-input edit-comment-textarea"
+                    th:id="'comment-content-' + ${comment.uuid}"
+                    th:text="${comment.content}"
+                    th:onkeydown="handleKeyDown(event, [[${post.uuid}]], [[${comment.uuid}]])"></textarea>
+          <div class="edit-comment-actions">
+            <button class="btn btn-small update-comment-btn" type="button"
+                    th:onclick="updateComment([[${post.uuid}]], [[${comment.uuid}]])">&#x1F4BE; Сохранить</button>
+            <button class="btn btn-small cancel-comment-btn" type="button" th:onclick="toggleEditCommentForm([[${comment.uuid}]], false)">&#x2716; Отменить</button>
+          </div>
+        </form>
+
+        <!-- Кнопки действий -->
+        <div class="comment-actions">
+          <button class="btn btn-small edit-comment-btn" th:onclick="toggleEditCommentForm([[${comment.uuid}]], true)">&#x270F;&#xFE0F; Редактировать</button>
+          <button class="btn btn-small delete-comment-btn" th:onclick="deleteComment([[${postUuid}]], [[${comment.uuid}]])">&#x1F5D1;&#xFE0F; Удалить</button>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

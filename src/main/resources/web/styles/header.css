@@ -1,0 +1,21 @@
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+/* Кастомные иконки через UTF-8 символы и псевдоэлементы */
+.icon::before {
+    display: inline-block;
+    margin-right: 0.5rem;
+    font-style: normal;
+}
+
+.icon-cart::before { content: '🛒'; }
+.icon-store::before { content: '🏪'; }
+.icon-history::before { content: '🕰️'; }
+.icon-back::before { content: '←'; }
+.icon-plus::before { content: '+'; font-weight: bold; }
+.icon-minus::before { content: '-'; font-weight: bold; }
+.icon-trash::before { content: '🗑️'; }
+.icon-credit-card::before { content: '💳'; }
+.icon-box::before { content: '📦'; }
+.icon-empty::before { content: '😕'; font-style: normal; }
