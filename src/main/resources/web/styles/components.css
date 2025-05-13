@@ -71,7 +71,7 @@
 
 .card-img {
     width: 100%;
-    height: 12rem;
+    height: 400px;
     object-fit: cover;
 }
 
@@ -89,6 +89,19 @@
     color: var(--gray-dark);
     margin-bottom: 1rem;
     font-size: 0.9375rem;
+}
+
+.price-controls-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.add-to-cart-form {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    max-width: 240px;
 }
 
 /* Формы */

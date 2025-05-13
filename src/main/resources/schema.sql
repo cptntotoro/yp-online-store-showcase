@@ -22,8 +22,8 @@ CREATE INDEX IF NOT EXISTS idx_orders_created_at ON orders(created_at);
 
 CREATE TABLE IF NOT EXISTS order_items (
    order_item_uuid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-   order_uuid BIGINT NOT NULL,
-   product_uuid BIGINT NOT NULL,
+   order_uuid UUID NOT NULL,
+   product_uuid UUID NOT NULL,
    quantity INT NOT NULL,
    FOREIGN KEY (order_uuid) REFERENCES orders(order_uuid) ON DELETE CASCADE,
    FOREIGN KEY (product_uuid) REFERENCES products(product_uuid)

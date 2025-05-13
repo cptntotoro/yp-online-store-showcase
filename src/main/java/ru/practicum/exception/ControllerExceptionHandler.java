@@ -31,6 +31,15 @@ public class ControllerExceptionHandler {
         return "error";
     }
 
+    @ExceptionHandler(RuntimeException.class)
+    @ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR)
+    public String exceptionNotFound(Model model) {
+        String reason = "Ошибка сервера.";
+        ApiError error = new ApiError(HttpStatus.INTERNAL_SERVER_ERROR.toString(), reason, "Возникла проблема на стороне сервера", LocalDateTime.now());
+        model.addAttribute("error", error);
+        return "error";
+    }
+
 //    @ExceptionHandler(InvalidTagException.class)
 //    @ResponseStatus(value = HttpStatus.BAD_REQUEST)
 //    public String exceptionNotFound(InvalidTagException e, Model model) {

@@ -21,7 +21,7 @@
                 <div class="filter-group">
                     <input type="text"
                            name="search"
-                           placeholder="Введите название товара..."
+                           placeholder="Название товара..."
                            th:value="${param.search}"
                            class="form-control">
                 </div>
@@ -46,21 +46,21 @@
             </form>
         </div>
 
-        <div class="product-grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="product-container gap-6">
             <div th:each="product : ${products}" class="card">
-                <a th:href="@{/products/{id}(id=${product.id})}">
+                <a th:href="@{/products/{uuid}(id=${product.uuid})}">
                     <img th:src="${product.imageUrl}" alt="Product image" class="card-img">
                 </a>
                 <div class="card-body">
-                    <a th:href="@{/products/{id}(id=${product.id})}">
+                    <a th:href="@{/products/{uuid}(id=${product.uuid})}">
                         <h3 class="card-title" th:text="${product.name}">Название товара</h3>
                     </a>
                     <p class="card-text" th:text="${product.description}">Описание товара</p>
-                    <div class="flex justify-between items-center mt-4">
+                    <div class="price-controls-container mt-4">
                         <span class="card-price"
-                              th:text="'$' + ${#numbers.formatDecimal(product.price, 1, 2)}">0.00</span>
-                        <form th:action="@{/cart/add/{id}(id=${product.id})}" method="post" class="flex gap-2">
-                            <input type="number" name="quantity" value="1" min="1" class="form-control w-16">
+                              th:text="${#numbers.formatDecimal(product.price, 1, 2)} + ' ₽'"></span>
+                        <form th:action="@{/cart/add/{uuid}(uuid=${product.uuid})}" method="post" class="add-to-cart-form">
+                            <input type="number" name="quantity" value="1" min="1" class="form-control">
                             <button type="submit" class="btn btn-primary btn-sm">Добавить в корзину</button>
                         </form>
                     </div>
