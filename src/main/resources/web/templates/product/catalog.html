@@ -48,11 +48,11 @@
 
         <div class="product-container gap-6">
             <div th:each="product : ${products}" class="card">
-                <a th:href="@{/products/{uuid}(id=${product.uuid})}">
+                <a th:href="@{/products/{uuid}(uuid=${product.uuid})}">
                     <img th:src="${product.imageUrl}" alt="Product image" class="card-img">
                 </a>
                 <div class="card-body">
-                    <a th:href="@{/products/{uuid}(id=${product.uuid})}">
+                    <a th:href="@{/products/{uuid}(uuid=${product.uuid})}">
                         <h3 class="card-title" th:text="${product.name}">Название товара</h3>
                     </a>
                     <p class="card-text" th:text="${product.description}">Описание товара</p>

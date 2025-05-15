@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:text="'Order #' + ${order.id} + ' | GeekStore'">Детали заказа | GeekStore</title>
+    <title th:text="${product.name} + ' | GeekStore'">Детали заказа | GeekStore</title>
     <link rel="icon" type="image/png" th:href="@{/images/favicon.ico}"/>
     <link rel="stylesheet" type="text/css" th:href="@{/styles/base.css}">
     <link rel="stylesheet" type="text/css" th:href="@{/styles/components.css}">
@@ -31,19 +31,17 @@
                     <h1 class="product-detail-title" th:text="${product.name}"></h1>
 
                     <div class="product-detail-meta">
-                        <span>UUID: <span th:text="${product.id}"></span></span>
-                        <span>|</span>
                         <span>В наличии</span>
                     </div>
 
                     <div class="product-detail-price"
-                         th:text="'$' + ${#numbers.formatDecimal(product.price, 1, 2)}"></div>
+                         th:text="${#numbers.formatDecimal(product.price, 1, 2)} + ' ₽'"></div>
 
                     <div class="product-detail-description"
                          th:text="${product.description}"></div>
 
                     <div class="product-detail-actions">
-                        <form th:action="@{/cart/add/{id}(id=${product.id})}" method="post"
+                        <form th:action="@{/cart/add/{uuid}(uuid=${product.uuid})}" method="post"
                               class="flex items-center gap-4">
                             <div class="quantity-selector">
                                 <label for="quantity" class="text-sm font-semibold">Количество:</label>
@@ -62,23 +60,16 @@
                 </div>
             </div>
         </div>
-
-        <div class="product-section">
-            <h2 class="section-title">Описание товара</h2>
-            <div class="prose max-w-none" th:text="${product.fullDescription}">
-                <!-- Полное описание товара -->
-            </div>
-        </div>
     </div>
 </main>
 
 <div th:replace="~{../fragments/footer :: footer}"></div>
 
-<script>
-    // Валидация количества
-    document.getElementById('quantity').addEventListener('change', function () {
-        if (this.value < 1) this.value = 1;
-    });
-</script>
+<!--<script>-->
+<!--    // Валидация количества-->
+<!--    document.getElementById('quantity').addEventListener('change', function () {-->
+<!--        if (this.value < 1) this.value = 1;-->
+<!--    });-->
+<!--</script>-->
 </body>
 </html>

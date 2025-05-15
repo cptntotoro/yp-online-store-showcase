@@ -33,7 +33,7 @@
                            th:text="'$' + ${#numbers.formatDecimal(item.product.price, 1, 2)}"></p>
                     </div>
                     <div class="cart-item-actions">
-                        <form th:action="@{/cart/update/{id}(id=${item.product.id})}" method="post"
+                        <form th:action="@{/cart/update/{uuid}(uuid=${item.product.uuid})}" method="post"
                               class="quantity-control">
                             <button type="button" class="quantity-btn"
                                     onclick="this.nextElementSibling.stepDown(); this.nextElementSibling.dispatchEvent(new Event('change'))">
@@ -50,7 +50,7 @@
                                 +
                             </button>
                         </form>
-                        <form th:action="@{/cart/remove/{id}(id=${item.product.id})}" method="post" class="mt-2">
+                        <form th:action="@{/cart/remove/{uuid}(uuid=${item.product.uuid})}" method="post" class="mt-2">
                             <button type="submit" class="btn btn-danger btn-sm">Удалить</button>
                         </form>
                     </div>

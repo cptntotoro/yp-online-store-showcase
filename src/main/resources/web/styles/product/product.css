@@ -27,8 +27,6 @@
     height: auto;
     max-height: 500px;
     object-fit: contain;
-    border-radius: var(--radius-sm);
-    background-color: var(--gray-light);
     padding: 1rem;
 }
 
@@ -93,17 +91,4 @@
 
 .back-link:hover {
     text-decoration: underline;
-}
-
-/* Дополнения к базовым стилям */
-.product-section {
-    margin-top: 3rem;
-}
-
-.section-title {
-    font-size: 1.25rem;
-    font-weight: 600;
-    margin-bottom: 1rem;
-    padding-bottom: 0.5rem;
-    border-bottom: 1px solid var(--gray-light);
 }

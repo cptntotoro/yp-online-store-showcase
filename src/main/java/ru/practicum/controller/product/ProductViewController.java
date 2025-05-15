@@ -45,7 +45,7 @@ public class ProductViewController {
     }
 
     @GetMapping("/{uuid}")
-    public String showProductDetails(@PathVariable UUID uuid, Model model) {
+    public String showProductDetails(@PathVariable("uuid") UUID uuid, Model model) {
         Product product = productService.getByUuid(uuid);
         model.addAttribute("product", product);
         return "product/product";

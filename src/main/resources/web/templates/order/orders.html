@@ -25,12 +25,12 @@
 
         <div th:unless="${orders.empty}" class="space-y-4">
             <div th:each="order : ${orders}" class="order-card">
-                <a th:href="@{/orders/{id}(id=${order.id})}" class="block">
+                <a th:href="@{/orders/{uuid}(uuid=${order.uuid})}" class="block">
                     <div class="order-header">
                         <div>
-                            <h3 class="order-id" th:text="'Order #' + ${order.id}"></h3>
+                            <h3 class="order-id" th:text="'Order #' + ${order.uuid}"></h3>
                             <p class="order-date"
-                               th:text="${#temporals.format(order.createdAt, 'MMMM dd, yyyy hh:mm a')}"></p>
+                               th:text="${#temporals.format(order.createdAt, 'dd MMMM, yyyy hh:mm a')}"></p>
                         </div>
                         <span class="order-status status-completed">Завершен</span>
                     </div>
