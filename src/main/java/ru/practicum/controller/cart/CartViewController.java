@@ -4,9 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.model.Product;
-import ru.practicum.service.product.ProductServiceImpl;
-import ru.practicum.service.cart.ShoppingCartServiceImpl;
+import ru.practicum.annotation.CurrentUserUuid;
+import ru.practicum.service.cart.CartServiceImpl;
 
 import java.util.UUID;
 
@@ -14,32 +13,34 @@ import java.util.UUID;
 @RequestMapping("/cart")
 @RequiredArgsConstructor
 public class CartViewController {
-    private final ShoppingCartServiceImpl cartService;
-    private final ProductServiceImpl productService;
+    private final CartServiceImpl cartService;
 
     @GetMapping
-    public String showCart(Model model) {
-        model.addAttribute("items", cartService.getAll());
-        model.addAttribute("total", cartService.getTotalPrice());
+    public String showCart(Model model, @CurrentUserUuid String userUuid) {
+        model.addAttribute("cart", cartService.get(UUID.fromString(userUuid)));
         return "cart/cart";
     }
 
     @PostMapping("/add/{productUuid}")
-    public String addToCart(@PathVariable UUID productUuid, @RequestParam int quantity) {
-        Product product = productService.getByUuid(productUuid);
-        cartService.add(product, quantity);
+    public String addToCart(
+            @CookieValue(name = "USER_UUID") String userUuid,
+            @PathVariable UUID productUuid,
+            @RequestParam int quantity) {
+        cartService.addToCart(UUID.fromString(userUuid), productUuid, quantity);
         return "redirect:/products/" + productUuid;
     }
 
-    @PostMapping("/update/{productUuid}")
-    public String updateCartItem(@PathVariable UUID productUuid, @RequestParam int quantity) {
-        cartService.updateQuantity(productUuid, quantity);
+    @PostMapping("/remove/{productUuid}")
+    public String removeFromCart(
+            @CookieValue(name = "USER_UUID") String userUuid,
+            @PathVariable UUID productUuid) {
+        cartService.removeFromCart(UUID.fromString(userUuid), productUuid);
         return "redirect:/cart";
     }
 
-    @PostMapping("/remove/{productUuid}")
-    public String removeFromCart(@PathVariable UUID productUuid) {
-        cartService.remove(productUuid);
+    @PostMapping("/clear")
+    public String clearCart(@CookieValue(name = "USER_UUID") String userUuid) {
+        cartService.clear(UUID.fromString(userUuid));
         return "redirect:/cart";
     }
 }

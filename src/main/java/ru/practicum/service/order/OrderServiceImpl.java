@@ -2,50 +2,49 @@ package ru.practicum.service.order;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.exception.order.OrderNotFoundException;
-import ru.practicum.model.CartItem;
-import ru.practicum.model.Order;
-import ru.practicum.model.OrderItem;
-import ru.practicum.model.Product;
+import ru.practicum.model.cart.Cart;
+import ru.practicum.model.order.Order;
+import ru.practicum.model.order.OrderStatus;
 import ru.practicum.repository.order.OrderRepository;
-import ru.practicum.service.product.ProductServiceImpl;
+import ru.practicum.service.cart.CartService;
 
-import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
-    private final ProductServiceImpl productService;
+    private final CartService cartService;
 
     @Override
-    public Order add(List<CartItem> cartItems) {
-        Order order = new Order();
-        order.setCreatedAt(LocalDateTime.now());
+    @Transactional
+    public Order create(UUID userUuid) {
+        Cart cart = cartService.get(userUuid);
+        Order order = new Order(userUuid, cart);
+        order = orderRepository.save(order);
 
-        Set<OrderItem> orderItems = cartItems.stream()
-                .map(cartItem -> {
-                    Product product = productService.getByUuid(cartItem.getProductUuid());
+        // Очищаем корзину после создания заказа
+        cartService.clear(userUuid);
 
-                    return OrderItem.builder()
-                            .product(product)
-                            .quantity(cartItem.getQuantity())
-                            .order(order)
-                            .build();
-                })
-                .collect(Collectors.toSet());
+        return order;
+    }
 
-        order.setItems(orderItems);
+    @Transactional
+    @Override
+    public Order updateStatus(UUID orderUuid, OrderStatus newStatus) {
+        Order order = orderRepository.findById(orderUuid)
+                .orElseThrow(() -> new OrderNotFoundException("Заказ с uuid = " + orderUuid + " не найден и не был обновлен."));
+
+        order.setStatus(newStatus);
         return orderRepository.save(order);
     }
 
     @Override
-    public List<Order> getAll() {
-        return orderRepository.findAll();
+    public List<Order> getUserOrders(UUID userUuid) {
+        return orderRepository.findByUserUuid(userUuid);
     }
 
     @Override

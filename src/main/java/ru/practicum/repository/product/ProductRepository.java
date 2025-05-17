@@ -3,7 +3,7 @@ package ru.practicum.repository.product;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import ru.practicum.model.Product;
+import ru.practicum.model.product.Product;
 
 import java.util.UUID;
 

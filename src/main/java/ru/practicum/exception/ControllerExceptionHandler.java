@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import ru.practicum.exception.order.OrderNotFoundException;
 import ru.practicum.exception.product.ProductNotFoundException;
+import ru.practicum.exception.user.UserNotFoundException;
 
 import java.time.LocalDateTime;
 
@@ -16,7 +17,7 @@ public class ControllerExceptionHandler {
     @ExceptionHandler(ProductNotFoundException.class)
     @ResponseStatus(value = HttpStatus.NOT_FOUND)
     public String exceptionNotFound(ProductNotFoundException e, Model model) {
-        String reason = "Товар с таким uuid не найден." + e.getMessage();
+        String reason = "Товар с таким uuid не найден. " + e.getMessage();
         ApiError error = new ApiError(HttpStatus.NOT_FOUND.toString(), reason, e.getMessage(), LocalDateTime.now());
         model.addAttribute("error", error);
         return "error";
@@ -25,7 +26,16 @@ public class ControllerExceptionHandler {
     @ExceptionHandler(OrderNotFoundException.class)
     @ResponseStatus(value = HttpStatus.NOT_FOUND)
     public String exceptionNotFound(OrderNotFoundException e, Model model) {
-        String reason = "Заказ с таким uuid не найден." + e.getMessage();
+        String reason = "Заказ с таким uuid не найден. " + e.getMessage();
+        ApiError error = new ApiError(HttpStatus.NOT_FOUND.toString(), reason, e.getMessage(), LocalDateTime.now());
+        model.addAttribute("error", error);
+        return "error";
+    }
+
+    @ExceptionHandler(UserNotFoundException.class)
+    @ResponseStatus(value = HttpStatus.NOT_FOUND)
+    public String exceptionNotFound(UserNotFoundException e, Model model) {
+        String reason = "Пользователь с таким uuid не найден. " + e.getMessage();
         ApiError error = new ApiError(HttpStatus.NOT_FOUND.toString(), reason, e.getMessage(), LocalDateTime.now());
         model.addAttribute("error", error);
         return "error";

@@ -5,7 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import ru.practicum.exception.product.ProductNotFoundException;
-import ru.practicum.model.Product;
+import ru.practicum.model.product.Product;
 import ru.practicum.repository.product.ProductRepository;
 
 import java.util.UUID;

@@ -11,13 +11,11 @@
       <nav class="nav">
         <a href="/products" class="logo">GeekStore</a>
         <div class="nav-links">
-          <a href="/products" class="nav-link">Товары</a>
-          <a href="/cart" class="nav-link">
-<!--            Cart <span th:if="${@shoppingCartService.getTotalItems()} > 0"-->
-<!--                       class="cart-count"-->
-<!--                       th:text="${@shoppingCartService.getTotalItems()}">0</span>-->
-          </a>
-          <a href="/orders" class="nav-link">Заказы</a>
+            <a href="/orders" class="nav-link">Заказы</a>
+            <a href="/cart" class="nav-link">
+                Корзина
+                <span class="cart-total" th:text="${#numbers.formatDecimal(cartTotal != null ? cartTotal : 0, 0, 2, 'COMMA')} + ' ₽'"></span>
+            </a>
         </div>
       </nav>
     </div>

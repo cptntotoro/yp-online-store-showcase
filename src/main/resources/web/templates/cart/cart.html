@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,7 +8,7 @@
     <link rel="stylesheet" type="text/css" th:href="@{/styles/base.css}">
     <link rel="stylesheet" type="text/css" th:href="@{/styles/components.css}">
     <link rel="stylesheet" type="text/css" th:href="@{/styles/layout.css}">
-    <link rel="stylesheet" type="text/css" th:href="@{/styles/product/cart.css}">
+    <link rel="stylesheet" type="text/css" th:href="@{/styles/cart/cart.css}">
 </head>
 <body>
 <div th:replace="~{../fragments/header :: header}"></div>
@@ -17,15 +17,16 @@
     <div class="container">
         <h1 class="text-2xl font-bold mb-6">Корзина</h1>
 
-        <div th:if="${items.empty}" class="empty-cart shadow rounded p-8 text-center">
+        <div th:if="${cart == null or cart.items.empty}" class="empty-cart shadow rounded p-8 text-center">
             <div class="empty-icon text-4xl mb-4">🛒</div>
             <p class="empty-text">Ваша корзина пуста</p>
             <a href="/products" class="btn btn-primary">Продолжить покупки</a>
         </div>
 
-        <div th:unless="${items.empty}">
+        <!-- Основной блок корзины -->
+        <div th:unless="${cart == null or cart.items.empty}">
             <div class="space-y-4">
-                <div th:each="item : ${items}" class="cart-item shadow-sm">
+                <div th:each="item : ${cart.items}" class="cart-item shadow-sm">
                     <img th:src="${item.product.imageUrl}" alt="Product image" class="cart-item-img">
                     <div class="cart-item-details">
                         <h3 class="cart-item-title" th:text="${item.product.name}"></h3>
@@ -35,20 +36,6 @@
                     <div class="cart-item-actions">
                         <form th:action="@{/cart/update/{uuid}(uuid=${item.product.uuid})}" method="post"
                               class="quantity-control">
-                            <button type="button" class="quantity-btn"
-                                    onclick="this.nextElementSibling.stepDown(); this.nextElementSibling.dispatchEvent(new Event('change'))">
-                                -
-                            </button>
-                            <input type="number"
-                                   name="quantity"
-                                   th:value="${item.quantity}"
-                                   min="1"
-                                   class="quantity-input"
-                                   onchange="this.form.submit()">
-                            <button type="button" class="quantity-btn"
-                                    onclick="this.previousElementSibling.stepUp(); this.previousElementSibling.dispatchEvent(new Event('change'))">
-                                +
-                            </button>
                         </form>
                         <form th:action="@{/cart/remove/{uuid}(uuid=${item.product.uuid})}" method="post" class="mt-2">
                             <button type="submit" class="btn btn-danger btn-sm">Удалить</button>
@@ -57,18 +44,19 @@
                 </div>
             </div>
 
+            <!-- Блок итогов -->
             <div class="cart-summary shadow rounded mt-8">
                 <div class="summary-row">
-                    <span>Subtotal:</span>
-                    <span th:text="'$' + ${#numbers.formatDecimal(total, 1, 2)}"></span>
+                    <span>Итого:</span>
+                    <span th:text="'$' + ${#numbers.formatDecimal(cart.totalPrice, 1, 2)}"></span>
                 </div>
                 <div class="summary-row">
-                    <span>Shipping:</span>
-                    <span>Free</span>
+                    <span>Доставка:</span>
+                    <span>Бесплатно</span>
                 </div>
                 <div class="summary-row summary-total">
-                    <span>Total:</span>
-                    <span th:text="'$' + ${#numbers.formatDecimal(total, 1, 2)}"></span>
+                    <span>Всего:</span>
+                    <span th:text="'$' + ${#numbers.formatDecimal(cart.totalPrice, 1, 2)}"></span>
                 </div>
 
                 <div class="flex justify-between mt-6">
@@ -83,6 +71,5 @@
 </main>
 
 <div th:replace="~{../fragments/footer :: footer}"></div>
-
 </body>
 </html>

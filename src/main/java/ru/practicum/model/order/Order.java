@@ -1,0 +1,72 @@
+package ru.practicum.model.order;
+
+import jakarta.persistence.*;
+import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.GenericGenerator;
+import ru.practicum.model.cart.Cart;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
+@Entity
+@Table(name = "orders")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class Order {
+    @Id
+    @GeneratedValue(generator = "UUID")
+    @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
+    @Column(name = "order_uuid", updatable = false, nullable = false)
+    private UUID uuid;
+
+    @Column(name = "user_uuid", nullable = false)
+    private UUID userUuid;
+
+    @OneToOne
+    @JoinColumn(name = "cart_uuid", nullable = false)
+    private Cart cart;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private OrderStatus status;
+
+    @Column(precision = 10, scale = 2)
+    private BigDecimal totalAmount;
+
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<OrderItem> items = new ArrayList<>();
+
+    @CreationTimestamp
+    private LocalDateTime createdAt;
+
+    public Order(UUID userUuid, Cart cart) {
+        this.userUuid = userUuid;
+        this.cart = cart;
+        this.status = OrderStatus.CREATED;
+        this.totalAmount = cart.getTotalPrice();
+
+        // Переносим элементы из корзины в заказ
+        cart.getItems().forEach(cartItem -> {
+            OrderItem orderItem = new OrderItem(
+                    this,
+                    cartItem.getProduct(),
+                    cartItem.getQuantity(),
+                    cartItem.getProduct().getPrice()
+            );
+            items.add(orderItem);
+        });
+    }
+//    @Transient
+//    public BigDecimal getTotalPrice() {
+//        return items.stream()
+//                .map(OrderItem::getTotalPrice)
+//                .reduce(BigDecimal.ZERO, BigDecimal::add);
+//    }
+}
