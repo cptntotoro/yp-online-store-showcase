@@ -62,7 +62,7 @@ CREATE TABLE IF NOT EXISTS orders (
         'CANCELLED',
         'REFUNDED'
     )),
-    total_amount DECIMAL(10, 2) NOT NULL,
+    total_amount DECIMAL(10, 2) DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_uuid) REFERENCES users(user_uuid),
     FOREIGN KEY (cart_uuid) REFERENCES carts(cart_uuid)

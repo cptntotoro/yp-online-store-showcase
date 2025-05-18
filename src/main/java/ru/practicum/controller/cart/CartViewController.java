@@ -16,31 +16,40 @@ public class CartViewController {
     private final CartServiceImpl cartService;
 
     @GetMapping
-    public String showCart(Model model, @RequestAttribute(WebAttributes.USER_UUID) String userUuid) {
-        model.addAttribute("cart", cartService.get(UUID.fromString(userUuid)));
+    public String showCart(Model model, @RequestAttribute(WebAttributes.USER_UUID) UUID userUuid) {
+        model.addAttribute("cart", cartService.get(userUuid));
         return "cart/cart";
     }
 
     @PostMapping("/add/{productUuid}")
     public String addToCart(
-            @RequestAttribute(WebAttributes.USER_UUID) String userUuid,
+            @RequestAttribute(WebAttributes.USER_UUID) UUID userUuid,
             @PathVariable UUID productUuid,
             @RequestParam int quantity) {
-        cartService.addToCart(UUID.fromString(userUuid), productUuid, quantity);
+        cartService.addToCart(userUuid, productUuid, quantity);
         return "redirect:/products/" + productUuid;
     }
 
     @PostMapping("/remove/{productUuid}")
     public String removeFromCart(
-            @RequestAttribute(WebAttributes.USER_UUID) String userUuid,
+            @RequestAttribute(WebAttributes.USER_UUID) UUID userUuid,
             @PathVariable UUID productUuid) {
-        cartService.removeFromCart(UUID.fromString(userUuid), productUuid);
+        cartService.removeFromCart(userUuid, productUuid);
+        return "redirect:/cart";
+    }
+
+    @PostMapping("/cart/update/{uuid}")
+    public String updateCartItem(
+            @PathVariable UUID uuid,
+            @RequestParam int quantity,
+            @RequestAttribute UUID userUuid) {
+        cartService.updateItemQuantity(userUuid, uuid, quantity);
         return "redirect:/cart";
     }
 
     @PostMapping("/clear")
-    public String clearCart(@RequestAttribute(WebAttributes.USER_UUID) String userUuid) {
-        cartService.clear(UUID.fromString(userUuid));
+    public String clearCart(@RequestAttribute(WebAttributes.USER_UUID) UUID userUuid) {
+        cartService.clear(userUuid);
         return "redirect:/cart";
     }
 }

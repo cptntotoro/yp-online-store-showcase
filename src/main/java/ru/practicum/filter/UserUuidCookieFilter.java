@@ -10,6 +10,7 @@ import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import ru.practicum.config.WebAttributes;
@@ -29,9 +30,9 @@ public class UserUuidCookieFilter extends OncePerRequestFilter {
     private final UserService userService;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain chain) throws IOException, ServletException {
+    protected void doFilterInternal(@NonNull HttpServletRequest request,
+                                    @NonNull HttpServletResponse response,
+                                    @NonNull FilterChain chain) throws IOException, ServletException {
 
         // 1. Проверяем наличие куки
         UUID userUuid = extractUuidFromRequest(request);

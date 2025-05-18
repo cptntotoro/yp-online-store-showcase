@@ -20,8 +20,8 @@ public class OrderViewController {
     private final CartService cartService;
 
     @GetMapping
-    public String showOrderList(@RequestAttribute(WebAttributes.USER_UUID) String userUuid, Model model) {
-        List<Order> orders = orderService.getUserOrders(UUID.fromString(userUuid));
+    public String showOrderList(@RequestAttribute(WebAttributes.USER_UUID) UUID userUuid, Model model) {
+        List<Order> orders = orderService.getUserOrders(userUuid);
         model.addAttribute("orders", orders);
         return "order/orders";
     }
@@ -34,14 +34,9 @@ public class OrderViewController {
     }
 
     @PostMapping("/checkout")
-    public String checkout(@RequestAttribute(WebAttributes.USER_UUID) String userUuid) {
-//        Cart cart = cartService.get(UUID.fromString(userUuid));
-//        if (cart.getItems().isEmpty()) {
-//            return "redirect:/cart";
-//        }
-//
-        Order order = orderService.create(UUID.fromString(userUuid));
-        cartService.clear(UUID.fromString(userUuid));
+    public String checkout(@RequestAttribute(WebAttributes.USER_UUID) UUID userUuid) {
+        Order order = orderService.create(userUuid);
+        cartService.clear(userUuid);
         return "redirect:/orders/" + order.getUuid();
     }
 }

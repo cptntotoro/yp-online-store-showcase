@@ -13,8 +13,8 @@
         <div class="nav-links">
             <a href="/orders" class="nav-link">Заказы</a>
             <a href="/cart" class="nav-link">
-                Корзина
-                <span class="cart-total" th:text="${#numbers.formatDecimal(cartTotal != null ? cartTotal : 0, 0, 2, 'COMMA')} + ' ₽'"></span>
+                🛒
+                <span class="cart-total" th:text="${cartTotal != null ? (cartTotal == 0 ? '0,00' : #numbers.formatDecimal(cartTotal, 0, 2, 'COMMA')) : '0,00'} + ' ₽'"></span>
             </a>
         </div>
       </nav>

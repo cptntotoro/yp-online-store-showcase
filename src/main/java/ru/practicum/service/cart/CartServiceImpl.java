@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+import ru.practicum.exception.cart.CartNotFoundException;
 import ru.practicum.exception.product.ProductNotFoundException;
 import ru.practicum.model.cart.Cart;
 import ru.practicum.model.product.Product;
@@ -29,7 +30,7 @@ public class CartServiceImpl implements CartService {
     @Override
     public Cart get(UUID userUuid) {
         return cartRepository.findByUserUuid(userUuid)
-                .orElseGet(() -> create(userUuid));
+                .orElseThrow(() -> new CartNotFoundException("Корзина пользователя с uuid = " + userUuid + " не найдена."));
     }
 
     @Override
@@ -63,11 +64,7 @@ public class CartServiceImpl implements CartService {
 //            }
 //        }
 //    }
-//
-//    @Override
-//    public List<CartItem> getAll() {
-//        return new ArrayList<>(cart.values());
-//    }
+
 
     @Override
     @CacheEvict(value = "cartTotals", key = "#userUuid")
@@ -81,6 +78,16 @@ public class CartServiceImpl implements CartService {
     @Cacheable(value = "cartTotals", key = "#userUuid")
     public BigDecimal getCachedCartTotal(UUID userUuid) {
         return calculateCartTotal(userUuid);
+    }
+
+    @Override
+    public void updateItemQuantity(UUID userUuid, UUID productUuid, int quantity) {
+        Cart cart = get(userUuid);
+        cart.getItems().stream()
+                .filter(item -> item.getProduct().getUuid().equals(productUuid))
+                .findFirst()
+                .ifPresent(item -> item.setQuantity(quantity));
+        cartRepository.save(cart);
     }
 
     private BigDecimal calculateCartTotal(UUID userUuid) {

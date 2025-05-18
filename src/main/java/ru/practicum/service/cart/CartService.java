@@ -72,4 +72,12 @@ public interface CartService {
      * @return Стоимость корзины
      */
     BigDecimal getCachedCartTotal(UUID userUuid);
+
+    /**
+     * Обновить количество товара
+     * @param userUuid Идентификатор пользователя
+     * @param productUuid Идентификатор товара
+     * @param quantity Количество товара
+     */
+    void updateItemQuantity(UUID userUuid, UUID productUuid, int quantity);
 }
