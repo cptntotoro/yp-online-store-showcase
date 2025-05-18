@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.config.WebAttributes;
 import ru.practicum.model.order.Order;
 import ru.practicum.service.cart.CartService;
 import ru.practicum.service.order.OrderService;
@@ -19,7 +20,7 @@ public class OrderViewController {
     private final CartService cartService;
 
     @GetMapping
-    public String showOrderList(@CookieValue(name = "USER_UUID") String userUuid, Model model) {
+    public String showOrderList(@RequestAttribute(WebAttributes.USER_UUID) String userUuid, Model model) {
         List<Order> orders = orderService.getUserOrders(UUID.fromString(userUuid));
         model.addAttribute("orders", orders);
         return "order/orders";
@@ -33,7 +34,7 @@ public class OrderViewController {
     }
 
     @PostMapping("/checkout")
-    public String checkout(@CookieValue(name = "USER_UUID") String userUuid) {
+    public String checkout(@RequestAttribute(WebAttributes.USER_UUID) String userUuid) {
 //        Cart cart = cartService.get(UUID.fromString(userUuid));
 //        if (cart.getItems().isEmpty()) {
 //            return "redirect:/cart";

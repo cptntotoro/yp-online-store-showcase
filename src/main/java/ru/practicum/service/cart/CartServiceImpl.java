@@ -77,8 +77,8 @@ public class CartServiceImpl implements CartService {
         cartRepository.save(cart);
     }
 
-    @Cacheable(value = "cartTotals", key = "#userUuid")
     @Override
+    @Cacheable(value = "cartTotals", key = "#userUuid")
     public BigDecimal getCachedCartTotal(UUID userUuid) {
         return calculateCartTotal(userUuid);
     }

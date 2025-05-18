@@ -5,7 +5,6 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import ru.practicum.model.product.Product;
-import ru.practicum.model.user.User;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -14,6 +13,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+/**
+ * Корзина товаров
+ */
 @Entity
 @Table(name = "carts")
 @Getter

@@ -3,12 +3,14 @@ package ru.practicum.model.order;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Positive;
 import lombok.*;
-import org.hibernate.annotations.GenericGenerator;
 import ru.practicum.model.product.Product;
 
 import java.math.BigDecimal;
 import java.util.UUID;
 
+/**
+ * Товар заказа
+ */
 @Entity
 @Table(name = "order_items")
 @Getter
@@ -19,7 +21,6 @@ import java.util.UUID;
 public class OrderItem {
     @Id
     @GeneratedValue(generator = "UUID")
-    @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
     @Column(name = "order_item_uuid", updatable = false, nullable = false)
     private UUID uuid;
 

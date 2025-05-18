@@ -3,7 +3,6 @@ package ru.practicum.model.order;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.GenericGenerator;
 import ru.practicum.model.cart.Cart;
 
 import java.math.BigDecimal;
@@ -12,6 +11,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Заказ
+ */
 @Entity
 @Table(name = "orders")
 @Getter
@@ -22,7 +24,6 @@ import java.util.UUID;
 public class Order {
     @Id
     @GeneratedValue(generator = "UUID")
-    @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
     @Column(name = "order_uuid", updatable = false, nullable = false)
     private UUID uuid;
 

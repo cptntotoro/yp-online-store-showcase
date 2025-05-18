@@ -1,15 +1,16 @@
 package ru.practicum.controller.product;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import ru.practicum.model.product.Product;
 import ru.practicum.service.product.ProductService;
 
@@ -18,6 +19,7 @@ import java.util.UUID;
 @Controller
 @RequestMapping("/products")
 @RequiredArgsConstructor
+@Slf4j
 public class ProductViewController {
     private final ProductService productService;
 
@@ -27,7 +29,11 @@ public class ProductViewController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String search,
             @RequestParam(required = false) String sort,
+            HttpServletResponse response,
             Model model) {
+
+        log.debug("Cookies in response: {}",
+                response.getHeaders(HttpHeaders.SET_COOKIE));
 
         Pageable pageable = PageRequest.of(page, size);
         Page<Product> productPage;

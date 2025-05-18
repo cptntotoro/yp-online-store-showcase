@@ -1,5 +1,8 @@
 package ru.practicum.model.order;
 
+/**
+ * Статус заказа
+ */
 public enum OrderStatus {
     CREATED,          // Заказ создан
     PROCESSING,       // В обработке

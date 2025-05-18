@@ -3,11 +3,13 @@ package ru.practicum.model.user;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
-import ru.practicum.model.cart.Cart;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+/**
+ * Пользователь
+ */
 @Entity
 @Table(name = "users")
 @Getter

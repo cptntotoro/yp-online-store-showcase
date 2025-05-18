@@ -5,13 +5,15 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+/**
+ * Товар
+ */
 @Entity
 @Table(name = "products")
 @Getter
@@ -22,7 +24,6 @@ import java.util.UUID;
 public class Product {
     @Id
     @GeneratedValue(generator = "UUID")
-    @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
     @Column(name = "product_uuid", updatable = false, nullable = false)
     private UUID uuid;
 
@@ -43,7 +44,4 @@ public class Product {
     private LocalDateTime updatedAt;
 
     private String imageUrl;
-//
-//    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
-//    private Set<OrderItem> orderItems;
 }

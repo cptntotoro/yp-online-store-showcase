@@ -1,6 +1,5 @@
 package ru.practicum.service.cart;
 
-import org.springframework.cache.annotation.Cacheable;
 import ru.practicum.model.cart.Cart;
 
 import java.math.BigDecimal;
@@ -13,7 +12,7 @@ public interface CartService {
     /**
      * Создать корзину
      *
-     * @param user Пользователь
+     * @param userUuid Идентификатор пользователя
      * @return Корзина
      */
     Cart create(UUID userUuid);
@@ -21,16 +20,15 @@ public interface CartService {
     /**
      * Получить корзину
      *
-     * @param userUuid Идентифиактор пользователя
+     * @param userUuid Идентификатор пользователя
      * @return Корзина
      */
-//    Cart get(User user);
     Cart get(UUID userUuid);
 
     /**
      * Добавить товор в корзину
      *
-     * @param user Пользователь
+     * @param userUuid Идентификатор пользователя
      * @param productUuid Идентификатор товара
      * @param quantity Количество
      * @return Корзина
@@ -40,7 +38,7 @@ public interface CartService {
     /**
      * Удалить товор из корзины
      *
-     * @param user Пользователь
+     * @param userUuid Идентификатор пользователя
      * @param productUuid Идентификатор товара
      */
     Cart removeFromCart(UUID userUuid, UUID productUuid);
@@ -62,23 +60,16 @@ public interface CartService {
 
     /**
      * Очистить корзину товаров
+     *
+     * @param userUuid Идентификатор пользователя
      */
     void clear(UUID userUuid);
 
-    @Cacheable(value = "cartTotals", key = "#userUuid")
+    /**
+     * Получить кеш стоимости корзины
+     *
+     * @param userUuid Идентификатор пользователя
+     * @return Стоимость корзины
+     */
     BigDecimal getCachedCartTotal(UUID userUuid);
-
-//    /**
-//     * Получить количество товаров в корзине
-//     *
-//     * @return Количество товаров в корзине
-//     */
-//    int getTotalItems();
-//
-//    /**
-//     * Получить сумму товаров в корзине
-//     *
-//     * @return Сумма товаров в корзине
-//     */
-//    BigDecimal getTotalPrice();
 }

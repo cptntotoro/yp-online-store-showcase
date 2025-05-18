@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.annotation.CurrentUserUuid;
+import ru.practicum.config.WebAttributes;
 import ru.practicum.service.cart.CartServiceImpl;
 
 import java.util.UUID;
@@ -16,14 +16,14 @@ public class CartViewController {
     private final CartServiceImpl cartService;
 
     @GetMapping
-    public String showCart(Model model, @CurrentUserUuid String userUuid) {
+    public String showCart(Model model, @RequestAttribute(WebAttributes.USER_UUID) String userUuid) {
         model.addAttribute("cart", cartService.get(UUID.fromString(userUuid)));
         return "cart/cart";
     }
 
     @PostMapping("/add/{productUuid}")
     public String addToCart(
-            @CookieValue(name = "USER_UUID") String userUuid,
+            @RequestAttribute(WebAttributes.USER_UUID) String userUuid,
             @PathVariable UUID productUuid,
             @RequestParam int quantity) {
         cartService.addToCart(UUID.fromString(userUuid), productUuid, quantity);
@@ -32,14 +32,14 @@ public class CartViewController {
 
     @PostMapping("/remove/{productUuid}")
     public String removeFromCart(
-            @CookieValue(name = "USER_UUID") String userUuid,
+            @RequestAttribute(WebAttributes.USER_UUID) String userUuid,
             @PathVariable UUID productUuid) {
         cartService.removeFromCart(UUID.fromString(userUuid), productUuid);
         return "redirect:/cart";
     }
 
     @PostMapping("/clear")
-    public String clearCart(@CookieValue(name = "USER_UUID") String userUuid) {
+    public String clearCart(@RequestAttribute(WebAttributes.USER_UUID) String userUuid) {
         cartService.clear(UUID.fromString(userUuid));
         return "redirect:/cart";
     }

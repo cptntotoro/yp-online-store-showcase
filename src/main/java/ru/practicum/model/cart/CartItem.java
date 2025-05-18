@@ -3,13 +3,15 @@ package ru.practicum.model.cart;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.GenericGenerator;
 import ru.practicum.model.product.Product;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+/**
+ * Товар корзины
+ */
 @Entity
 @Table(name = "cart_items")
 @Getter
@@ -20,7 +22,6 @@ import java.util.UUID;
 public class CartItem {
     @Id
     @GeneratedValue(generator = "UUID")
-    @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
     @Column(name = "cart_item_uuid", updatable = false, nullable = false)
     private UUID uuid;
 
