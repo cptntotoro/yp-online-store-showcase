@@ -123,3 +123,25 @@
     color: var(--gray-dark);
     margin-bottom: 1.5rem;
 }
+
+.cart-notification {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 12px 24px;
+    border-radius: 4px;
+    color: white;
+    background-color: #4CAF50;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    z-index: 1000;
+    opacity: 1;
+    transition: opacity 0.3s ease;
+}
+
+.cart-notification.error {
+    background-color: #f44336;
+}
+
+.cart-notification.fade-out {
+    opacity: 0;
+}

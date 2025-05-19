@@ -14,6 +14,9 @@ import ru.practicum.repository.product.ProductRepository;
 import java.math.BigDecimal;
 import java.util.*;
 
+/**
+ * Сервис управления корзиной товаров
+ */
 @Service
 @RequiredArgsConstructor
 public class CartServiceImpl implements CartService {

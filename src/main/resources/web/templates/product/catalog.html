@@ -9,6 +9,9 @@
     <link rel="stylesheet" type="text/css" th:href="@{/styles/components.css}">
     <link rel="stylesheet" type="text/css" th:href="@{/styles/layout.css}">
     <link rel="stylesheet" type="text/css" th:href="@{/styles/product/catalog.css}">
+
+    <script type="text/javascript" th:src="@{/scripts/api-config.js}"></script>
+    <script type="text/javascript" th:src="@{/scripts/catalog.js}"></script>
 </head>
 
 <body>
@@ -59,10 +62,13 @@
                     <div class="price-controls-container mt-4">
                         <span class="card-price"
                               th:text="${#numbers.formatDecimal(product.price, 1, 2)} + ' ₽'"></span>
-                        <form th:action="@{/cart/add/{uuid}(uuid=${product.uuid})}" method="post" class="add-to-cart-form">
-                            <input type="number" name="quantity" value="1" min="1" class="form-control">
-                            <button type="submit" class="btn btn-primary btn-sm">Добавить в корзину</button>
-                        </form>
+                        <div class="add-to-cart-form">
+                            <input type="number" name="quantity" value="1" min="1" class="form-control quantity-input">
+                            <button class="add-to-cart-btn btn btn-primary btn-sm"
+                                    th:onclick="setAddToCart([[${product.uuid}]])">
+                                Добавить в корзину
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>

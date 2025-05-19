@@ -21,14 +21,14 @@ public class CartViewController {
         return "cart/cart";
     }
 
-    @PostMapping("/add/{productUuid}")
-    public String addToCart(
-            @RequestAttribute(WebAttributes.USER_UUID) UUID userUuid,
-            @PathVariable UUID productUuid,
-            @RequestParam int quantity) {
-        cartService.addToCart(userUuid, productUuid, quantity);
-        return "redirect:/products/" + productUuid;
-    }
+//    @PostMapping("/add/{productUuid}")
+//    public String addToCart(
+//            @RequestAttribute(WebAttributes.USER_UUID) UUID userUuid,
+//            @PathVariable UUID productUuid,
+//            @RequestParam int quantity) {
+//        cartService.addToCart(userUuid, productUuid, quantity);
+//        return "redirect:/products/" + productUuid;
+//    }
 
     @PostMapping("/remove/{productUuid}")
     public String removeFromCart(
