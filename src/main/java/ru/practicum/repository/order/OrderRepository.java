@@ -7,5 +7,12 @@ import java.util.List;
 import java.util.UUID;
 
 public interface OrderRepository extends JpaRepository<Order, UUID> {
+
+    /**
+     * Получить список заказов по идентификатору пользователя
+     *
+     * @param userUuid Идентификатор пользователя
+     * @return Список заказов
+     */
     List<Order> findByUserUuid(UUID userUuid);
 }

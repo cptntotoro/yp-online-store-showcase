@@ -9,13 +9,16 @@
     <link rel="stylesheet" type="text/css" th:href="@{/styles/components.css}">
     <link rel="stylesheet" type="text/css" th:href="@{/styles/layout.css}">
     <link rel="stylesheet" type="text/css" th:href="@{/styles/product/catalog.css}">
+    <link rel="stylesheet" type="text/css" th:href="@{/styles/notification.css}">
 
     <script type="text/javascript" th:src="@{/scripts/api-config.js}"></script>
     <script type="text/javascript" th:src="@{/scripts/catalog.js}"></script>
+    <script type="text/javascript" th:src="@{/scripts/notification.js}"></script>
 </head>
 
 <body>
 <div th:replace="~{../fragments/header :: header}"></div>
+<div th:replace="~{../fragments/notification :: notification}"></div>
 
 <main class="main">
     <div class="container">

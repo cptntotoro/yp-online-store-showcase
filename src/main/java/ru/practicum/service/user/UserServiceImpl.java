@@ -6,6 +6,8 @@ import ru.practicum.model.user.User;
 import ru.practicum.repository.user.UserRepository;
 import ru.practicum.service.cart.CartService;
 
+import java.util.UUID;
+
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
@@ -18,5 +20,10 @@ public class UserServiceImpl implements UserService {
         user = userRepository.save(user);
         cartService.create(user.getUuid());
         return user;
+    }
+
+    @Override
+    public boolean existsByUuid(UUID userUuid) {
+        return userRepository.existsById(userUuid);
     }
 }

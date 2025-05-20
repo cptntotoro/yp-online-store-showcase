@@ -12,6 +12,7 @@ import java.util.UUID;
 @RequestMapping("/cart")
 @RequiredArgsConstructor
 public class CartRestController {
+
     /**
      * Сервис управления корзиной товаров
      */
@@ -23,6 +24,15 @@ public class CartRestController {
             @PathVariable UUID productUuid,
             @RequestParam int quantity) {
         return cartService.addToCart(userUuid, productUuid, quantity).getTotalPrice();
+    }
+
+    @PostMapping("/cart/update/{productUuid}")
+    public BigDecimal updateCartItem(
+            @PathVariable UUID productUuid,
+            @RequestParam int quantity,
+            @RequestAttribute UUID userUuid) {
+        cartService.updateQuantity(userUuid, productUuid, quantity);
+        return cartService.getCachedCartTotal(userUuid);
     }
 
 }

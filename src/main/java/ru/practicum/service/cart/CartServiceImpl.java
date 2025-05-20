@@ -56,19 +56,6 @@ public class CartServiceImpl implements CartService {
         return cartRepository.save(cart);
     }
 
-//    @Override
-//    public void updateQuantity(UUID productUuid, int quantity) {
-//        if (quantity <= 0) {
-//            remove(productUuid);
-//        } else {
-//            CartItem item = cart.get(productUuid);
-//            if (item != null) {
-//                item.setQuantity(quantity);
-//            }
-//        }
-//    }
-
-
     @Override
     @CacheEvict(value = "cartTotals", key = "#userUuid")
     public void clear(UUID userUuid) {
@@ -84,7 +71,8 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
-    public void updateItemQuantity(UUID userUuid, UUID productUuid, int quantity) {
+    @CacheEvict(value = "cartTotals", key = "#userUuid")
+    public void updateQuantity(UUID userUuid, UUID productUuid, int quantity) {
         Cart cart = get(userUuid);
         cart.getItems().stream()
                 .filter(item -> item.getProduct().getUuid().equals(productUuid))
@@ -99,18 +87,4 @@ public class CartServiceImpl implements CartService {
                 .map(item -> item.getProduct().getPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
-
-//    @Override
-//    public int getTotalItems() {
-//        return cart.values().stream()
-//                .mapToInt(CartItem::getQuantity)
-//                .sum();
-//    }
-//
-//    @Override
-//    public BigDecimal getTotalPrice() {
-//        return cart.values().stream()
-//                .map(CartItem::getTotalPrice)
-//                .reduce(BigDecimal.ZERO, BigDecimal::add);
-//    }
 }

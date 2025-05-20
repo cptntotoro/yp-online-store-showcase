@@ -75,9 +75,10 @@ public interface CartService {
 
     /**
      * Обновить количество товара
+     *
      * @param userUuid Идентификатор пользователя
      * @param productUuid Идентификатор товара
      * @param quantity Количество товара
      */
-    void updateItemQuantity(UUID userUuid, UUID productUuid, int quantity);
+    void updateQuantity(UUID userUuid, UUID productUuid, int quantity);
 }

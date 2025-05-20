@@ -36,11 +36,27 @@ public class UserUuidCookieFilter extends OncePerRequestFilter {
 
         // 1. Проверяем наличие куки
         UUID userUuid = extractUuidFromRequest(request);
+        boolean needNewCookie = false;
 
         // 2. Если куки нет - создаем нового пользователя и устанавливаем куку
         if (userUuid == null) {
-            userUuid = userService.add().getUuid();
-            setUserUuidCookie(response, userUuid);
+            needNewCookie = true;
+        } else {
+            // Проверяем существование пользователя в базе
+            try {
+                if (!userService.existsByUuid(userUuid)) {
+                    needNewCookie = true;
+                }
+            } catch (Exception e) {
+                // В случае ошибки создать нового пользователя
+                needNewCookie = true;
+            }
+
+            if (needNewCookie) {
+                userUuid = userService.add().getUuid();
+                setUserUuidCookie(response, userUuid);
+            }
+
         }
 
         // 3. Добавляем USER_UUID в атрибуты запроса для использования в контроллерах

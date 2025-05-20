@@ -1,4 +1,3 @@
-/* Основные стили страницы ошибки */
 .error-container {
     max-width: 800px;
     margin: 2rem auto;
@@ -58,14 +57,6 @@
     display: flex;
     justify-content: center;
     gap: 1rem;
-}
-
-/* Дополнительные переменные (добавить в :root) */
-:root {
-    --danger: #ef4444;
-    --danger-light: #fca5a5;
-    --danger-lightest: #fee2e2;
-    --gray-lightest: #f8fafc;
 }
 
 /* Анимация */

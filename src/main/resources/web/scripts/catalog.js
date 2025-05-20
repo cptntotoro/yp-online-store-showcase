@@ -29,34 +29,15 @@ function setAddToCart(productUuid) {
                 cartTotal.textContent = `${formattedTotal} ₽`;
 
                 // Можно добавить анимацию или уведомление
-                showCartNotification('Товар добавлен в корзину');
+                showNotification('Товар добавлен в корзину');
 
                 quantityInput.value = 1;
             } else {
                 console.warn('Сетевая ошибка');
-                showCartNotification('Ошибка при добавлении в корзину', 'error');
+                showNotification('Ошибка при добавлении в корзину', 'error');
             }
         });
 }
-
-/**
- * Вспомогательная функция для показа уведомлений
- * @param {string} message
- * @param {string} type
- */
-function showCartNotification(message, type = 'success') {
-    const notification = document.createElement('div');
-    notification.className = `cart-notification ${type}`;
-    notification.textContent = message;
-
-    document.body.appendChild(notification);
-
-    setTimeout(() => {
-        notification.classList.add('fade-out');
-        setTimeout(() => notification.remove(), 300);
-    }, 3000);
-}
-
 
 /**
  * Добавить товар в корзину

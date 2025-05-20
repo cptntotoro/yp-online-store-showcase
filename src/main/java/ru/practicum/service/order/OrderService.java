@@ -15,12 +15,36 @@ public interface OrderService {
 
 //    List<Order> getAll();
 
+    /**
+     * Создать заказ
+     *
+     * @param userUuid Идентификатор пользователя
+     * @return Заказ
+     */
     Order create(UUID userUuid);
 
+    /**
+     * Обновить статус заказа
+     *
+     * @param orderUuid Идентификатор заказа
+     * @param newStatus Статус заказа
+     * @return Заказ
+     */
     @Transactional
     Order updateStatus(UUID orderUuid, OrderStatus newStatus);
 
+    /**
+     * Получить заказы пользователя
+     *
+     * @param userUuid Идентификатор пользователя
+     * @return Список заказов
+     */
     List<Order> getUserOrders(UUID userUuid);
 
-    Order getByUuid(UUID uuid);
+    /**
+     *
+     * @param orderUuid Идентификатор заказа
+     * @return Заказ
+     */
+    Order getByUuid(UUID orderUuid);
 }

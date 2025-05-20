@@ -21,15 +21,6 @@ public class CartViewController {
         return "cart/cart";
     }
 
-//    @PostMapping("/add/{productUuid}")
-//    public String addToCart(
-//            @RequestAttribute(WebAttributes.USER_UUID) UUID userUuid,
-//            @PathVariable UUID productUuid,
-//            @RequestParam int quantity) {
-//        cartService.addToCart(userUuid, productUuid, quantity);
-//        return "redirect:/products/" + productUuid;
-//    }
-
     @PostMapping("/remove/{productUuid}")
     public String removeFromCart(
             @RequestAttribute(WebAttributes.USER_UUID) UUID userUuid,
@@ -38,14 +29,14 @@ public class CartViewController {
         return "redirect:/cart";
     }
 
-    @PostMapping("/cart/update/{uuid}")
-    public String updateCartItem(
-            @PathVariable UUID uuid,
-            @RequestParam int quantity,
-            @RequestAttribute UUID userUuid) {
-        cartService.updateItemQuantity(userUuid, uuid, quantity);
-        return "redirect:/cart";
-    }
+//    @PostMapping("/cart/update/{uuid}")
+//    public String updateCartItem(
+//            @PathVariable UUID uuid,
+//            @RequestParam int quantity,
+//            @RequestAttribute UUID userUuid) {
+//        cartService.updateItemQuantity(userUuid, uuid, quantity);
+//        return "redirect:/cart";
+//    }
 
     @PostMapping("/clear")
     public String clearCart(@RequestAttribute(WebAttributes.USER_UUID) UUID userUuid) {

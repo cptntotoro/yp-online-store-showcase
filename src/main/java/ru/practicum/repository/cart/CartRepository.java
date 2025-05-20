@@ -7,5 +7,12 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface CartRepository extends JpaRepository<Cart, UUID> {
+
+    /**
+     * Получить корзину по идентификатору пользователя
+     *
+     * @param userUuid Идентификатор пользователя
+     * @return Корзина
+     */
     Optional<Cart> findByUserUuid(UUID userUuid);
 }
