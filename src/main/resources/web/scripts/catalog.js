@@ -10,28 +10,30 @@ document.addEventListener("DOMContentLoaded", () => {
 
 /**
  * Добавить в корзину
- * @param productUuid Идентификатор товара
+ * @param buttonElement Кнопка, на которую нажали
  */
-function setAddToCart(productUuid) {
-    const quantity = parseInt(quantityInput.value) || 1;
+function setAddToCart(buttonElement) {
+    // Получаем UUID продукта из data-атрибута
+    const productUuid = buttonElement.getAttribute('data-product-uuid');
+
+    // Находим соответствующий input с количеством
+    const inputElement = buttonElement.closest('.add-to-cart-form').querySelector('.quantity-input');
+    const quantity = parseInt(inputElement.value) || 1;
+
+    console.log("Adding product:", productUuid, "quantity:", quantity);
+
     addToCart(productUuid, quantity)
         .then(async response => {
             if (response.ok) {
-                // Обновляем сумму корзины quantity
                 const cartTotalResponse = await response.text();
-
                 const formattedTotal = new Intl.NumberFormat('ru-RU', {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2
                 }).format(parseFloat(cartTotalResponse));
 
-                // Обновляем отображение суммы в корзине
-                cartTotal.textContent = `${formattedTotal} ₽`;
-
-                // Можно добавить анимацию или уведомление
+                document.querySelector(".cart-total").textContent = `${formattedTotal} ₽`;
                 showNotification('Товар добавлен в корзину');
-
-                quantityInput.value = 1;
+                inputElement.value = 1;
             } else {
                 console.warn('Сетевая ошибка');
                 showNotification('Ошибка при добавлении в корзину', 'error');

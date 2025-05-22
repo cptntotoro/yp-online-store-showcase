@@ -66,9 +66,12 @@
                         <span class="card-price"
                               th:text="${#numbers.formatDecimal(product.price, 1, 2)} + ' ₽'"></span>
                         <div class="add-to-cart-form">
-                            <input type="number" name="quantity" value="1" min="1" class="form-control quantity-input">
+                            <input type="number" name="quantity" value="1" min="1"
+                                   class="form-control quantity-input"
+                                   th:id="'quantity-for-' + ${product.uuid}">
                             <button class="add-to-cart-btn btn btn-primary btn-sm"
-                                    th:onclick="setAddToCart([[${product.uuid}]])">
+                                    th:data-product-uuid="${product.uuid}"
+                                    onclick="setAddToCart(this)">
                                 Добавить в корзину
                             </button>
                         </div>

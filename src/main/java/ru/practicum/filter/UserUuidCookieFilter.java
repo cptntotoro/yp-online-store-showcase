@@ -40,7 +40,8 @@ public class UserUuidCookieFilter extends OncePerRequestFilter {
 
         // 2. Если куки нет - создаем нового пользователя и устанавливаем куку
         if (userUuid == null) {
-            needNewCookie = true;
+                userUuid = userService.add().getUuid();
+                setUserUuidCookie(response, userUuid);
         } else {
             // Проверяем существование пользователя в базе
             try {

@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import ru.practicum.exception.cart.CartNotFoundException;
 import ru.practicum.exception.product.ProductNotFoundException;
 import ru.practicum.model.cart.Cart;
+import ru.practicum.model.cart.CartItem;
 import ru.practicum.model.product.Product;
 import ru.practicum.repository.cart.CartRepository;
 import ru.practicum.repository.product.ProductRepository;
@@ -44,7 +45,7 @@ public class CartServiceImpl implements CartService {
         Product product = productRepository.findById(productUuid)
                 .orElseThrow(() -> new ProductNotFoundException("Товар с uuid " + productUuid + " не найден."));
 
-        cart.addItem(product, quantity);
+        addItem(cart, product, quantity);
         return cartRepository.save(cart);
     }
 
@@ -52,7 +53,7 @@ public class CartServiceImpl implements CartService {
     @CacheEvict(value = "cartTotals", key = "#userUuid")
     public Cart removeFromCart(UUID userUuid, UUID productUuid) {
         Cart cart = get(userUuid);
-        cart.removeItem(productUuid);
+        removeItem(cart, productUuid);
         return cartRepository.save(cart);
     }
 
@@ -60,14 +61,17 @@ public class CartServiceImpl implements CartService {
     @CacheEvict(value = "cartTotals", key = "#userUuid")
     public void clear(UUID userUuid) {
         Cart cart = get(userUuid);
-        cart.clear();
+        cart.getItems().clear();
         cartRepository.save(cart);
     }
 
     @Override
     @Cacheable(value = "cartTotals", key = "#userUuid")
     public BigDecimal getCachedCartTotal(UUID userUuid) {
-        return calculateCartTotal(userUuid);
+        Cart cart = get(userUuid);
+        return cart.getItems().stream()
+                .map(item -> item.getProduct().getPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     @Override
@@ -81,10 +85,22 @@ public class CartServiceImpl implements CartService {
         cartRepository.save(cart);
     }
 
-    private BigDecimal calculateCartTotal(UUID userUuid) {
-        Cart cart = get(userUuid);
-        return cart.getItems().stream()
-                .map(item -> item.getProduct().getPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    public void addItem(Cart cart, Product product, int quantity) {
+        List<CartItem> cartItems = cart.getItems();
+
+        Optional<CartItem> existingItem = cartItems.stream()
+                .filter(item -> item.getProduct().getUuid().equals(product.getUuid()))
+                .findFirst();
+
+        if (existingItem.isPresent()) {
+            existingItem.get().setQuantity(existingItem.get().getQuantity() + quantity);
+        } else {
+            CartItem newItem = new CartItem(cart, product, quantity);
+            cartItems.add(newItem);
+        }
+    }
+
+    public void removeItem(Cart cart, UUID productUuid) {
+        cart.getItems().removeIf(item -> item.getProduct().getUuid().equals(productUuid));
     }
 }

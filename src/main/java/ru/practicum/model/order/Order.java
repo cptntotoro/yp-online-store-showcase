@@ -20,7 +20,6 @@ import java.util.UUID;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class Order {
     @Id
     @GeneratedValue(generator = "UUID")
@@ -64,10 +63,4 @@ public class Order {
             items.add(orderItem);
         });
     }
-//    @Transient
-//    public BigDecimal getTotalPrice() {
-//        return items.stream()
-//                .map(OrderItem::getTotalPrice)
-//                .reduce(BigDecimal.ZERO, BigDecimal::add);
-//    }
 }

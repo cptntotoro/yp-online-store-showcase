@@ -21,6 +21,7 @@ import java.util.UUID;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
 public class Cart {
     @Id
     @GeneratedValue(generator = "UUID")
@@ -46,30 +47,30 @@ public class Cart {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
-    public void addItem(Product product, int quantity) {
-        Optional<CartItem> existingItem = items.stream()
-                .filter(item -> item.getProduct().getUuid().equals(product.getUuid()))
-                .findFirst();
+//    public void addItem(Product product, int quantity) {
+//        Optional<CartItem> existingItem = items.stream()
+//                .filter(item -> item.getProduct().getUuid().equals(product.getUuid()))
+//                .findFirst();
+//
+//        if (existingItem.isPresent()) {
+//            existingItem.get().setQuantity(existingItem.get().getQuantity() + quantity);
+//        } else {
+//            CartItem newItem = new CartItem(this, product, quantity);
+//            items.add(newItem);
+//        }
+//    }
 
-        if (existingItem.isPresent()) {
-            existingItem.get().setQuantity(existingItem.get().getQuantity() + quantity);
-        } else {
-            CartItem newItem = new CartItem(this, product, quantity);
-            items.add(newItem);
-        }
-    }
+//    public void removeItem(UUID productUuid) {
+//        items.removeIf(item -> item.getProduct().getUuid().equals(productUuid));
+//    }
 
-    public void removeItem(UUID productUuid) {
-        items.removeIf(item -> item.getProduct().getUuid().equals(productUuid));
-    }
+//    public void clear() {
+//        items.clear();
+//    }
 
-    public void clear() {
-        items.clear();
-    }
-
-    public BigDecimal calculateTotal() {
-        return items.stream()
-                .map(item -> item.getProduct().getPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-    }
+//    public BigDecimal calculateTotal() {
+//        return items.stream()
+//                .map(item -> item.getProduct().getPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
+//                .reduce(BigDecimal.ZERO, BigDecimal::add);
+//    }
 }

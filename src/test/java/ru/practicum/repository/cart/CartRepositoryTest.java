@@ -3,19 +3,17 @@ package ru.practicum.repository.cart;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import ru.practicum.model.cart.Cart;
-import ru.practicum.model.product.Product;
 import ru.practicum.model.user.User;
-import ru.practicum.repository.product.ProductRepository;
 import ru.practicum.repository.user.UserRepository;
 
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
@@ -28,34 +26,66 @@ class CartRepositoryTest {
     @Autowired
     private UserRepository userRepository;
 
-    @Autowired
-    private ProductRepository productRepository;
-
-    private User testUser;
-    private Product testProduct;
-    private Cart testCart;
+    private UUID testUserUuid;
+    private UUID secondUserUuid; // Добавляем поле для хранения UUID второго пользователя
 
     @BeforeEach
     void setUp() {
-        testUser = userRepository.findAll().getFirst();
-        testProduct = productRepository.findAll().getFirst();
-        testCart = cartRepository.findAll().getFirst();
+        // Создаем первого тестового пользователя
+        User user1 = new User();
+        user1.setUsername("testuser1");
+        user1.setEmail("test1@example.com");
+        user1 = userRepository.save(user1);
+        testUserUuid = user1.getUuid(); // Используем getUuid() вместо getUserUuid()
+
+        // Создаем второго тестового пользователя
+        User user2 = new User();
+        user2.setUsername("testuser2");
+        user2.setEmail("test2@example.com");
+        user2 = userRepository.save(user2);
+        secondUserUuid = user2.getUuid(); // Сохраняем UUID второго пользователя
+    }
+
+    @Test
+    void findByUserUuid_shouldReturnEmptyOptional_whenCartNotFound() {
+        UUID nonExistingUserUuid = UUID.randomUUID();
+        Optional<Cart> result = cartRepository.findByUserUuid(nonExistingUserUuid);
+        assertTrue(result.isEmpty());
     }
 
     @Test
     void findByUserUuid_shouldReturnCart_whenCartExists() {
-        Optional<Cart> foundCart = cartRepository.findByUserUuid(testUser.getUuid());
+        // Создаем корзину для существующего пользователя
+        Cart cart = new Cart();
+        cart.setUserUuid(testUserUuid);
+        cartRepository.save(cart);
 
-        assertThat(foundCart).isPresent();
-        assertThat(foundCart.get().getUserUuid()).isEqualTo(testUser.getUuid());
+        Optional<Cart> result = cartRepository.findByUserUuid(testUserUuid);
+
+        assertTrue(result.isPresent());
+        assertEquals(testUserUuid, result.get().getUserUuid());
     }
 
     @Test
-    void findByUserUuid_shouldReturnEmptyOptional_whenCartNotExists() {
-        UUID nonExistingUserUuid = UUID.randomUUID();
+    void findByUserUuid_shouldReturnCorrectCart_whenMultipleCartsExist() {
+        // Создаем корзины для обоих пользователей
+        Cart cart1 = new Cart();
+        cart1.setUserUuid(testUserUuid);
+        cartRepository.save(cart1);
 
-        Optional<Cart> foundCart = cartRepository.findByUserUuid(nonExistingUserUuid);
+        Cart cart2 = new Cart();
+        cart2.setUserUuid(secondUserUuid);
+        cartRepository.save(cart2);
 
-        assertThat(foundCart).isEmpty();
+        // Проверяем
+        Optional<Cart> result1 = cartRepository.findByUserUuid(testUserUuid);
+        Optional<Cart> result2 = cartRepository.findByUserUuid(secondUserUuid);
+
+        assertAll(
+                () -> assertTrue(result1.isPresent()),
+                () -> assertEquals(testUserUuid, result1.get().getUserUuid()),
+                () -> assertTrue(result2.isPresent()),
+                () -> assertEquals(secondUserUuid, result2.get().getUserUuid())
+        );
     }
 }
