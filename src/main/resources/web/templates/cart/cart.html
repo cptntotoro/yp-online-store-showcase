@@ -9,6 +9,10 @@
     <link rel="stylesheet" type="text/css" th:href="@{/styles/components.css}">
     <link rel="stylesheet" type="text/css" th:href="@{/styles/layout.css}">
     <link rel="stylesheet" type="text/css" th:href="@{/styles/cart/cart.css}">
+
+    <script type="text/javascript" th:src="@{/scripts/api-config.js}"></script>
+    <script type="text/javascript" th:src="@{/scripts/cart.js}"></script>
+    <script type="text/javascript" th:src="@{/scripts/notification.js}"></script>
 </head>
 <body>
 <div th:replace="~{../fragments/header :: header}"></div>
@@ -27,21 +31,22 @@
         <!-- Основной блок корзины -->
         <div th:unless="${cart == null or cart.items.empty}">
             <div class="space-y-4">
-                <div th:each="item : ${cart.items}" class="cart-item shadow-sm">
+                <div th:each="item : ${cart.items}" class="cart-item shadow-sm" th:data-product-uuid="${item.product.uuid}" th:data-item-uuid="${item.uuid}">
                     <img th:src="${item.product.imageUrl}" alt="Product image" class="cart-item-img">
                     <div class="cart-item-details">
                         <h3 class="cart-item-title" th:text="${item.product.name}"></h3>
                         <p class="cart-item-price"
                            th:text="${#numbers.formatDecimal(item.product.price, 1, 2, 'COMMA')} + ' ₽'"></p>
                     </div>
-                    <div class="cart-item-actions">
-                        <form th:action="@{/cart/update/{uuid}(uuid=${item.product.uuid})}" method="post"
-                              class="quantity-control">
-                            <button type="button" class="quantity-btn minus" onclick="this.parentNode.querySelector('input[type=number]').stepDown(); this.parentNode.submit()">-</button>
-                            <input type="number" name="quantity" th:value="${item.quantity}" min="1" max="99"
-                                   class="quantity-input" onchange="this.form.submit()">
-                            <button type="button" class="quantity-btn plus" onclick="this.parentNode.querySelector('input[type=number]').stepUp(); this.parentNode.submit()">+</button>
-                        </form>
+
+                    <div class="cart-controls">
+                        <div class="quantity-controls d-none">
+                            <button class="btn btn-sm btn-secondary quantity-btn minus">-</button>
+                            <input type="number" name="quantity"
+                                   class="form-control quantity-input"
+                                   th:value="${item.quantity}" min="1" max="99">
+                            <button class="btn btn-sm btn-secondary quantity-btn plus">+</button>
+                        </div>
                         <form th:action="@{/cart/remove/{uuid}(uuid=${item.product.uuid})}" method="post" class="mt-2">
                             <button type="submit" class="btn btn-danger btn-sm">Удалить</button>
                         </form>

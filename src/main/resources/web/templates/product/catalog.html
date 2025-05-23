@@ -53,7 +53,7 @@
         </div>
 
         <div class="product-container gap-6">
-            <div th:each="product : ${products}" class="card">
+            <div th:each="product : ${products}" class="card" th:data-product-uuid="${product.uuid}">
                 <a th:href="@{/products/{uuid}(uuid=${product.uuid})}">
                     <img th:src="${product.imageUrl}" th:alt="${product.name}" class="card-img">
                 </a>
@@ -65,16 +65,34 @@
                     <div class="price-controls-container mt-4">
                         <span class="card-price"
                               th:text="${#numbers.formatDecimal(product.price, 1, 2)} + ' ₽'"></span>
-                        <div class="add-to-cart-form">
-                            <input type="number" name="quantity" value="1" min="1"
-                                   class="form-control quantity-input"
-                                   th:id="'quantity-for-' + ${product.uuid}">
-                            <button class="add-to-cart-btn btn btn-primary btn-sm"
-                                    th:data-product-uuid="${product.uuid}"
-                                    onclick="setAddToCart(this)">
+
+
+                        <div class="cart-controls">
+                            <!-- Блок управления количеством (скрыт по умолчанию) -->
+                            <div class="quantity-controls d-none">
+                                <button class="btn btn-sm btn-secondary quantity-btn minus">-</button>
+                                <input type="number"
+                                       class="form-control quantity-input"
+                                       value="1" min="1">
+                                <button class="btn btn-sm btn-secondary quantity-btn plus">+</button>
+                            </div>
+
+                            <!-- Основная кнопка (динамически меняется) -->
+                            <button class="btn btn-primary btn-sm cart-action-btn">
                                 Добавить в корзину
                             </button>
-                        </div>
+
+
+<!--                        <div class="add-to-cart-form">-->
+<!--                            <input type="number" name="quantity" value="1" min="1"-->
+<!--                                   class="form-control quantity-input"-->
+<!--                                   th:id="'quantity-for-' + ${product.uuid}">-->
+<!--                            <button class="add-to-cart-btn btn btn-primary btn-sm"-->
+<!--                                    th:data-product-uuid="${product.uuid}"-->
+<!--                                    onclick="setAddToCart(this)">-->
+<!--                                Добавить в корзину-->
+<!--                            </button>-->
+<!--                        </div>-->
                     </div>
                 </div>
             </div>

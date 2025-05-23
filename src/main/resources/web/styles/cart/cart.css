@@ -31,17 +31,31 @@
     font-weight: 600;
 }
 
-.cart-item-actions {
+.cart-controls {
     display: flex;
     flex-direction: column;
-    align-items: flex-end;
-    gap: 0.5rem;
+    gap: 8px;
+    margin-top: 10px;
+    width: min-content;
 }
 
-.quantity-control {
+.quantity-controls {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    justify-content: center;
+    gap: 5px;
+}
+
+.quantity-input {
+    width: 100%;
+    text-align: center;
+    margin: 0 5px;
+}
+
+.quantity-input::-webkit-outer-spin-button,
+.quantity-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
 }
 
 .quantity-btn {

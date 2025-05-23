@@ -26,12 +26,20 @@ public class CartRestController {
         return cartService.addToCart(userUuid, productUuid, quantity).getTotalPrice();
     }
 
-    @PostMapping("/cart/update/{productUuid}")
+    @PatchMapping("/update/{productUuid}")
     public BigDecimal updateCartItem(
             @PathVariable UUID productUuid,
             @RequestParam int quantity,
-            @RequestAttribute UUID userUuid) {
+            @RequestAttribute(WebAttributes.USER_UUID) UUID userUuid) {
         cartService.updateQuantity(userUuid, productUuid, quantity);
+        return cartService.getCachedCartTotal(userUuid);
+    }
+
+    @DeleteMapping("/remove/{productUuid}")
+    public BigDecimal removeFromCart(
+            @PathVariable UUID productUuid,
+            @RequestAttribute(WebAttributes.USER_UUID) UUID userUuid) {
+        cartService.removeFromCart(userUuid, productUuid);
         return cartService.getCachedCartTotal(userUuid);
     }
 
