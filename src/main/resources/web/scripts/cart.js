@@ -15,7 +15,14 @@ document.addEventListener("DOMContentLoaded", () => {
             if (newValue < 1) newValue = 1;
             input.value = newValue;
 
-            await setUpdateCartItem(productUuid, newValue);
+            await updateCartItem(productUuid, newValue)
+                .then(async response => {
+                    if (response.ok) {
+                        window.location.reload();
+                    } else {
+                        showNotification('Ошибка при обновлении количества товара в корзине', 'error');
+                    }
+                });
 
             // console.log("document.querySelectorAll('.quantity-btn')");
             // const cartItem = e.target.closest('.cart-item');
@@ -40,30 +47,37 @@ document.addEventListener("DOMContentLoaded", () => {
             const productUuid = cartItem.getAttribute('data-product-uuid');
             const newValue = parseInt(this.value) || 1;
 
-            await updateCartItem(productUuid, newValue);
+            await updateCartItem(productUuid, newValue)
+                .then(async response => {
+                    if (response.ok) {
+                        window.location.reload();
+                    } else {
+                        showNotification('Ошибка при обновлении количества товара в корзине', 'error');
+                    }
+                });
         });
     });
 })
 
-/**
- * Изменить количество товара в корзине
- * @param productUuid Идентификатор товара
- * @param quantity Количество товара
- * @returns {Promise<Response>}
- */
-async function setUpdateCartItem(productUuid, quantity) {
-    updateCartItem(productUuid, quantity)
-        .then(async response => {
-            if (response.ok) {
-                const cartTotalResponse = await response.text();
-                console.log("cartTotalResponse");
-                console.log(cartTotalResponse);
-                updateCartTotal(cartTotalResponse);
-            } else {
-                showNotification('Ошибка обновления количества', 'error');
-            }
-        });
-}
+// /**
+//  * Изменить количество товара в корзине
+//  * @param productUuid Идентификатор товара
+//  * @param quantity Количество товара
+//  * @returns {Promise<Response>}
+//  */
+// async function setUpdateCartItem(productUuid, quantity) {
+//     updateCartItem(productUuid, quantity)
+//         .then(async response => {
+//             if (response.ok) {
+//                 const cartTotalResponse = await response.text();
+//                 console.log("cartTotalResponse");
+//                 console.log(cartTotalResponse);
+//                 updateCartTotal(cartTotalResponse);
+//             } else {
+//                 showNotification('Ошибка обновления количества', 'error');
+//             }
+//         });
+// }
 
 /**
  * Обновить стоимость корзины
@@ -81,21 +95,21 @@ function updateCartTotal(total) {
         cartTotal.textContent = `${formattedTotal} ₽`;
     }
 }
-
-/**
- * Удалить из корзины
- * @param productUuid Идентификатор товара
- */
-function setRemoveFromCart(productUuid) {
-    removeFromCart(productUuid)
-        .then(async response => {
-            if (response.ok) {
-                const cartTotalResponse = await response.text();
-                updateProductUI(productUuid, false, 1);
-                updateCartTotal(cartTotalResponse);
-                showNotification('Товар удален из корзины', 'success');
-            } else {
-                showNotification('Ошибка при удалении из корзины', 'error');
-            }
-        });
-}
+//
+// /**
+//  * Удалить из корзины
+//  * @param productUuid Идентификатор товара
+//  */
+// function setRemoveFromCart(productUuid) {
+//     removeFromCart(productUuid)
+//         .then(async response => {
+//             if (response.ok) {
+//                 const cartTotalResponse = await response.text();
+//                 updateProductUI(productUuid, false, 1);
+//                 updateCartTotal(cartTotalResponse);
+//                 showNotification('Товар удален из корзины', 'success');
+//             } else {
+//                 showNotification('Ошибка при удалении из корзины', 'error');
+//             }
+//         });
+// }

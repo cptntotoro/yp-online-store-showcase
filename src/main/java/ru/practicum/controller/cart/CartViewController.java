@@ -29,15 +29,6 @@ public class CartViewController {
         return "redirect:/cart";
     }
 
-//    @PostMapping("/cart/update/{uuid}")
-//    public String updateCartItem(
-//            @PathVariable UUID uuid,
-//            @RequestParam int quantity,
-//            @RequestAttribute UUID userUuid) {
-//        cartService.updateItemQuantity(userUuid, uuid, quantity);
-//        return "redirect:/cart";
-//    }
-
     @PostMapping("/clear")
     public String clearCart(@RequestAttribute(WebAttributes.USER_UUID) UUID userUuid) {
         cartService.clear(userUuid);
