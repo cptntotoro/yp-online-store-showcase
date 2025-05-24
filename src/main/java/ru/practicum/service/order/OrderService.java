@@ -46,5 +46,5 @@ public interface OrderService {
      * @param orderUuid Идентификатор заказа
      * @return Заказ
      */
-    Order getByUuid(UUID orderUuid);
+    Order getByUuid(UUID userUuid, UUID orderUuid);
 }

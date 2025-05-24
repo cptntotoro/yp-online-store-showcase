@@ -21,28 +21,50 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Order {
+
+    /**
+     * Идентификатор
+     */
     @Id
     @GeneratedValue(generator = "UUID")
     @Column(name = "order_uuid", updatable = false, nullable = false)
     private UUID uuid;
 
+    /**
+     * Идентификатор пользователя
+     */
     @Column(name = "user_uuid", nullable = false)
     private UUID userUuid;
 
+    /**
+     * Корзина
+     */
     @OneToOne
     @JoinColumn(name = "cart_uuid", nullable = false)
     private Cart cart;
 
+    /**
+     * Статус заказа
+     */
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private OrderStatus status;
 
+    /**
+     * Стоимость заказа
+     */
     @Column(precision = 10, scale = 2)
     private BigDecimal totalAmount;
 
+    /**
+     * Товары заказа
+     */
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> items = new ArrayList<>();
 
+    /**
+     * Дата создания
+     */
     @CreationTimestamp
     private LocalDateTime createdAt;
 
@@ -62,5 +84,16 @@ public class Order {
             );
             items.add(orderItem);
         });
+    }
+
+    /**
+     * Получить стоимость товаров заказа
+     * @return Стоимость товаров заказа
+     */
+    @Transient
+    public int getTotalItems() {
+        return items.stream()
+                .mapToInt(OrderItem::getQuantity)
+                .sum();
     }
 }

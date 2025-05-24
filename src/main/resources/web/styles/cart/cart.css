@@ -94,6 +94,24 @@
     margin: 0;
 }
 
+/* Расчет стоимости одного товара */
+.price-calculation {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    font-size: 1rem;
+}
+
+.multiply-sign, .equals-sign {
+    color: #6b7280;
+}
+
+.item-total {
+    font-weight: bold;
+    color: #1f2937;
+}
+
 /* Итоговая сумма */
 .cart-summary {
     background-color: white;

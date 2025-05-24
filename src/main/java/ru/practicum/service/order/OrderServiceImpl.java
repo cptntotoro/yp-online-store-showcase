@@ -48,7 +48,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public Order getByUuid(UUID uuid) {
-        return orderRepository.findById(uuid).orElseThrow(() -> new OrderNotFoundException("Заказ не найден"));
+    public Order getByUuid(UUID userUuid, UUID uuid) {
+        return orderRepository.findByIdWhereUserUuidIn(uuid, userUuid).orElseThrow(() -> new OrderNotFoundException("Заказ не найден"));
     }
 }

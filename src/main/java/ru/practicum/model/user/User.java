@@ -18,20 +18,30 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 public class User {
+
+    /**
+     * Идентификатор
+     */
     @Id
     @GeneratedValue(generator = "UUID")
     @Column(name = "user_uuid", updatable = false, nullable = false)
     private UUID uuid;
 
+    /**
+     * Имя пользователя
+     */
     @Column(unique = true)
     private String username;
 
+    /**
+     * Адрес электронной почты
+     */
     @Column(unique = true)
     private String email;
 
+    /**
+     * Дата создания
+     */
     @CreationTimestamp
     private LocalDateTime createdAt;
-//
-//    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
-//    private Cart cart;
 }

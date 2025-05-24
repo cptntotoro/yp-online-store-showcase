@@ -21,26 +21,48 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Product {
+
+    /**
+     * Идентификатор
+     */
     @Id
     @GeneratedValue(generator = "UUID")
     @Column(name = "product_uuid", updatable = false, nullable = false)
     private UUID uuid;
 
+    /**
+     * Название
+     */
     @NotBlank
     private String name;
 
+    /**
+     * Описание
+     */
     @NotBlank
     private String description;
 
+    /**
+     * Цена
+     */
     @Positive
     @Column(precision = 10, scale = 2)
     private BigDecimal price;
 
+    /**
+     * Дата создания
+     */
     @CreationTimestamp
     private LocalDateTime createdAt;
 
+    /**
+     * Дата обновления
+     */
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
+    /**
+     * Ссылка на изображение
+     */
     private String imageUrl;
 }

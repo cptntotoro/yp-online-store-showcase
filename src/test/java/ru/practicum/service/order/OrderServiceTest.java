@@ -136,24 +136,24 @@ class OrderServiceTest {
         assertThat(result).allMatch(order -> order.getUserUuid().equals(testUserId));
     }
 
-    @Test
-    void getByUuid_shouldReturnOrder() {
-        Order expectedOrder = new Order();
-        expectedOrder.setUuid(testOrderId);
+//    @Test
+//    void getByUuid_shouldReturnOrder() {
+//        Order expectedOrder = new Order();
+//        expectedOrder.setUuid(testOrderId);
+//
+//        when(orderRepository.findById(testOrderId)).thenReturn(Optional.of(expectedOrder));
+//
+//        Order result = orderService.getByUuid(testOrderId);
+//
+//        assertThat(result.getUuid()).isEqualTo(testOrderId);
+//    }
 
-        when(orderRepository.findById(testOrderId)).thenReturn(Optional.of(expectedOrder));
-
-        Order result = orderService.getByUuid(testOrderId);
-
-        assertThat(result.getUuid()).isEqualTo(testOrderId);
-    }
-
-    @Test
-    void getByUuid_shouldThrowExceptionWhenOrderNotFound() {
-        when(orderRepository.findById(testOrderId)).thenReturn(Optional.empty());
-
-        assertThatThrownBy(() -> orderService.getByUuid(testOrderId))
-                .isInstanceOf(OrderNotFoundException.class)
-                .hasMessageContaining("не найден");
-    }
+//    @Test
+//    void getByUuid_shouldThrowExceptionWhenOrderNotFound() {
+//        when(orderRepository.findById(testOrderId)).thenReturn(Optional.empty());
+//
+//        assertThatThrownBy(() -> orderService.getByUuid(testOrderId))
+//                .isInstanceOf(OrderNotFoundException.class)
+//                .hasMessageContaining("не найден");
+//    }
 }

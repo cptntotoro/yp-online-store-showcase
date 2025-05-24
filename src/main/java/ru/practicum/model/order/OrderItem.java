@@ -18,22 +18,36 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class OrderItem {
+
+    /**
+     * Идентификатор
+     */
     @Id
     @GeneratedValue(generator = "UUID")
     @Column(name = "order_item_uuid", updatable = false, nullable = false)
     private UUID uuid;
 
+    /**
+     * Заказ
+     */
     @ManyToOne
     @JoinColumn(name = "order_uuid", nullable = false)
     private Order order;
 
+    /**
+     * Товар
+     */
     @ManyToOne
     @JoinColumn(name = "product_uuid", nullable = false)
     private Product product;
 
+    /**
+     * Количество товара в заказе
+     */
     @Positive
     private int quantity;
 
+    // TODO:
     @Column(precision = 10, scale = 2)
     private BigDecimal priceAtOrder;
 
@@ -44,6 +58,10 @@ public class OrderItem {
         this.priceAtOrder = priceAtOrder;
     }
 
+    /**
+     * Получить стоимость товара в заказе
+     * @return Стоимость товара в заказе
+     */
     @Transient
     public BigDecimal getTotalPrice() {
         return priceAtOrder.multiply(BigDecimal.valueOf(quantity));

@@ -22,6 +22,7 @@
     <div class="container">
         <h1 class="text-2xl font-bold mb-6">Корзина</h1>
 
+        <!-- Отображение пустой корзины -->
         <div th:if="${cart == null or cart.items.empty}" class="empty-cart shadow rounded p-8 text-center">
             <div class="empty-icon text-4xl mb-4">🛒</div>
             <p class="empty-text">Ваша корзина пуста</p>
@@ -35,8 +36,15 @@
                     <img th:src="${item.product.imageUrl}" alt="Product image" class="cart-item-img">
                     <div class="cart-item-details">
                         <h3 class="cart-item-title" th:text="${item.product.name}"></h3>
-                        <p class="cart-item-price"
-                           th:text="${#numbers.formatDecimal(item.product.price, 1, 2, 'COMMA')} + ' ₽'"></p>
+                        <div class="price-calculation">
+                            <span class="item-price"
+                                  th:text="${#numbers.formatDecimal(item.product.price, 1, 2, 'COMMA')} + ' ₽'"></span>
+                            <span class="multiply-sign">×</span>
+                            <span class="item-quantity" th:text="${item.quantity}"></span>
+                            <span class="equals-sign">=</span>
+                            <span class="item-total"
+                                  th:text="${#numbers.formatDecimal(item.product.price * item.quantity, 1, 2, 'COMMA')} + ' ₽'"></span>
+                        </div>
                     </div>
 
                     <div class="cart-controls">
@@ -56,10 +64,6 @@
 
             <!-- Блок итогов -->
             <div class="cart-summary shadow rounded mt-8">
-                <div class="summary-row">
-                    <span>Товары (<span th:text="${cart.items.size()}"></span>):</span>
-                    <span th:text="${#numbers.formatDecimal(cart.totalPrice, 1, 2, 'COMMA')} + ' ₽'"></span>
-                </div>
                 <div class="summary-row">
                     <span>Доставка:</span>
                     <span>Бесплатно</span>

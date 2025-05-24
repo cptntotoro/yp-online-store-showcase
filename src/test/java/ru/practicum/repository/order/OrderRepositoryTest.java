@@ -90,7 +90,6 @@ class OrderRepositoryTest {
     @Test
     void findByUserUuid_shouldReturnOrders_whenOrdersExist() {
         createTestOrder(OrderStatus.CREATED);
-        createTestOrder(OrderStatus.PROCESSING);
 
         List<Order> result = orderRepository.findByUserUuid(testUserUuid);
 

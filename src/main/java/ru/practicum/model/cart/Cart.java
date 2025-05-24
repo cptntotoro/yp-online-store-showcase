@@ -21,20 +21,35 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Cart {
+    /**
+     * Идентификатор
+     */
     @Id
     @GeneratedValue(generator = "UUID")
     @Column(name = "cart_uuid", updatable = false, nullable = false)
     private UUID uuid;
 
+    /**
+     * Идентификатор пользователя
+     */
     @Column(name = "user_uuid", nullable = false)
     private UUID userUuid;
 
+    /**
+     * Товары корзины
+     */
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CartItem> items = new ArrayList<>();
 
+    /**
+     * Дата создания
+     */
     @CreationTimestamp
     private LocalDateTime createdAt;
 
+    /**
+     * Дата обновления
+     */
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 

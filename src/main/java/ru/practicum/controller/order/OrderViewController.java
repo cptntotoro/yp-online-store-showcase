@@ -27,16 +27,16 @@ public class OrderViewController {
     }
 
     @GetMapping("/{orderUuid}")
-    public String showOrderDetails(@PathVariable UUID orderUuid, Model model) {
-        Order order = orderService.getByUuid(orderUuid);
+    public String showOrderDetails(@RequestAttribute(WebAttributes.USER_UUID) UUID userUuid, @PathVariable UUID orderUuid, Model model) {
+        Order order = orderService.getByUuid(userUuid, orderUuid);
         model.addAttribute("order", order);
-        return "orders/order";
+        return "order/order";
     }
 
     @PostMapping("/checkout")
     public String checkout(@RequestAttribute(WebAttributes.USER_UUID) UUID userUuid) {
         Order order = orderService.create(userUuid);
         cartService.clear(userUuid);
-        return "redirect:/orders/" + order.getUuid();
+        return "redirect:/order/" + order.getUuid();
     }
 }

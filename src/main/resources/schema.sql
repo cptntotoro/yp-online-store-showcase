@@ -52,16 +52,7 @@ CREATE TABLE IF NOT EXISTS orders (
     order_uuid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_uuid UUID NOT NULL,
     cart_uuid UUID NOT NULL,
-    status VARCHAR(50) NOT NULL DEFAULT 'CREATED' CHECK (status IN (
-        'CREATED',
-        'PROCESSING',
-        'PAYMENT_PENDING',
-        'PAID',
-        'SHIPPED',
-        'DELIVERED',
-        'CANCELLED',
-        'REFUNDED'
-    )),
+    status VARCHAR(50) NOT NULL DEFAULT 'CREATED',
     total_amount DECIMAL(10, 2) DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_uuid) REFERENCES users(user_uuid),

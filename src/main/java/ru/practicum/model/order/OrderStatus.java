@@ -1,15 +1,20 @@
 package ru.practicum.model.order;
 
+import lombok.Getter;
+
 /**
  * Статус заказа
  */
+@Getter
 public enum OrderStatus {
-    CREATED,          // Заказ создан
-    PROCESSING,       // В обработке
-    PAYMENT_PENDING,  // Ожидает оплаты
-    PAID,             // Оплачен
-    SHIPPED,          // Отправлен
-    DELIVERED,        // Доставлен
-    CANCELLED,        // Отменен
-    REFUNDED          // Возвращен
+    CREATED("Создан"),
+    PAID("Оплачен"),
+    DELIVERED("Доставлен"),
+    CANCELLED("Отменен");
+
+    private final String displayName;
+
+    OrderStatus(String displayName) {
+        this.displayName = displayName;
+    }
 }
