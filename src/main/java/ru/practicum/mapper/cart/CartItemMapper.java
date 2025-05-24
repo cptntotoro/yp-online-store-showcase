@@ -1,13 +1,19 @@
 package ru.practicum.mapper.cart;
 
 import org.mapstruct.Mapper;
-import org.mapstruct.factory.Mappers;
+import org.mapstruct.Mapping;
 import ru.practicum.dto.cart.CartItemDto;
+import ru.practicum.mapper.product.ProductMapper;
 import ru.practicum.model.cart.CartItem;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = ProductMapper.class)
 public interface CartItemMapper {
-    CartItemMapper INSTANCE = Mappers.getMapper(CartItemMapper.class);
 
-    CartItem cartItemToCartItemDto(CartItemDto cartItemDto);
+    /**
+     * Смаппить товар из корзины в DTO товара из корзины
+     * @param cartItemDto Товар из корзины
+     * @return DTO товара из корзины
+     */
+    @Mapping(target = "product", source = "product")
+    CartItemDto cartItemToCartItemDto(CartItem cartItemDto);
 }

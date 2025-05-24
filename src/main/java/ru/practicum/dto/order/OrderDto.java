@@ -1,9 +1,8 @@
 package ru.practicum.dto.order;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import lombok.*;
 import ru.practicum.model.order.OrderStatus;
 
 import java.math.BigDecimal;
@@ -14,8 +13,7 @@ import java.util.UUID;
 /**
  * DTO заказа
  */
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class OrderDto {
@@ -25,14 +23,10 @@ public class OrderDto {
      */
     private UUID uuid;
 
-//    /**
-//     * Идентификатор пользователя
-//     */
-//    private UUID userUuid;
-
     /**
      * Статус заказа
      */
+    @Enumerated(EnumType.STRING)
     private OrderStatus status;
 
     /**

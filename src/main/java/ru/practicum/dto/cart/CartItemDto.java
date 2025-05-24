@@ -1,20 +1,16 @@
 package ru.practicum.dto.cart;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import ru.practicum.model.product.Product;
+import lombok.*;
+import ru.practicum.dto.product.ProductDto;
 
 import java.util.UUID;
 
 /**
  * DTO товара корзины
  */
-@Getter
-@Setter
-@AllArgsConstructor
+@Data
 @NoArgsConstructor
+@AllArgsConstructor
 public class CartItemDto {
 
     /**
@@ -25,7 +21,7 @@ public class CartItemDto {
     /**
      * Товар
      */
-    private Product product;
+    private ProductDto product;
 
     /**
      * Количество товара

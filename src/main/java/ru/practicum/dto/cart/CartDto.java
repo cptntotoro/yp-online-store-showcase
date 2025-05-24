@@ -1,9 +1,6 @@
 package ru.practicum.dto.cart;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,8 +9,7 @@ import java.util.UUID;
 /**
  * DTO корзины
  */
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class CartDto {
@@ -21,11 +17,6 @@ public class CartDto {
      * Идентификатор
      */
     private UUID uuid;
-//
-//    /**
-//     * Идентификатор пользователя
-//     */
-//    private UUID userUuid;
 
     /**
      * Список DTO товаров корзины

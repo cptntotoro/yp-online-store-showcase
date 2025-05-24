@@ -1,14 +1,17 @@
 package ru.practicum.mapper.order;
 
 import org.mapstruct.Mapper;
-import org.mapstruct.factory.Mappers;
 import ru.practicum.dto.order.OrderDto;
+import ru.practicum.mapper.cart.CartMapper;
 import ru.practicum.model.order.Order;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = {OrderItemMapper.class, CartMapper.class})
 public interface OrderMapper {
 
-    OrderMapper INSTANCE = Mappers.getMapper(OrderMapper.class);
-
-    Order orderToOrderDto(OrderDto orderDto);
+    /**
+     * Смаппить заказ в DTO заказа
+     * @param orderDto Заказ
+     * @return DTO заказа
+     */
+    OrderDto orderToOrderDto(Order orderDto);
 }

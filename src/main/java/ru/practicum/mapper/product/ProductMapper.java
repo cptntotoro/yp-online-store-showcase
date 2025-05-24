@@ -1,14 +1,16 @@
 package ru.practicum.mapper.product;
 
 import org.mapstruct.Mapper;
-import org.mapstruct.factory.Mappers;
 import ru.practicum.dto.product.ProductDto;
 import ru.practicum.model.product.Product;
 
 @Mapper(componentModel = "spring")
 public interface ProductMapper {
 
-    ProductMapper INSTANCE = Mappers.getMapper(ProductMapper.class);
-
-    Product productToProductDto(ProductDto productDto);
+    /**
+     * Смаппить товар в DTO товара
+     * @param product Товар
+     * @return DTO товара
+     */
+    ProductDto productToProductDto(Product product);
 }
