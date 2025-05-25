@@ -1,7 +1,9 @@
 package ru.practicum.mapper.order;
 
+import org.mapstruct.InjectionStrategy;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.springframework.stereotype.Component;
 import ru.practicum.dto.order.OrderItemDto;
 import ru.practicum.mapper.product.ProductMapper;
 import ru.practicum.model.order.OrderItem;

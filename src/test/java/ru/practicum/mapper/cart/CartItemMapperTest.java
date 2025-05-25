@@ -1,33 +1,49 @@
 package ru.practicum.mapper.cart;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mapstruct.factory.Mappers;
 import org.mockito.Mock;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import ru.practicum.config.MapperTestConfig;
+import org.mockito.junit.jupiter.MockitoExtension;
 import ru.practicum.dto.cart.CartItemDto;
 import ru.practicum.dto.product.ProductDto;
 import ru.practicum.mapper.product.ProductMapper;
 import ru.practicum.model.cart.CartItem;
 import ru.practicum.model.product.Product;
 
+import java.lang.reflect.Field;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
-@SpringBootTest(classes = MapperTestConfig.class)
+@ExtendWith(MockitoExtension.class)
 class CartItemMapperTest {
 
-    @Autowired
     private CartItemMapper cartItemMapper;
 
     @Mock
     private ProductMapper productMapper;
 
+    @BeforeEach
+    void setUp() throws Exception {
+        cartItemMapper = Mappers.getMapper(CartItemMapper.class);
+
+        injectDependencies(cartItemMapper);
+    }
+
+    private void injectDependencies(Object mapper) throws Exception {
+        for (Field field : mapper.getClass().getDeclaredFields()) {
+            if (field.getType().equals(ProductMapper.class)) {
+                field.setAccessible(true);
+                field.set(mapper, productMapper);
+            }
+        }
+    }
+
     @Test
     void shouldMapCartItemToDto() {
-        // Given
         Product product = new Product();
         product.setUuid(UUID.randomUUID());
         product.setName("Test Product");

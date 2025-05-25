@@ -1,33 +1,49 @@
 package ru.practicum.mapper.cart;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mapstruct.factory.Mappers;
 import org.mockito.Mock;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import ru.practicum.config.MapperTestConfig;
+import org.mockito.junit.jupiter.MockitoExtension;
 import ru.practicum.dto.cart.CartDto;
 import ru.practicum.dto.cart.CartItemDto;
 import ru.practicum.model.cart.Cart;
 import ru.practicum.model.cart.CartItem;
 
+import java.lang.reflect.Field;
 import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
-@SpringBootTest(classes = MapperTestConfig.class)
+@ExtendWith(MockitoExtension.class)
 class CartMapperTest {
 
-    @Autowired
     private CartMapper cartMapper;
 
     @Mock
     private CartItemMapper cartItemMapper;
 
+    @BeforeEach
+    void setUp() throws Exception {
+        cartMapper = Mappers.getMapper(CartMapper.class);
+
+        injectDependencies(cartMapper);
+    }
+
+    private void injectDependencies(Object mapper) throws Exception {
+        for (Field field : mapper.getClass().getDeclaredFields()) {
+            if (field.getType().equals(CartItemMapper.class)) {
+                field.setAccessible(true);
+                field.set(mapper, cartItemMapper);
+            }
+        }
+    }
+
     @Test
     void shouldMapCartToDto() {
-        // Given
         UUID cartId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
         UUID itemId = UUID.randomUUID();
@@ -43,16 +59,13 @@ class CartMapperTest {
         CartItemDto cartItemDto = new CartItemDto();
         cartItemDto.setUuid(itemId);
 
-        // Mock
         when(cartItemMapper.cartItemToCartItemDto(cartItem))
                 .thenReturn(cartItemDto);
 
-        // When
         CartDto dto = cartMapper.cartToCartDto(cart);
 
-        // Then
         assertThat(dto).isNotNull();
-        assertThat(dto.getUuid()).isEqualTo(cartId); // Теперь проверяем cart.uuid -> dto.uuid
+        assertThat(dto.getUuid()).isEqualTo(cartId);
         assertThat(dto.getItems())
                 .hasSize(1)
                 .first()
@@ -62,24 +75,18 @@ class CartMapperTest {
 
     @Test
     void shouldHandleNullCart() {
-        // When
         CartDto dto = cartMapper.cartToCartDto(null);
-
-        // Then
         assertThat(dto).isNull();
     }
 
     @Test
     void shouldHandleEmptyCart() {
-        // Given
         Cart cart = new Cart();
         cart.setUuid(UUID.randomUUID());
         cart.setItems(List.of());
 
-        // When
         CartDto dto = cartMapper.cartToCartDto(cart);
 
-        // Then
         assertThat(dto).isNotNull();
         assertThat(dto.getItems()).isEmpty();
     }

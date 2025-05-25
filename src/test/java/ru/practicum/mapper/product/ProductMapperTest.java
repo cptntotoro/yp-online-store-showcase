@@ -1,7 +1,9 @@
 package ru.practicum.mapper.product;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mapstruct.factory.Mappers;
+import org.mockito.junit.jupiter.MockitoExtension;
 import ru.practicum.dto.product.ProductDto;
 import ru.practicum.model.product.Product;
 

@@ -1,13 +1,14 @@
 package ru.practicum.mapper.order;
 
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import ru.practicum.config.MapperTestConfig;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Spy;
+import org.mockito.junit.jupiter.MockitoExtension;
 import ru.practicum.dto.order.OrderItemDto;
 import ru.practicum.dto.product.ProductDto;
 import ru.practicum.mapper.product.ProductMapper;
+import ru.practicum.mapper.product.ProductMapperImpl;
 import ru.practicum.model.order.OrderItem;
 import ru.practicum.model.product.Product;
 
@@ -17,18 +18,17 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
-@SpringBootTest(classes = MapperTestConfig.class)
+@ExtendWith(MockitoExtension.class)
 class OrderItemMapperTest {
 
-    @Autowired
-    private OrderItemMapper orderItemMapper;
+    @InjectMocks
+    private OrderItemMapperImpl orderItemMapper;
 
-    @Mock
-    private ProductMapper productMapper;
+    @Spy
+    private ProductMapper productMapper = new ProductMapperImpl();
 
     @Test
-    void shouldMapOrderItemToDto() throws Exception {
-        // Given
+    void shouldMapOrderItemToDto() {
         UUID itemId = UUID.randomUUID();
         UUID productId = UUID.randomUUID();
 
@@ -47,13 +47,10 @@ class OrderItemMapperTest {
         productDto.setUuid(productId);
         productDto.setName("Test Product");
 
-        // Mock ProductMapper behavior
         when(productMapper.productToProductDto(product)).thenReturn(productDto);
 
-        // When
         OrderItemDto dto = orderItemMapper.orderItemToOrderItemDto(orderItem);
 
-        // Then
         assertThat(dto).isNotNull();
         assertThat(dto.getUuid()).isEqualTo(itemId);
         assertThat(dto.getQuantity()).isEqualTo(2);
@@ -66,42 +63,32 @@ class OrderItemMapperTest {
 
     @Test
     void shouldHandleNullInput() {
-        // When
         OrderItemDto dto = orderItemMapper.orderItemToOrderItemDto(null);
-
-        // Then
         assertThat(dto).isNull();
     }
 
     @Test
-    void shouldHandleNullProduct() throws Exception {
-        // Given
+    void shouldHandleNullProduct() {
         OrderItem orderItem = new OrderItem();
         orderItem.setUuid(UUID.randomUUID());
         orderItem.setProduct(null);
         orderItem.setQuantity(1);
 
-        // When
         OrderItemDto dto = orderItemMapper.orderItemToOrderItemDto(orderItem);
 
-        // Then
         assertThat(dto).isNotNull();
         assertThat(dto.getProduct()).isNull();
         assertThat(dto.getQuantity()).isEqualTo(1);
     }
 
     @Test
-    void shouldMapWithPartialData() throws Exception {
-        // Given
+    void shouldMapWithPartialData() {
         OrderItem orderItem = new OrderItem();
         orderItem.setUuid(null);
         orderItem.setQuantity(3);
-        // product и priceAtOrder не установлены
 
-        // When
         OrderItemDto dto = orderItemMapper.orderItemToOrderItemDto(orderItem);
 
-        // Then
         assertThat(dto).isNotNull();
         assertThat(dto.getUuid()).isNull();
         assertThat(dto.getQuantity()).isEqualTo(3);

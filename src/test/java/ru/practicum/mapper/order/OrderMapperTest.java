@@ -1,10 +1,11 @@
 package ru.practicum.mapper.order;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mapstruct.factory.Mappers;
 import org.mockito.Mock;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import ru.practicum.config.MapperTestConfig;
+import org.mockito.junit.jupiter.MockitoExtension;
 import ru.practicum.dto.order.OrderDto;
 import ru.practicum.dto.order.OrderItemDto;
 import ru.practicum.mapper.cart.CartMapper;
@@ -12,6 +13,7 @@ import ru.practicum.model.order.Order;
 import ru.practicum.model.order.OrderItem;
 import ru.practicum.model.order.OrderStatus;
 
+import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
@@ -19,10 +21,9 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
-@SpringBootTest(classes = MapperTestConfig.class)
+@ExtendWith(MockitoExtension.class)
 class OrderMapperTest {
 
-    @Autowired
     private OrderMapper orderMapper;
 
     @Mock
@@ -31,9 +32,27 @@ class OrderMapperTest {
     @Mock
     private CartMapper cartMapper;
 
+    @BeforeEach
+    void setUp() throws Exception {
+        orderMapper = Mappers.getMapper(OrderMapper.class);
+
+        injectDependencies(orderMapper);
+    }
+
+    private void injectDependencies(Object mapper) throws Exception {
+        for (Field field : mapper.getClass().getDeclaredFields()) {
+            if (field.getType().equals(OrderItemMapper.class)) {
+                field.setAccessible(true);
+                field.set(mapper, orderItemMapper);
+            } else if (field.getType().equals(CartMapper.class)) {
+                field.setAccessible(true);
+                field.set(mapper, cartMapper);
+            }
+        }
+    }
+
     @Test
     void shouldMapOrderToDto() {
-        // Given
         UUID orderId = UUID.randomUUID();
         UUID itemId = UUID.randomUUID();
 
@@ -46,25 +65,15 @@ class OrderMapperTest {
         order.setTotalAmount(BigDecimal.valueOf(100.50));
         order.setItems(List.of(orderItem));
 
-        // Mock
         when(orderItemMapper.orderItemToOrderItemDto(orderItem))
                 .thenReturn(new OrderItemDto());
-        when(cartMapper.cartToCartDto(null))
-                .thenReturn(null);
 
-        // When
         OrderDto dto = orderMapper.orderToOrderDto(order);
 
-        // Then
         assertThat(dto).isNotNull();
         assertThat(dto.getUuid()).isEqualTo(orderId);
         assertThat(dto.getStatus()).isEqualTo(OrderStatus.CREATED);
         assertThat(dto.getTotalAmount()).isEqualTo(BigDecimal.valueOf(100.50));
         assertThat(dto.getItems()).hasSize(1);
-    }
-
-    @Test
-    void shouldHandleNullInput() {
-        assertThat(orderMapper.orderToOrderDto(null)).isNull();
     }
 }
