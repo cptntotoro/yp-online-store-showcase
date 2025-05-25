@@ -25,6 +25,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Testcontainers
+// TODO
 class OrderRepositoryTest {
 
     @Autowired
@@ -72,7 +73,7 @@ class OrderRepositoryTest {
 
         CartItem cartItem = new CartItem(testCart, testProduct, 1);
         testCart.getItems().add(cartItem);
-        cartRepository.save(testCart); // Сохраняем корзину с элементом
+        cartRepository.save(testCart);
     }
 
     private Order createTestOrder(OrderStatus status) {
@@ -106,8 +107,8 @@ class OrderRepositoryTest {
         user2 = userRepository.save(user2);
 
         // Создаем заказы для обоих пользователей
-        createTestOrder(OrderStatus.CREATED); // для testUserUuid
-        createTestOrder(OrderStatus.PAID);    // для testUserUuid
+        createTestOrder(OrderStatus.CREATED);
+        createTestOrder(OrderStatus.PAID);
 
         // Создаем корзину и заказ для второго пользователя
         Cart cart2 = new Cart();

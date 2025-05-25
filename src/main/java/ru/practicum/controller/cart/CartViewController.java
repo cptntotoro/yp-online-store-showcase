@@ -5,6 +5,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.config.WebAttributes;
+import ru.practicum.mapper.cart.CartMapper;
+import ru.practicum.model.cart.Cart;
 import ru.practicum.service.cart.CartServiceImpl;
 
 import java.util.UUID;
@@ -14,10 +16,13 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class CartViewController {
     private final CartServiceImpl cartService;
+    private final CartMapper cartMapper;
+
 
     @GetMapping
     public String showCart(Model model, @RequestAttribute(WebAttributes.USER_UUID) UUID userUuid) {
-        model.addAttribute("cart", cartService.get(userUuid));
+        Cart cart = cartService.get(userUuid);
+        model.addAttribute("cart", cartMapper.cartToCartDto(cart));
         return "cart/cart";
     }
 

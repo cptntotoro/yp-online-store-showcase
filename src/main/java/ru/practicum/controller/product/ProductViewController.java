@@ -10,6 +10,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.mapper.product.ProductMapper;
 import ru.practicum.model.product.Product;
 import ru.practicum.service.product.ProductService;
 
@@ -20,6 +21,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ProductViewController {
     private final ProductService productService;
+    private final ProductMapper productMapper;
 
     @GetMapping
     public String showProductList(
@@ -40,7 +42,7 @@ public class ProductViewController {
             productPage = productService.getAll(pageable);
         }
 
-        model.addAttribute("products", productPage);
+        model.addAttribute("products", productPage.map(productMapper::productToProductDto));
         return "product/catalog";
     }
 
