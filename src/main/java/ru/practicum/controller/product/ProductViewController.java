@@ -1,12 +1,9 @@
 package ru.practicum.controller.product;
 
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -20,7 +17,15 @@ import java.util.UUID;
 @RequestMapping("/products")
 @RequiredArgsConstructor
 public class ProductViewController {
+
+    /**
+     * Сервис управления товарами
+     */
     private final ProductService productService;
+
+    /**
+     * Маппер товаров
+     */
     private final ProductMapper productMapper;
 
     @GetMapping
@@ -49,7 +54,7 @@ public class ProductViewController {
     @GetMapping("/{uuid}")
     public String showProductDetails(@PathVariable("uuid") UUID uuid, Model model) {
         Product product = productService.getByUuid(uuid);
-        model.addAttribute("product", product);
+        model.addAttribute("product", productMapper.productToProductDto(product));
         return "product/product";
     }
 }

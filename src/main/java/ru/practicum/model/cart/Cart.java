@@ -41,6 +41,9 @@ public class Cart {
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CartItem> items = new ArrayList<>();
 
+    @Column(name = "total_price")
+    private BigDecimal totalPrice;
+
     /**
      * Дата создания
      */
@@ -53,10 +56,10 @@ public class Cart {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
-    @Transient
-    public BigDecimal getTotalPrice() {
-        return items.stream()
-                .map(CartItem::getTotalPrice)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-    }
+//    @Transient
+//    public BigDecimal getTotalPrice() {
+//        return items.stream()
+//                .map(CartItem::getTotalPrice)
+//                .reduce(BigDecimal.ZERO, BigDecimal::add);
+//    }
 }

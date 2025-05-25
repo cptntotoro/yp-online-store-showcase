@@ -4,13 +4,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.exception.cart.CartNotFoundException;
-import ru.practicum.exception.product.ProductNotFoundException;
 import ru.practicum.model.cart.Cart;
 import ru.practicum.model.cart.CartItem;
 import ru.practicum.model.product.Product;
 import ru.practicum.repository.cart.CartRepository;
-import ru.practicum.repository.product.ProductRepository;
+import ru.practicum.service.product.ProductService;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -20,9 +20,18 @@ import java.util.*;
  */
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class CartServiceImpl implements CartService {
+
+    /**
+     * Репозиторий корзины товаров
+     */
     private final CartRepository cartRepository;
-    private final ProductRepository productRepository;
+
+    /**
+     * Сервис управления товарами
+     */
+    private final ProductService productService;
 
     @Override
     public Cart create(UUID userUuid) {
@@ -32,20 +41,19 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Cart get(UUID userUuid) {
         return cartRepository.findByUserUuid(userUuid)
-                .orElseThrow(() -> new CartNotFoundException("Корзина пользователя с uuid = " + userUuid + " не найдена."));
+                .orElseThrow(() -> new CartNotFoundException("Корзина пользователя с uuid = " + userUuid + " не найдена"));
     }
 
     @Override
     @CacheEvict(value = "cartTotals", key = "#userUuid")
     public Cart addToCart(UUID userUuid, UUID productUuid, int quantity) {
         Cart cart = get(userUuid);
-
-        Product product = productRepository.findById(productUuid)
-                .orElseThrow(() -> new ProductNotFoundException("Товар с uuid " + productUuid + " не найден."));
-
-        addItem(cart, product, quantity);
+        Product product = productService.getByUuid(productUuid);
+        updateOrAddItem(cart, product, quantity);
+        updateCartTotal(cart);
         return cartRepository.save(cart);
     }
 
@@ -53,7 +61,8 @@ public class CartServiceImpl implements CartService {
     @CacheEvict(value = "cartTotals", key = "#userUuid")
     public Cart removeFromCart(UUID userUuid, UUID productUuid) {
         Cart cart = get(userUuid);
-        removeItem(cart, productUuid);
+        removeCartItem(cart, productUuid);
+        updateCartTotal(cart);
         return cartRepository.save(cart);
     }
 
@@ -62,45 +71,86 @@ public class CartServiceImpl implements CartService {
     public void clear(UUID userUuid) {
         Cart cart = get(userUuid);
         cart.getItems().clear();
+        updateCartTotal(cart);
         cartRepository.save(cart);
     }
 
     @Override
     @Cacheable(value = "cartTotals", key = "#userUuid")
+    @Transactional(readOnly = true)
     public BigDecimal getCachedCartTotal(UUID userUuid) {
         Cart cart = get(userUuid);
-        return cart.getItems().stream()
-                .map(item -> item.getProduct().getPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        return calculateTotalPrice(cart.getItems());
     }
 
     @Override
     @CacheEvict(value = "cartTotals", key = "#userUuid")
     public void updateQuantity(UUID userUuid, UUID productUuid, int quantity) {
         Cart cart = get(userUuid);
+        updateItemQuantity(cart, productUuid, quantity);
+        updateCartTotal(cart);
+        cartRepository.save(cart);
+    }
+
+    /**
+     * Изменить наличие товара в корзине или добавить новый товар
+     *
+     * @param cart Корзина
+     * @param product Товар
+     * @param quantity Количество товара
+     */
+    private void updateOrAddItem(Cart cart, Product product, int quantity) {
+        cart.getItems().stream()
+                .filter(item -> item.getProduct().equals(product))
+                .findFirst()
+                .ifPresentOrElse(
+                        item -> item.setQuantity(item.getQuantity() + quantity),
+                        () -> cart.getItems().add(new CartItem(cart, product, quantity))
+                );
+    }
+
+    /**
+     * Удалить товар из корзины
+     *
+     * @param cart Корзина
+     * @param productUuid Идентификатор товара
+     */
+    private void removeCartItem(Cart cart, UUID productUuid) {
+        cart.getItems().removeIf(item -> item.getProduct().getUuid().equals(productUuid));
+    }
+
+    /**
+     * Обновить количество товара
+     *
+     * @param cart Корзина
+     * @param productUuid Идентификатор товара
+     * @param quantity Количество товара
+     */
+    private void updateItemQuantity(Cart cart, UUID productUuid, int quantity) {
         cart.getItems().stream()
                 .filter(item -> item.getProduct().getUuid().equals(productUuid))
                 .findFirst()
                 .ifPresent(item -> item.setQuantity(quantity));
-        cartRepository.save(cart);
     }
 
-    public void addItem(Cart cart, Product product, int quantity) {
-        List<CartItem> cartItems = cart.getItems();
-
-        Optional<CartItem> existingItem = cartItems.stream()
-                .filter(item -> item.getProduct().getUuid().equals(product.getUuid()))
-                .findFirst();
-
-        if (existingItem.isPresent()) {
-            existingItem.get().setQuantity(existingItem.get().getQuantity() + quantity);
-        } else {
-            CartItem newItem = new CartItem(cart, product, quantity);
-            cartItems.add(newItem);
-        }
+    /**
+     * Установить новое значение стоимости товаров в корзине
+     *
+     * @param cart Корзина
+     */
+    private void updateCartTotal(Cart cart) {
+        cart.setTotalPrice(calculateTotalPrice(cart.getItems()));
     }
 
-    public void removeItem(Cart cart, UUID productUuid) {
-        cart.getItems().removeIf(item -> item.getProduct().getUuid().equals(productUuid));
+    /**
+     * Рассчитать стоимость товаров в корзине
+     *
+     * @param items Товары
+     * @return Стоимость товаров в корзине
+     */
+    private BigDecimal calculateTotalPrice(List<CartItem> items) {
+        return items.stream()
+                .map(CartItem::getTotalPrice)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 }

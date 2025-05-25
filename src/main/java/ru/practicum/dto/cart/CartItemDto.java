@@ -3,6 +3,7 @@ package ru.practicum.dto.cart;
 import lombok.*;
 import ru.practicum.dto.product.ProductDto;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 /**
@@ -27,4 +28,9 @@ public class CartItemDto {
      * Количество товара
      */
     private int quantity;
+
+    /**
+     * Стоимость корзины
+     */
+    private BigDecimal totalPrice;
 }

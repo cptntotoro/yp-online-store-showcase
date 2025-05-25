@@ -43,21 +43,6 @@ public interface CartService {
      */
     Cart removeFromCart(UUID userUuid, UUID productUuid);
 
-//    /**
-//     * Изменить количество товара в корзине
-//     *
-//     * @param productUuid Идентификатор товара
-//     * @param quantity Количество товара
-//     */
-//    void updateQuantity(UUID productUuid, int quantity);
-//
-//    /**
-//     * Получить все товары в корзине
-//     *
-//     * @return Товары в корзине
-//     */
-//    List<CartItem> getAll();
-
     /**
      * Очистить корзину товаров
      *

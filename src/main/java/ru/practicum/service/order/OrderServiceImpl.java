@@ -3,6 +3,7 @@ package ru.practicum.service.order;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.exception.order.IllegalOrderStateException;
 import ru.practicum.exception.order.OrderNotFoundException;
 import ru.practicum.model.cart.Cart;
 import ru.practicum.model.order.Order;
@@ -32,11 +33,16 @@ public class OrderServiceImpl implements OrderService {
         return order;
     }
 
-    @Transactional
     @Override
     public Order updateStatus(UUID orderUuid, OrderStatus newStatus) {
         Order order = orderRepository.findById(orderUuid)
                 .orElseThrow(() -> new OrderNotFoundException("Заказ с uuid = " + orderUuid + " не найден и не был обновлен."));
+
+        if (newStatus == OrderStatus.PAID && order.getStatus() == OrderStatus.CREATED) {
+            order.setStatus(OrderStatus.PAID);
+        } else {
+            throw new IllegalOrderStateException("Только заказ в статусе 'Создан' может быть оплачен.");
+        }
 
         order.setStatus(newStatus);
         return orderRepository.save(order);
@@ -50,5 +56,11 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public Order getByUuid(UUID userUuid, UUID uuid) {
         return orderRepository.findByIdWhereUserUuidIn(uuid, userUuid).orElseThrow(() -> new OrderNotFoundException("Заказ не найден"));
+    }
+
+    @Override
+    @Transactional
+    public void checkout(UUID userUuid, UUID orderUuid) {
+        updateStatus(orderUuid, OrderStatus.PAID);
     }
 }

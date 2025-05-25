@@ -5,6 +5,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.config.WebAttributes;
+import ru.practicum.mapper.order.OrderMapper;
 import ru.practicum.model.order.Order;
 import ru.practicum.service.cart.CartService;
 import ru.practicum.service.order.OrderService;
@@ -16,20 +17,32 @@ import java.util.UUID;
 @RequestMapping("/orders")
 @RequiredArgsConstructor
 public class OrderViewController {
+    /**
+     * Сервис управления заказами
+     */
     private final OrderService orderService;
+
+    /**
+     * Сервис управления корзиной товаров
+     */
     private final CartService cartService;
+
+    /**
+     * Маппер заказов
+     */
+    private final OrderMapper orderMapper;
 
     @GetMapping
     public String showOrderList(@RequestAttribute(WebAttributes.USER_UUID) UUID userUuid, Model model) {
         List<Order> orders = orderService.getUserOrders(userUuid);
-        model.addAttribute("orders", orders);
+        model.addAttribute("orders", orders.stream().map(orderMapper::orderToOrderDto));
         return "order/orders";
     }
 
     @GetMapping("/{orderUuid}")
     public String showOrderDetails(@RequestAttribute(WebAttributes.USER_UUID) UUID userUuid, @PathVariable UUID orderUuid, Model model) {
         Order order = orderService.getByUuid(userUuid, orderUuid);
-        model.addAttribute("order", order);
+        model.addAttribute("order", orderMapper.orderToOrderDto(order));
         return "order/order";
     }
 
@@ -37,6 +50,12 @@ public class OrderViewController {
     public String checkout(@RequestAttribute(WebAttributes.USER_UUID) UUID userUuid) {
         Order order = orderService.create(userUuid);
         cartService.clear(userUuid);
-        return "redirect:/order/" + order.getUuid();
+        return "redirect:/orders/" + order.getUuid();
+    }
+
+    @PostMapping("/checkout/{orderUuid}")
+    public String checkout(@RequestAttribute(WebAttributes.USER_UUID) UUID userUuid, @PathVariable UUID orderUuid, Model model) {
+        orderService.checkout(userUuid, orderUuid);
+        return "redirect:/orders/" + orderUuid;
     }
 }

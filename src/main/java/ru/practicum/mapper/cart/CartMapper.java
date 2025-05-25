@@ -4,6 +4,9 @@ import org.mapstruct.Mapper;
 import ru.practicum.dto.cart.CartDto;
 import ru.practicum.model.cart.Cart;
 
+/**
+ * Маппер корзины товаров
+ */
 @Mapper(componentModel = "spring", uses = CartItemMapper.class)
 public interface CartMapper {
 

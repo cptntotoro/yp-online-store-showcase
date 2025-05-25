@@ -11,9 +11,6 @@ import java.util.UUID;
  * Сервис управления заказами
  */
 public interface OrderService {
-//    Order add(List<CartItem> cartItems);
-
-//    List<Order> getAll();
 
     /**
      * Создать заказ
@@ -47,4 +44,6 @@ public interface OrderService {
      * @return Заказ
      */
     Order getByUuid(UUID userUuid, UUID orderUuid);
+
+    void checkout(UUID userUuid, UUID orderUuid);
 }

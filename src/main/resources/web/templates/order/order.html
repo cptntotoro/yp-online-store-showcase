@@ -8,7 +8,7 @@
   <link rel="stylesheet" type="text/css" th:href="@{/styles/base.css}">
   <link rel="stylesheet" type="text/css" th:href="@{/styles/components.css}">
   <link rel="stylesheet" type="text/css" th:href="@{/styles/layout.css}">
-  <link rel="stylesheet" type="text/css" th:href="@{/styles/orders/order.css}">
+  <link rel="stylesheet" type="text/css" th:href="@{/styles/order/order.css}">
 </head>
 <body>
 <div th:replace="~{../fragments/header :: header}"></div>
@@ -74,7 +74,7 @@
 
     <div class="order-actions">
       <a th:href="@{/orders}" class="btn btn-outline">← Вернуться к списку заказов</a>
-      <button th:if="${order.status.name() == 'CREATED'}" class="btn btn-primary">Оплатить заказ</button>
+      <button th:href="@{/orders/chechout/{uuid}(uuid=${order.uuid})}" class="btn btn-primary">Оплатить заказ</button>
     </div>
   </div>
 </main>

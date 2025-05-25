@@ -32,7 +32,9 @@
         <!-- Основной блок корзины -->
         <div th:unless="${cart == null or cart.items.empty}">
             <div class="space-y-4">
-                <div th:each="item : ${cart.items}" class="cart-item shadow-sm" th:data-product-uuid="${item.product.uuid}" th:data-item-uuid="${item.uuid}">
+                <div th:each="item : ${cart.items}" class="cart-item shadow-sm"
+                     th:data-product-uuid="${item.product.uuid}"
+                     th:data-item-uuid="${item.uuid}">
                     <img th:src="${item.product.imageUrl}" alt="Product image" class="cart-item-img">
                     <div class="cart-item-details">
                         <h3 class="cart-item-title" th:text="${item.product.name}"></h3>

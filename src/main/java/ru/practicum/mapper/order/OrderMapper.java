@@ -5,6 +5,9 @@ import ru.practicum.dto.order.OrderDto;
 import ru.practicum.mapper.cart.CartMapper;
 import ru.practicum.model.order.Order;
 
+/**
+ * Маппер заказов
+ */
 @Mapper(componentModel = "spring", uses = {OrderItemMapper.class, CartMapper.class})
 public interface OrderMapper {
 

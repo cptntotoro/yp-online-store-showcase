@@ -4,6 +4,9 @@ import org.mapstruct.Mapper;
 import ru.practicum.dto.product.ProductDto;
 import ru.practicum.model.product.Product;
 
+/**
+ * Маппер товаров
+ */
 @Mapper(componentModel = "spring")
 public interface ProductMapper {
 

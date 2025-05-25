@@ -7,6 +7,9 @@ import ru.practicum.model.cart.Cart;
 import java.util.Optional;
 import java.util.UUID;
 
+/**
+ * Репозиторий корзины товаров
+ */
 @Repository
 public interface CartRepository extends JpaRepository<Cart, UUID> {
 

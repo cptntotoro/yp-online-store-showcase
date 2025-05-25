@@ -59,6 +59,9 @@ public class CartItem {
         this.quantity = quantity;
     }
 
+//    @Column(name = "total_price")
+//    private BigDecimal totalPrice;
+
     /**
      * Получить стоимость товара корзины
      * @return Стоимость товара корзины

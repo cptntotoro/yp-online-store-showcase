@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.practicum.config.WebAttributes;
 import ru.practicum.mapper.cart.CartMapper;
 import ru.practicum.model.cart.Cart;
-import ru.practicum.service.cart.CartServiceImpl;
+import ru.practicum.service.cart.CartService;
 
 import java.util.UUID;
 
@@ -15,9 +15,15 @@ import java.util.UUID;
 @RequestMapping("/cart")
 @RequiredArgsConstructor
 public class CartViewController {
-    private final CartServiceImpl cartService;
-    private final CartMapper cartMapper;
+    /**
+     * Сервис управления корзиной товаров
+     */
+    private final CartService cartService;
 
+    /**
+     * Маппер корзины товаров
+     */
+    private final CartMapper cartMapper;
 
     @GetMapping
     public String showCart(Model model, @RequestAttribute(WebAttributes.USER_UUID) UUID userUuid) {

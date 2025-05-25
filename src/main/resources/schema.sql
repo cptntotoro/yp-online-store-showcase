@@ -29,6 +29,7 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS carts (
     cart_uuid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_uuid UUID NOT NULL,
+    total_price DECIMAL(10, 2) DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_uuid) REFERENCES users(user_uuid) ON DELETE CASCADE
@@ -40,6 +41,7 @@ CREATE TABLE IF NOT EXISTS cart_items (
     cart_uuid UUID NOT NULL,
     product_uuid UUID NOT NULL,
     quantity INT NOT NULL CHECK (quantity > 0),
+--     total_price DECIMAL(10, 2) DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (cart_uuid) REFERENCES carts(cart_uuid) ON DELETE CASCADE,
     FOREIGN KEY (product_uuid) REFERENCES products(product_uuid)

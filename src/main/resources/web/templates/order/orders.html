@@ -33,23 +33,21 @@
                             <p class="order-date"
                                th:text="${#temporals.format(order.createdAt, 'dd MMMM, yyyy hh:mm a')}"></p>
                         </div>
-                        <span class="order-status status-completed">Завершен</span>
+                        <span th:text="${order.status}" class="order-status status-completed"></span>
                     </div>
 
                     <div class="order-items-preview">
-                        <img th:each="item : ${#lists.subList(order.items, 0, min(3, order.items.size()))}"
-                             th:src="${item.product.imageUrl}"
+<!--                        <img th:src="${item.product.imageUrl}"-->
                              alt="Product image"
                              class="order-item-img">
-                        <div th:if="${order.items.size() > 3}" class="order-more-items">
-                            +<span th:text="${order.items.size() - 3}"></span>
-                        </div>
+<!--                        <div th:if="${order.items.size() > 3}" class="order-more-items">-->
+<!--                            +<span th:text="${order.items.size() - 3}"></span>-->
+<!--                        </div>-->
                     </div>
 
                     <div class="summary-row mt-4">
                         <span>Итого:</span>
-                        <span class="font-bold"
-                              th:text="'$' + ${#numbers.formatDecimal(order.totalPrice, 1, 2)}"></span>
+                        <span class="font-bold" th:text="${#numbers.formatDecimal(order.totalPrice, 1, 2)} + ' ₽'"></span>
                     </div>
                 </a>
             </div>
