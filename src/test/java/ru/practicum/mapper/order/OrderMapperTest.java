@@ -62,7 +62,7 @@ class OrderMapperTest {
         Order order = new Order();
         order.setUuid(orderId);
         order.setStatus(OrderStatus.CREATED);
-        order.setTotalAmount(BigDecimal.valueOf(100.50));
+        order.setTotalPrice(BigDecimal.valueOf(100.50));
         order.setItems(List.of(orderItem));
 
         when(orderItemMapper.orderItemToOrderItemDto(orderItem))
@@ -73,7 +73,7 @@ class OrderMapperTest {
         assertThat(dto).isNotNull();
         assertThat(dto.getUuid()).isEqualTo(orderId);
         assertThat(dto.getStatus()).isEqualTo(OrderStatus.CREATED);
-        assertThat(dto.getTotalAmount()).isEqualTo(BigDecimal.valueOf(100.50));
+        assertThat(dto.getTotalPrice()).isEqualTo(BigDecimal.valueOf(100.50));
         assertThat(dto.getItems()).hasSize(1);
     }
 }

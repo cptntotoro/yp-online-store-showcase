@@ -54,7 +54,7 @@ public class Order {
      * Стоимость заказа
      */
     @Column(precision = 10, scale = 2)
-    private BigDecimal totalAmount;
+    private BigDecimal totalPrice;
 
     /**
      * Товары заказа
@@ -72,7 +72,7 @@ public class Order {
         this.userUuid = userUuid;
         this.cart = cart;
         this.status = OrderStatus.CREATED;
-        this.totalAmount = cart.getTotalPrice();
+        this.totalPrice = cart.getTotalPrice();
 
         // Переносим элементы из корзины в заказ
         cart.getItems().forEach(cartItem -> {
@@ -86,14 +86,14 @@ public class Order {
         });
     }
 
-    /**
-     * Получить стоимость товаров заказа
-     * @return Стоимость товаров заказа
-     */
-    @Transient
-    public int getTotalItems() {
-        return items.stream()
-                .mapToInt(OrderItem::getQuantity)
-                .sum();
-    }
+//    /**
+//     * Получить количество товаров заказа
+//     * @return Количество товаров заказа
+//     */
+//    @Transient
+//    public int getTotalItems() {
+//        return items.stream()
+//                .mapToInt(OrderItem::getQuantity)
+//                .sum();
+//    }
 }

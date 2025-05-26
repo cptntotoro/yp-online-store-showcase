@@ -11,14 +11,21 @@ import ru.practicum.model.order.OrderStatus;
 import ru.practicum.repository.order.OrderRepository;
 import ru.practicum.service.cart.CartService;
 
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
 public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
     private final CartService cartService;
+
+    /**
+     * Валидные переключения статусов
+     */
+    private static final Map<OrderStatus, Set<OrderStatus>> ALLOWED_STATUS_TRANSITIONS = Map.of(
+            OrderStatus.CREATED, EnumSet.of(OrderStatus.PAID, OrderStatus.CANCELLED),
+            OrderStatus.PAID, EnumSet.of(OrderStatus.DELIVERED, OrderStatus.CANCELLED)
+    );
 
     @Override
     @Transactional
@@ -31,21 +38,6 @@ public class OrderServiceImpl implements OrderService {
         cartService.clear(userUuid);
 
         return order;
-    }
-
-    @Override
-    public Order updateStatus(UUID orderUuid, OrderStatus newStatus) {
-        Order order = orderRepository.findById(orderUuid)
-                .orElseThrow(() -> new OrderNotFoundException("Заказ с uuid = " + orderUuid + " не найден и не был обновлен."));
-
-        if (newStatus == OrderStatus.PAID && order.getStatus() == OrderStatus.CREATED) {
-            order.setStatus(OrderStatus.PAID);
-        } else {
-            throw new IllegalOrderStateException("Только заказ в статусе 'Создан' может быть оплачен.");
-        }
-
-        order.setStatus(newStatus);
-        return orderRepository.save(order);
     }
 
     @Override
@@ -62,5 +54,28 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     public void checkout(UUID userUuid, UUID orderUuid) {
         updateStatus(orderUuid, OrderStatus.PAID);
+    }
+
+    @Override
+    public void cancel(UUID userUuid, UUID orderUuid) {
+        updateStatus(orderUuid, OrderStatus.CANCELLED);
+    }
+
+    private void updateStatus(UUID orderUuid, OrderStatus newStatus) {
+        Order order = orderRepository.findById(orderUuid)
+                .orElseThrow(() -> new OrderNotFoundException("Заказ с uuid = " + orderUuid + " не найден и не был обновлен."));
+
+        validateStatusTransition(order.getStatus(), newStatus);
+
+        order.setStatus(newStatus);
+        orderRepository.save(order);
+    }
+
+    private void validateStatusTransition(OrderStatus current, OrderStatus newStatus) {
+        if (!ALLOWED_STATUS_TRANSITIONS.getOrDefault(current, EnumSet.noneOf(OrderStatus.class)).contains(newStatus)) {
+            throw new IllegalOrderStateException(
+                    String.format("Недопустимый переход статуса заказа из %s в %s", current, newStatus)
+            );
+        }
     }
 }

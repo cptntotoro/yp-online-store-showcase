@@ -18,31 +18,43 @@
     <div class="container">
         <h1 class="text-2xl font-bold mb-6">Заказы</h1>
 
-        <div th:if="${orders.empty}" class="empty-orders shadow rounded p-8 text-center">
+        <div th:if="${not hasOrders}" class="empty-orders shadow rounded p-8 text-center">
             <div class="empty-icon text-4xl mb-4">📦</div>
             <p class="empty-text">У вас пока нет заказов</p>
             <a href="/products" class="btn btn-primary mt-4">Начать покупки</a>
         </div>
 
-        <div th:unless="${orders.empty}" class="space-y-4">
+        <div th:if="${hasOrders}" class="space-y-4">
             <div th:each="order : ${orders}" class="order-card">
                 <a th:href="@{/orders/{uuid}(uuid=${order.uuid})}" class="block">
                     <div class="order-header">
                         <div>
                             <h3 class="order-id" th:text="'Order #' + ${order.uuid}"></h3>
                             <p class="order-date"
-                               th:text="${#temporals.format(order.createdAt, 'dd MMMM, yyyy hh:mm a')}"></p>
+                               th:text="${#temporals.format(order.createdAt, 'dd.MM.yyyy HH:mm')}"></p>
                         </div>
-                        <span th:text="${order.status}" class="order-status status-completed"></span>
+                        <div class="order-status-badge" th:classappend="'status-' + ${order.status.name()}">
+                            <span th:text="${order.status.getDisplayName()}"></span>
+                        </div>
                     </div>
 
                     <div class="order-items-preview">
-<!--                        <img th:src="${item.product.imageUrl}"-->
-                             alt="Product image"
-                             class="order-item-img">
-<!--                        <div th:if="${order.items.size() > 3}" class="order-more-items">-->
-<!--                            +<span th:text="${order.items.size() - 3}"></span>-->
-<!--                        </div>-->
+                        <h2 class="section-title">Состав заказа</h2>
+                        <div class="order-items">
+                            <div th:each="item : ${order.items}" class="order-item">
+                                <img th:src="${item.product.imageUrl}" alt="Изображение товара" class="item-image">
+                                <div class="item-details">
+                                    <h3 class="item-name" th:text="${item.product.name}"></h3>
+                                    <div class="item-price-quantity">
+                                        <span class="item-price"
+                                              th:text="${#numbers.formatDecimal(item.product.price, 1, 2, 'COMMA')} + ' ₽'"></span>
+                                        <span class="item-quantity">× <span th:text="${item.quantity}"></span></span>
+                                        <span class="item-total"
+                                              th:text="${#numbers.formatDecimal(item.product.price * item.quantity, 1, 2, 'COMMA')} + ' ₽'"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="summary-row mt-4">

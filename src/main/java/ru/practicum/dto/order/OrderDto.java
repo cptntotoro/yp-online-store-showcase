@@ -6,6 +6,7 @@ import lombok.*;
 import ru.practicum.model.order.OrderStatus;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -32,10 +33,15 @@ public class OrderDto {
     /**
      * Стоимость заказа
      */
-    private BigDecimal totalAmount;
+    private BigDecimal totalPrice;
 
     /**
      * Товары заказа
      */
     private List<OrderItemDto> items = new ArrayList<>();
+
+    /**
+     * Дата создания
+     */
+    private LocalDateTime createdAt;
 }

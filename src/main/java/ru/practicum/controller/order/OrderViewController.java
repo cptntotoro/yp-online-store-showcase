@@ -35,7 +35,8 @@ public class OrderViewController {
     @GetMapping
     public String showOrderList(@RequestAttribute(WebAttributes.USER_UUID) UUID userUuid, Model model) {
         List<Order> orders = orderService.getUserOrders(userUuid);
-        model.addAttribute("orders", orders.stream().map(orderMapper::orderToOrderDto));
+        model.addAttribute("orders", orders.stream().map(orderMapper::orderToOrderDto).toList());
+        model.addAttribute("hasOrders", !orders.isEmpty());
         return "order/orders";
     }
 
@@ -53,9 +54,15 @@ public class OrderViewController {
         return "redirect:/orders/" + order.getUuid();
     }
 
-    @PostMapping("/checkout/{orderUuid}")
-    public String checkout(@RequestAttribute(WebAttributes.USER_UUID) UUID userUuid, @PathVariable UUID orderUuid, Model model) {
+    @GetMapping("/checkout/{orderUuid}")
+    public String checkout(@RequestAttribute(WebAttributes.USER_UUID) UUID userUuid, @PathVariable UUID orderUuid) {
         orderService.checkout(userUuid, orderUuid);
+        return "redirect:/orders/" + orderUuid;
+    }
+
+    @GetMapping("/checkout/cancel/{orderUuid}")
+    public String cancel(@RequestAttribute(WebAttributes.USER_UUID) UUID userUuid, @PathVariable UUID orderUuid) {
+        orderService.cancel(userUuid, orderUuid);
         return "redirect:/orders/" + orderUuid;
     }
 }

@@ -20,15 +20,15 @@ public interface OrderService {
      */
     Order create(UUID userUuid);
 
-    /**
-     * Обновить статус заказа
-     *
-     * @param orderUuid Идентификатор заказа
-     * @param newStatus Статус заказа
-     * @return Заказ
-     */
-    @Transactional
-    Order updateStatus(UUID orderUuid, OrderStatus newStatus);
+//    /**
+//     * Обновить статус заказа
+//     *
+//     * @param orderUuid Идентификатор заказа
+//     * @param newStatus Статус заказа
+//     * @return Заказ
+//     */
+//    @Transactional
+//    Order updateStatus(UUID orderUuid, OrderStatus newStatus);
 
     /**
      * Получить заказы пользователя
@@ -45,5 +45,19 @@ public interface OrderService {
      */
     Order getByUuid(UUID userUuid, UUID orderUuid);
 
+    /**
+     * Оплатить заказ
+     *
+     * @param userUuid Идентификатор заказа
+     * @param orderUuid Идентификатор заказа
+     */
     void checkout(UUID userUuid, UUID orderUuid);
+
+    /**
+     * Отменить заказ
+     *
+     * @param userUuid Идентификатор заказа
+     * @param orderUuid Идентификатор заказа
+     */
+    void cancel(UUID userUuid, UUID orderUuid);
 }
