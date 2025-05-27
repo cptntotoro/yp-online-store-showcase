@@ -13,6 +13,7 @@ import ru.practicum.model.cart.CartItem;
 import ru.practicum.model.product.Product;
 
 import java.lang.reflect.Field;
+import java.math.BigDecimal;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -44,20 +45,33 @@ class CartItemMapperTest {
 
     @Test
     void shouldMapCartItemToDto() {
+        // Given
+        UUID productId = UUID.randomUUID();
+        UUID itemId = UUID.randomUUID();
+
         Product product = new Product();
-        product.setUuid(UUID.randomUUID());
+        product.setUuid(productId);
         product.setName("Test Product");
+        product.setPrice(BigDecimal.valueOf(100.50)); // Устанавливаем цену продукта
 
         CartItem cartItem = new CartItem();
-        cartItem.setUuid(UUID.randomUUID());
+        cartItem.setUuid(itemId);
         cartItem.setProduct(product);
         cartItem.setQuantity(3);
 
-        when(productMapper.productToProductDto(product)).thenReturn(new ProductDto());
+        ProductDto productDto = new ProductDto();
+        productDto.setUuid(productId);
+        productDto.setName("Test Product");
+        productDto.setPrice(BigDecimal.valueOf(100.50));
+
+        when(productMapper.productToProductDto(product)).thenReturn(productDto);
 
         CartItemDto dto = cartItemMapper.cartItemToCartItemDto(cartItem);
 
         assertThat(dto).isNotNull();
-        assertThat(dto.getUuid()).isEqualTo(cartItem.getUuid());
+        assertThat(dto.getUuid()).isEqualTo(itemId);
+        assertThat(dto.getQuantity()).isEqualTo(3);
+        assertThat(dto.getProduct()).isNotNull();
+        assertThat(dto.getProduct().getUuid()).isEqualTo(productId);
     }
 }

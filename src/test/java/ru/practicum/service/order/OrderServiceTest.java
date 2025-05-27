@@ -5,7 +5,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import ru.practicum.exception.order.OrderNotFoundException;
 import ru.practicum.model.cart.Cart;
 import ru.practicum.model.cart.CartItem;
 import ru.practicum.model.order.Order;
@@ -17,7 +16,6 @@ import ru.practicum.service.cart.CartService;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.*;
@@ -36,7 +34,6 @@ class OrderServiceTest {
     private OrderServiceImpl orderService;
 
     private final UUID testUserId = UUID.randomUUID();
-    private final UUID testOrderId = UUID.randomUUID();
 
     @Test
     void create_shouldCreateOrderWithCartItemsAndClearCart() {
@@ -44,7 +41,6 @@ class OrderServiceTest {
         UUID cartId = UUID.randomUUID();
         UUID productId = UUID.randomUUID();
 
-        // Создаем тестовую корзину с товарами
         Cart cart = new Cart();
         cart.setUuid(cartId);
         cart.setUserUuid(userId);
@@ -61,11 +57,10 @@ class OrderServiceTest {
 
         cart.setItems(new ArrayList<>(List.of(cartItem)));
 
-        // Мокаем вызовы
         when(cartService.get(userId)).thenReturn(cart);
         when(orderRepository.save(any(Order.class))).thenAnswer(invocation -> {
             Order order = invocation.getArgument(0);
-            order.setUuid(UUID.randomUUID()); // Эмулируем генерацию UUID
+            order.setUuid(UUID.randomUUID());
             return order;
         });
 
@@ -78,7 +73,6 @@ class OrderServiceTest {
         assertThat(createdOrder.getTotalPrice())
                 .isEqualByComparingTo(BigDecimal.valueOf(200)); // 100 * 2
 
-        // Проверяем элементы заказа
         assertThat(createdOrder.getItems())
                 .hasSize(1)
                 .first()
@@ -88,10 +82,8 @@ class OrderServiceTest {
                     assertThat(item.getPriceAtOrder()).isEqualByComparingTo(BigDecimal.valueOf(100));
                 });
 
-        // Проверяем, что корзина была очищена
         verify(cartService).clear(userId);
 
-        // Проверяем, что элементы корзины не были изменены (должны копироваться в заказ)
         assertThat(cart.getItems()).hasSize(1); // Оригинальная корзина не должна измениться
     }
 

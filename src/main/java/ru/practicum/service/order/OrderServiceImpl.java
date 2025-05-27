@@ -3,14 +3,17 @@ package ru.practicum.service.order;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.exception.cart.IllegalCartStateException;
 import ru.practicum.exception.order.IllegalOrderStateException;
 import ru.practicum.exception.order.OrderNotFoundException;
 import ru.practicum.model.cart.Cart;
 import ru.practicum.model.order.Order;
+import ru.practicum.model.order.OrderItem;
 import ru.practicum.model.order.OrderStatus;
 import ru.practicum.repository.order.OrderRepository;
 import ru.practicum.service.cart.CartService;
 
+import java.math.BigDecimal;
 import java.util.*;
 
 @Service
@@ -31,7 +34,21 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     public Order create(UUID userUuid) {
         Cart cart = cartService.get(userUuid);
+
+        if (cart.getItems().isEmpty()) {
+            throw new IllegalCartStateException("Нельзя создать заказ из пустой корзины");
+        }
+
         Order order = new Order(userUuid, cart);
+
+        BigDecimal calculatedTotal = calculateOrderTotal(order.getItems());
+
+        if (calculatedTotal.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalOrderStateException("Сумма заказа должна быть больше нуля");
+        }
+
+        order.setTotalPrice(calculatedTotal);
+
         order = orderRepository.save(order);
 
         // Очищаем корзину после создания заказа
@@ -77,5 +94,17 @@ public class OrderServiceImpl implements OrderService {
                     String.format("Недопустимый переход статуса заказа из %s в %s", current, newStatus)
             );
         }
+    }
+
+    /**
+     * Расчитать стоимость товаров в заказе
+     *
+     * @param items Список товаров заказа
+     * @return Стоимость товаров в заказе
+     */
+    private BigDecimal calculateOrderTotal(List<OrderItem> items) {
+        return items.stream()
+                .map(OrderItem::getTotalPrice)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 }

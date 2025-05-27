@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import ru.practicum.exception.cart.CartNotFoundException;
+import ru.practicum.exception.cart.IllegalCartStateException;
 import ru.practicum.exception.order.IllegalOrderStateException;
 import ru.practicum.exception.order.OrderNotFoundException;
 import ru.practicum.exception.product.ProductNotFoundException;
@@ -55,7 +56,16 @@ public class ControllerExceptionHandler {
     @ExceptionHandler(IllegalOrderStateException.class)
     @ResponseStatus(value = HttpStatus.BAD_REQUEST)
     public String exceptionIllegalState(IllegalOrderStateException e, Model model) {
-        String reason = "Корзина не найдена. " + e.getMessage();
+        String reason = "Некорректное состояние заказа. " + e.getMessage();
+        ApiError error = new ApiError(HttpStatus.BAD_REQUEST.toString(), reason, e.getMessage(), LocalDateTime.now());
+        model.addAttribute("error", error);
+        return "error";
+    }
+
+    @ExceptionHandler(IllegalCartStateException.class)
+    @ResponseStatus(value = HttpStatus.BAD_REQUEST)
+    public String exceptionIllegalState(IllegalCartStateException e, Model model) {
+        String reason = "Некорректное состояние корзины. " + e.getMessage();
         ApiError error = new ApiError(HttpStatus.BAD_REQUEST.toString(), reason, e.getMessage(), LocalDateTime.now());
         model.addAttribute("error", error);
         return "error";

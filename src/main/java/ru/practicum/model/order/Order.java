@@ -85,15 +85,4 @@ public class Order {
             items.add(orderItem);
         });
     }
-
-//    /**
-//     * Получить количество товаров заказа
-//     * @return Количество товаров заказа
-//     */
-//    @Transient
-//    public int getTotalItems() {
-//        return items.stream()
-//                .mapToInt(OrderItem::getQuantity)
-//                .sum();
-//    }
 }

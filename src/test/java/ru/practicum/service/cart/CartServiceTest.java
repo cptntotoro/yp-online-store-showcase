@@ -13,7 +13,7 @@ import ru.practicum.model.cart.Cart;
 import ru.practicum.model.cart.CartItem;
 import ru.practicum.model.product.Product;
 import ru.practicum.repository.cart.CartRepository;
-import ru.practicum.repository.product.ProductRepository;
+import ru.practicum.service.product.ProductService;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -22,14 +22,13 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-// TODO
 class CartServiceTest {
 
     @Mock
     private CartRepository cartRepository;
 
     @Mock
-    private ProductRepository productRepository;
+    private ProductService productService;
 
     @Mock
     private CacheManager cacheManager;
@@ -92,7 +91,7 @@ class CartServiceTest {
         product.setPrice(BigDecimal.valueOf(100));
 
         when(cartRepository.findByUserUuid(testUserId)).thenReturn(Optional.of(cart));
-        when(productRepository.findById(testProductId)).thenReturn(Optional.of(product));
+        when(productService.getByUuid(testProductId)).thenReturn(product);
         when(cartRepository.save(any(Cart.class))).thenReturn(cart);
 
         Cart updatedCart = cartService.addToCart(testUserId, testProductId, 2);
@@ -120,7 +119,7 @@ class CartServiceTest {
         cart.setItems(new ArrayList<>(List.of(existingItem)));
 
         when(cartRepository.findByUserUuid(testUserId)).thenReturn(Optional.of(cart));
-        when(productRepository.findById(testProductId)).thenReturn(Optional.of(product));
+        when(productService.getByUuid(testProductId)).thenReturn(product);
         when(cartRepository.save(any(Cart.class))).thenReturn(cart);
 
         Cart updatedCart = cartService.addToCart(testUserId, testProductId, 3);
@@ -135,11 +134,11 @@ class CartServiceTest {
         cart.setUserUuid(testUserId);
 
         when(cartRepository.findByUserUuid(testUserId)).thenReturn(Optional.of(cart));
-        when(productRepository.findById(testProductId)).thenReturn(Optional.empty());
+        when(productService.getByUuid(testProductId)).thenThrow(new ProductNotFoundException("Product not found"));
 
         assertThatThrownBy(() -> cartService.addToCart(testUserId, testProductId, 1))
                 .isInstanceOf(ProductNotFoundException.class)
-                .hasMessageContaining("не найден");
+                .hasMessageContaining("not found");
     }
 
     @Test
@@ -149,6 +148,7 @@ class CartServiceTest {
 
         Product product = new Product();
         product.setUuid(testProductId);
+        product.setPrice(BigDecimal.TEN);
 
         CartItem item = new CartItem();
         item.setProduct(product);
@@ -171,6 +171,7 @@ class CartServiceTest {
 
         Product product = new Product();
         product.setUuid(testProductId);
+        product.setPrice(BigDecimal.TEN);
 
         CartItem item = new CartItem();
         item.setProduct(product);
@@ -193,6 +194,7 @@ class CartServiceTest {
 
         Product product = new Product();
         product.setUuid(testProductId);
+        product.setPrice(BigDecimal.TEN);
 
         CartItem item = new CartItem();
         item.setProduct(product);

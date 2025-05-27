@@ -1,5 +1,7 @@
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
+DROP TABLE IF EXISTS products, users, carts, cart_items, orders, order_items CASCADE;
+
 -- Таблица товаров
 CREATE TABLE IF NOT EXISTS products (
     product_uuid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -27,6 +29,7 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS carts (
     cart_uuid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_uuid UUID NOT NULL,
+    total_price DECIMAL(10, 2) DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_uuid) REFERENCES users(user_uuid) ON DELETE CASCADE
@@ -38,6 +41,7 @@ CREATE TABLE IF NOT EXISTS cart_items (
     cart_uuid UUID NOT NULL,
     product_uuid UUID NOT NULL,
     quantity INT NOT NULL CHECK (quantity > 0),
+--     total_price DECIMAL(10, 2) DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (cart_uuid) REFERENCES carts(cart_uuid) ON DELETE CASCADE,
     FOREIGN KEY (product_uuid) REFERENCES products(product_uuid)
@@ -50,16 +54,7 @@ CREATE TABLE IF NOT EXISTS orders (
     order_uuid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_uuid UUID NOT NULL,
     cart_uuid UUID NOT NULL,
-    status VARCHAR(50) NOT NULL DEFAULT 'CREATED' CHECK (status IN (
-        'CREATED',
-        'PROCESSING',
-        'PAYMENT_PENDING',
-        'PAID',
-        'SHIPPED',
-        'DELIVERED',
-        'CANCELLED',
-        'REFUNDED'
-    )),
+    status VARCHAR(50) NOT NULL DEFAULT 'CREATED',
     total_amount DECIMAL(10, 2) DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_uuid) REFERENCES users(user_uuid),

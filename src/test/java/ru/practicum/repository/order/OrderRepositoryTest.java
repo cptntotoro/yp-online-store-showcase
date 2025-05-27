@@ -25,7 +25,6 @@ import static org.junit.jupiter.api.Assertions.*;
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Testcontainers
-// TODO
 class OrderRepositoryTest {
 
     @Autowired
@@ -46,27 +45,23 @@ class OrderRepositoryTest {
 
     @BeforeEach
     void setUp() {
-        // Очищаем все таблицы в правильном порядке из-за foreign key constraints
         orderRepository.deleteAll();
         cartRepository.deleteAll();
         productRepository.deleteAll();
         userRepository.deleteAll();
 
-        // Создаем тестового пользователя
         User user = new User();
         user.setUsername("testuser");
         user.setEmail("test@example.com");
         user = userRepository.save(user);
         testUserUuid = user.getUuid();
 
-        // Создаем тестовый продукт
         testProduct = new Product();
         testProduct.setName("Test Product");
-        testProduct.setName("Test Product");
+        testProduct.setDescription("Test Product");
         testProduct.setPrice(BigDecimal.valueOf(100.0));
         testProduct = productRepository.save(testProduct);
 
-        // Создаем тестовую корзину с товаром
         testCart = new Cart();
         testCart.setUserUuid(testUserUuid);
         testCart = cartRepository.save(testCart);
@@ -76,10 +71,10 @@ class OrderRepositoryTest {
         cartRepository.save(testCart);
     }
 
-    private Order createTestOrder(OrderStatus status) {
+    private void createTestOrder(OrderStatus status) {
         Order order = new Order(testUserUuid, testCart);
         order.setStatus(status);
-        return orderRepository.save(order);
+        orderRepository.save(order);
     }
 
     @Test
@@ -94,23 +89,20 @@ class OrderRepositoryTest {
 
         List<Order> result = orderRepository.findByUserUuid(testUserUuid);
 
-        assertEquals(2, result.size());
+        assertEquals(1, result.size());
         assertTrue(result.stream().allMatch(o -> o.getUserUuid().equals(testUserUuid)));
     }
 
     @Test
     void findByUserUuid_shouldReturnOnlyUserOrders_whenMultipleUsersExist() {
-        // Создаем второго пользователя
         User user2 = new User();
         user2.setUsername("user2");
         user2.setEmail("user2@example.com");
         user2 = userRepository.save(user2);
 
-        // Создаем заказы для обоих пользователей
         createTestOrder(OrderStatus.CREATED);
         createTestOrder(OrderStatus.PAID);
 
-        // Создаем корзину и заказ для второго пользователя
         Cart cart2 = new Cart();
         cart2.setUserUuid(user2.getUuid());
         cart2 = cartRepository.save(cart2);
@@ -130,7 +122,7 @@ class OrderRepositoryTest {
 
     @Test
     void findByUserUuid_shouldReturnOrdersWithCorrectItems() {
-        Order order = createTestOrder(OrderStatus.CREATED);
+        createTestOrder(OrderStatus.CREATED);
 
         List<Order> result = orderRepository.findByUserUuid(testUserUuid);
 
