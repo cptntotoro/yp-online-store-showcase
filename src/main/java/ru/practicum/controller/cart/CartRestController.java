@@ -32,7 +32,7 @@ public class CartRestController {
             @RequestParam int quantity,
             @RequestAttribute(WebAttributes.USER_UUID) UUID userUuid) {
         cartService.updateQuantity(userUuid, productUuid, quantity);
-        return cartService.getCachedCartTotal(userUuid);
+        return cartService.getCachedCart(userUuid).getTotalPrice();
     }
 
     @DeleteMapping("/remove/{productUuid}")
@@ -40,7 +40,7 @@ public class CartRestController {
             @PathVariable UUID productUuid,
             @RequestAttribute(WebAttributes.USER_UUID) UUID userUuid) {
         cartService.removeFromCart(userUuid, productUuid);
-        return cartService.getCachedCartTotal(userUuid);
+        return cartService.getCachedCart(userUuid).getTotalPrice();
     }
 
 }

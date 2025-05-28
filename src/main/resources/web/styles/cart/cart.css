@@ -37,6 +37,7 @@
     gap: 8px;
     margin-top: 10px;
     width: min-content;
+    align-items: center;
 }
 
 .quantity-controls {

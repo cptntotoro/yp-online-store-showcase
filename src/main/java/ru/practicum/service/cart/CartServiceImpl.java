@@ -37,6 +37,7 @@ public class CartServiceImpl implements CartService {
     public Cart create(UUID userUuid) {
         Cart newCart = new Cart();
         newCart.setUserUuid(userUuid);
+        newCart.setTotalPrice(BigDecimal.ZERO);
         return cartRepository.save(newCart);
     }
 
@@ -48,7 +49,7 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
-    @CacheEvict(value = "cartTotals", key = "#userUuid")
+    @CacheEvict(value = "cart", key = "#userUuid")
     public Cart addToCart(UUID userUuid, UUID productUuid, int quantity) {
         Cart cart = get(userUuid);
         Product product = productService.getByUuid(productUuid);
@@ -58,7 +59,7 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
-    @CacheEvict(value = "cartTotals", key = "#userUuid")
+    @CacheEvict(value = "cart", key = "#userUuid")
     public Cart removeFromCart(UUID userUuid, UUID productUuid) {
         Cart cart = get(userUuid);
         removeCartItem(cart, productUuid);
@@ -67,7 +68,7 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
-    @CacheEvict(value = "cartTotals", key = "#userUuid")
+    @CacheEvict(value = "cart", key = "#userUuid")
     public void clear(UUID userUuid) {
         Cart cart = get(userUuid);
         cart.getItems().clear();
@@ -76,15 +77,14 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
-    @Cacheable(value = "cartTotals", key = "#userUuid")
+    @Cacheable(value = "cart", key = "#userUuid")
     @Transactional(readOnly = true)
-    public BigDecimal getCachedCartTotal(UUID userUuid) {
-        Cart cart = get(userUuid);
-        return calculateTotalPrice(cart.getItems());
+    public Cart getCachedCart(UUID userUuid) {
+        return get(userUuid);
     }
 
     @Override
-    @CacheEvict(value = "cartTotals", key = "#userUuid")
+    @CacheEvict(value = "cart", key = "#userUuid")
     public void updateQuantity(UUID userUuid, UUID productUuid, int quantity) {
         Cart cart = get(userUuid);
         updateItemQuantity(cart, productUuid, quantity);

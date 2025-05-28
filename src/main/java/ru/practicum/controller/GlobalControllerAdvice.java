@@ -19,7 +19,6 @@ public class GlobalControllerAdvice {
     @ModelAttribute
     public void addCommonAttributes(@RequestAttribute(WebAttributes.USER_UUID) UUID userUuid,
                                     Model model) {
-//        model.addAttribute("cart", cartService.get(userUuid));
-        model.addAttribute("cartTotal", cartService.getCachedCartTotal(userUuid));
+        model.addAttribute("cart", cartService.getCachedCart(userUuid));
     }
 }

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  </head>
+
+  <body>
+    <div class="cart-controls" th:fragment="cart-controls">
+      <!-- Блок управления количеством (скрыт по умолчанию) -->
+      <div class="quantity-controls d-none">
+        <button class="btn btn-sm btn-secondary quantity-btn minus">-</button>
+        <input type="number"
+               class="form-control quantity-input"
+               value="1" min="1">
+        <button class="btn btn-sm btn-secondary quantity-btn plus">+</button>
+      </div>
+
+      <!-- Основная кнопка (динамически меняется) -->
+      <button class="btn btn-primary btn-sm cart-action-btn">
+        Добавить в корзину
+      </button>
+    </div>
+  </body>
+</html>

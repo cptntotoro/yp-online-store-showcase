@@ -3,6 +3,7 @@ package ru.practicum.model.cart;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
@@ -16,6 +17,7 @@ import java.util.UUID;
  */
 @Entity
 @Table(name = "carts")
+@DynamicInsert
 @Getter
 @Setter
 @NoArgsConstructor

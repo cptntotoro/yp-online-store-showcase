@@ -51,12 +51,12 @@ public interface CartService {
     void clear(UUID userUuid);
 
     /**
-     * Получить кеш стоимости корзины
+     * Получить кеш корзины
      *
      * @param userUuid Идентификатор пользователя
-     * @return Стоимость корзины
+     * @return Корзина
      */
-    BigDecimal getCachedCartTotal(UUID userUuid);
+    Cart getCachedCart(UUID userUuid);
 
     /**
      * Обновить количество товара

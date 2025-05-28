@@ -12,7 +12,7 @@
     <link rel="stylesheet" type="text/css" th:href="@{/styles/notification.css}">
 
     <script type="text/javascript" th:src="@{/scripts/api-config.js}"></script>
-    <script type="text/javascript" th:src="@{/scripts/catalog.js}"></script>
+    <script type="text/javascript" th:src="@{/scripts/cart-controls.js}"></script>
     <script type="text/javascript" th:src="@{/scripts/notification.js}"></script>
 </head>
 <body>
@@ -47,21 +47,7 @@
                          th:text="${product.description}"></div>
 
                     <div class="product-detail-actions">
-                        <div class="cart-controls">
-                            <!-- Блок управления количеством (скрыт по умолчанию) -->
-                            <div class="quantity-controls d-none">
-                                <button class="btn btn-sm btn-secondary quantity-btn minus">-</button>
-                                <input type="number"
-                                       class="form-control quantity-input"
-                                       value="1" min="1">
-                                <button class="btn btn-sm btn-secondary quantity-btn plus">+</button>
-                            </div>
-
-                            <!-- Основная кнопка (динамически меняется) -->
-                            <button class="btn btn-primary btn-sm cart-action-btn">
-                                Добавить в корзину
-                            </button>
-                        </div>
+                        <div th:replace="~{../fragments/cart-controls :: cart-controls}"></div>
                     </div>
                 </div>
             </div>
@@ -70,12 +56,5 @@
 </main>
 
 <div th:replace="~{../fragments/footer :: footer}"></div>
-
-<!--<script>-->
-<!--    // Валидация количества-->
-<!--    document.getElementById('quantity').addEventListener('change', function () {-->
-<!--        if (this.value < 1) this.value = 1;-->
-<!--    });-->
-<!--</script>-->
 </body>
 </html>

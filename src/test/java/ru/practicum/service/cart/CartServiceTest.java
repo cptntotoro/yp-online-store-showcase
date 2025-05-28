@@ -212,7 +212,7 @@ class CartServiceTest {
     }
 
     @Test
-    void getCachedCartTotal_shouldReturnTotal() {
+    void getCachedCart_shouldReturn() {
         Cart cart = new Cart();
         cart.setUserUuid(testUserId);
 
@@ -229,8 +229,8 @@ class CartServiceTest {
 
         when(cartRepository.findByUserUuid(testUserId)).thenReturn(Optional.of(cart));
 
-        BigDecimal total = cartService.getCachedCartTotal(testUserId);
+        Cart cachedCart = cartService.getCachedCart(testUserId);
 
-        assertThat(total).isEqualByComparingTo("300.00");
+        assertThat(cachedCart).isNotNull();
     }
 }
