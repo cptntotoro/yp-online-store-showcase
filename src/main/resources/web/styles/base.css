@@ -139,3 +139,7 @@ h4 { font-size: 1.25rem; }
 
 .rounded { border-radius: var(--radius); }
 .shadow { box-shadow: var(--shadow); }
+
+.d-none {
+    display: none !important;
+}
