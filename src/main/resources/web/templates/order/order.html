@@ -77,9 +77,12 @@
       <a th:if="${order.status.name() == 'PAID' or order.status.name() == 'CREATED'}"
          th:href="@{/orders/checkout/cancel/{uuid}(uuid=${order.uuid})}"
          class="btn btn-danger">Отменить заказ</a>
-      <a th:if="${order.status.name() == 'CREATED'}"
-         th:href="@{/orders/checkout/{uuid}(uuid=${order.uuid})}"
-         class="btn btn-primary">Оплатить заказ</a>
+
+<!--      <a th:if="${order.status.name() == 'CREATED'}"-->
+<!--         th:href="@{/payment/checkout/{uuid}(uuid=${order.uuid})}"-->
+<!--         class="btn btn-primary">Оплатить заказ</a>-->
+      <a th:if="${order.status.name() == 'CREATED'}" th:href="@{/payment/checkout}" class="btn btn-primary">Оплатить заказ</a>
+
     </div>
   </div>
 </main>

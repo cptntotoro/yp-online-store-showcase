@@ -9,6 +9,7 @@ import ru.practicum.exception.cart.CartNotFoundException;
 import ru.practicum.exception.cart.IllegalCartStateException;
 import ru.practicum.exception.order.IllegalOrderStateException;
 import ru.practicum.exception.order.OrderNotFoundException;
+import ru.practicum.exception.payment.PaymentProcessingException;
 import ru.practicum.exception.product.ProductNotFoundException;
 import ru.practicum.exception.user.UserNotFoundException;
 
@@ -71,7 +72,15 @@ public class ControllerExceptionHandler {
         return "error";
     }
 
-    // TODO:
+    @ExceptionHandler(PaymentProcessingException.class)
+    @ResponseStatus(value = HttpStatus.PAYMENT_REQUIRED)
+    public String exceptionPaymentProcessing(PaymentProcessingException e, Model model) {
+        String reason = "Оишбка оплаты заказа. " + e.getMessage();
+        ApiError error = new ApiError(HttpStatus.PAYMENT_REQUIRED.toString(), reason, e.getMessage(), LocalDateTime.now());
+        model.addAttribute("error", error);
+        return "error";
+    }
+
     @ExceptionHandler(RuntimeException.class)
     @ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR)
     public String exceptionNotFound(Model model) {

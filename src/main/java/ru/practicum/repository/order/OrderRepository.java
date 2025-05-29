@@ -10,6 +10,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+/**
+ * Репозиторий заказов
+ */
 @Repository
 public interface OrderRepository extends JpaRepository<Order, UUID> {
 
@@ -22,6 +25,5 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
     List<Order> findByUserUuid(UUID userUuid);
 
     @Query("SELECT o FROM Order o WHERE o.uuid = :uuid AND o.userUuid = :userUuid")
-    Optional<Order> findByIdWhereUserUuidIn(@Param("uuid") UUID uuid,
-                                            @Param("userUuid") UUID userUuid);
+    Optional<Order> findByIdWhereUserUuidIn(@Param("uuid") UUID uuid, @Param("userUuid") UUID userUuid);
 }

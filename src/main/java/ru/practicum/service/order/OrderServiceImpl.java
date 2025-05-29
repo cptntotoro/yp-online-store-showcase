@@ -19,7 +19,14 @@ import java.util.*;
 @Service
 @RequiredArgsConstructor
 public class OrderServiceImpl implements OrderService {
+    /**
+     * Репозиторий заказов
+     */
     private final OrderRepository orderRepository;
+
+    /**
+     * Сервис управления корзиной товаров
+     */
     private final CartService cartService;
 
     /**

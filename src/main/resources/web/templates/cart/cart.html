@@ -78,9 +78,12 @@
 
                 <div class="flex justify-between mt-6">
                     <a href="/products" class="btn btn-outline">Продолжить покупки</a>
-                    <form th:action="@{/orders/checkout}" method="post">
-                        <button type="submit" class="btn btn-primary">Оплата</button>
-                    </form>
+                    <a th:href="@{/payment/checkout}" class="btn btn-primary">Оплата</a>
+
+<!--                    -->
+<!--                    <form th:action="@{/payment/checkout}" method="post">-->
+<!--                        <button type="submit" class="btn btn-primary">Оплата</button>-->
+<!--                    </form>-->
                 </div>
             </div>
         </div>

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Оплата заказа | GeekStore</title>
+  <link rel="icon" type="image/png" th:href="@{/images/favicon.ico}"/>
+  <link rel="stylesheet" type="text/css" th:href="@{/styles/base.css}">
+  <link rel="stylesheet" type="text/css" th:href="@{/styles/components.css}">
+  <link rel="stylesheet" type="text/css" th:href="@{/styles/layout.css}">
+  <link rel="stylesheet" type="text/css" th:href="@{/styles/payment/payment.css}">
+
+  <script type="text/javascript" th:src="@{/scripts/payment.js}"></script>
+</head>
+<body>
+<div th:replace="~{../fragments/header :: header}"></div>
+
+<main class="main">
+  <div class="container payment-container">
+    <div class="payment-card">
+      <div class="payment-header">
+        <div class="payment-icon">💳</div>
+        <h2>Оплата заказа</h2>
+        <p>Введите данные вашей карты для завершения покупки</p>
+      </div>
+
+      <div class="order-info">
+        <div class="info-row">
+          <span class="info-label">Номер заказа:</span>
+          <span class="info-value" th:text="${order.uuid}"></span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Дата создания:</span>
+          <span class="info-value" th:text="${#temporals.format(order.createdAt, 'dd.MM.yyyy HH:mm')}"></span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Сумма к оплате:</span>
+          <span class="info-value total-value" th:text="${#numbers.formatDecimal(order.totalPrice, 1, 2, 'COMMA')} + ' ₽'"></span>
+        </div>
+      </div>
+
+      <form th:action="@{/payment/checkout/{orderUuid}(orderUuid=${order.uuid})}" method="post" class="payment-form">
+        <div class="form-group">
+          <label for="cardNumber" class="form-label">Номер карты</label>
+          <div class="card-input">
+            <span class="card-prefix">•••• •••• •••• ••••</span>
+            <input type="text"
+                   id="cardNumber"
+                   name="cardNumber"
+                   class="card-number"
+                   placeholder="1234 5678 9012 3456"
+                   maxlength="16"
+                   value="cardNumber"
+                   pattern="\d{4} \d{4} \d{4} \d{4}"
+                   required
+                   th:value="${cardNumber != null} ? ${cardNumber} : ''">
+          </div>
+          <small class="text-sm text-gray">Введите 16 цифр номера вашей карты</small>
+        </div>
+
+        <div class="payment-actions">
+          <a href="/products" class="btn btn-outline">Вернуться в магазин</a>
+          <button type="submit" class="btn btn-primary">Оплатить</button>
+        </div>
+      </form>
+
+      <div class="secure-payment">
+        <span class="secure-icon">🔒</span>
+        <span>Безопасная оплата. Ваши данные защищены.</span>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div th:replace="~{../fragments/footer :: footer}"></div>
+</body>
+</html>

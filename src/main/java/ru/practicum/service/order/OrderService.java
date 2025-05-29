@@ -1,8 +1,6 @@
 package ru.practicum.service.order;
 
-import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.model.order.Order;
-import ru.practicum.model.order.OrderStatus;
 
 import java.util.List;
 import java.util.UUID;
@@ -20,16 +18,6 @@ public interface OrderService {
      */
     Order create(UUID userUuid);
 
-//    /**
-//     * Обновить статус заказа
-//     *
-//     * @param orderUuid Идентификатор заказа
-//     * @param newStatus Статус заказа
-//     * @return Заказ
-//     */
-//    @Transactional
-//    Order updateStatus(UUID orderUuid, OrderStatus newStatus);
-
     /**
      * Получить заказы пользователя
      *
@@ -39,7 +27,9 @@ public interface OrderService {
     List<Order> getUserOrders(UUID userUuid);
 
     /**
+     * Получить заказ
      *
+     * @param userUuid Идентификатор пользователя
      * @param orderUuid Идентификатор заказа
      * @return Заказ
      */
