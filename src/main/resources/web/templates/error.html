@@ -29,7 +29,8 @@
         </div>
 
         <p class="error-container__timestamp">
-            <small>Время ошибки: <span th:text="${#temporals.format(error.timestamp, 'dd.MM.yyyy HH:mm:ss')}"></span></small>
+            <small>Время ошибки: <span
+                    th:text="${#temporals.format(error.timestamp, 'dd.MM.yyyy HH:mm:ss')}"></span></small>
         </p>
 
         <div class="error-actions">

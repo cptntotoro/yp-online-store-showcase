@@ -34,10 +34,12 @@
                 <div class="filter-group">
                     <select name="sort" class="form-control select-control">
                         <option value="">Сортировать</option>
-                        <option value="price-asc" th:selected="${param.sort == 'price-asc'}">Цена: Сначала дешевые</option>
+                        <option value="price-asc" th:selected="${param.sort == 'price-asc'}">Цена: Сначала дешевые
+                        </option>
                         <option value="price-desc" th:selected="${param.sort == 'price-desc'}">Цена: Сначала дорогие
                         </option>
-                        <option value="name-asc" th:selected="${param.sort == 'name-asc'}">Название: По алфавиту</option>
+                        <option value="name-asc" th:selected="${param.sort == 'name-asc'}">Название: По алфавиту
+                        </option>
                     </select>
                 </div>
                 <div class="filter-group">
@@ -63,35 +65,36 @@
                     </a>
                     <p class="card-text" th:text="${product.description}"></p>
                     <div class="price-controls-container mt-4">
-                        <span class="card-price"
-                              th:text="${#numbers.formatDecimal(product.price, 1, 2)} + ' ₽'"></span>
+                            <span class="card-price"
+                                  th:text="${#numbers.formatDecimal(product.price, 1, 2)} + ' ₽'"></span>
 
                         <div th:replace="~{../fragments/cart-controls :: cart-controls}"></div>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div th:if="${products.totalPages > 1}" class="pagination mt-8">
-            <a th:href="@{/products(size=${param.size},page=0,search=${param.search},sort=${param.sort})}"
-               class="page-link"
-               th:classappend="${products.number == 0} ? 'disabled'">Первая</a>
-            <a th:href="@{/products(size=${param.size},page=${products.number-1},search=${param.search},sort=${param.sort})}"
-               class="page-link"
-               th:classappend="${!products.hasPrevious()} ? 'disabled'">Предыдущая</a>
+            <div th:if="${products.totalPages > 1}" class="pagination mt-8">
+                <a th:href="@{/products(size=${param.size},page=0,search=${param.search},sort=${param.sort})}"
+                   class="page-link"
+                   th:classappend="${products.number == 0} ? 'disabled'">Первая</a>
+                <a th:href="@{/products(size=${param.size},page=${products.number-1},search=${param.search},sort=${param.sort})}"
+                   class="page-link"
+                   th:classappend="${!products.hasPrevious()} ? 'disabled'">Предыдущая</a>
 
-            <span th:each="i : ${#numbers.sequence(max(1, products.number-2), min(products.number+3, products.totalPages))}">
-                            <a th:href="@{/products(size=${param.size},page=${i-1},search=${param.search},sort=${param.sort})}"
-                               class="page-link"
-                               th:classappend="${products.number == i-1} ? 'active'"
-                               th:text="${i}">1</a>
-                        </span>
+                <span th:each="i : ${#numbers.sequence(max(1, products.number-2), min(products.number+3, products.totalPages))}">
+                                <a th:href="@{/products(size=${param.size},page=${i-1},search=${param.search},sort=${param.sort})}"
+                                   class="page-link"
+                                   th:classappend="${products.number == i-1} ? 'active'"
+                                   th:text="${i}">1</a>
+                            </span>
 
-            <a th:href="@{/products(size=${param.size},page=${products.number+1},search=${param.search},sort=${param.sort})}"
-               class="page-link"
-               th:classappend="${!products.hasNext()} ? 'disabled'">Следующая</a>
-            <a th:href="@{/products(size=${param.size},page=${products.totalPages-1},search=${param.search},sort=${param.sort})}"
-               class="page-link"
-               th:classappend="${products.number == products.totalPages-1} ? 'disabled'">Последняя</a>
+                <a th:href="@{/products(size=${param.size},page=${products.number+1},search=${param.search},sort=${param.sort})}"
+                   class="page-link"
+                   th:classappend="${!products.hasNext()} ? 'disabled'">Следующая</a>
+                <a th:href="@{/products(size=${param.size},page=${products.totalPages-1},search=${param.search},sort=${param.sort})}"
+                   class="page-link"
+                   th:classappend="${products.number == products.totalPages-1} ? 'disabled'">Последняя</a>
+            </div>
         </div>
     </div>
 </main>

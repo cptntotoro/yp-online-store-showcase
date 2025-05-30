@@ -1,7 +1,7 @@
 package ru.practicum.dto.cart;
 
 import lombok.*;
-import ru.practicum.dto.product.ProductDto;
+import ru.practicum.dto.product.ProductOutDto;
 
 import java.math.BigDecimal;
 import java.util.UUID;
@@ -22,7 +22,7 @@ public class CartItemDto {
     /**
      * Товар
      */
-    private ProductDto product;
+    private ProductOutDto product;
 
     /**
      * Количество товара

@@ -7,7 +7,7 @@ import org.mapstruct.factory.Mappers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ru.practicum.dto.cart.CartItemDto;
-import ru.practicum.dto.product.ProductDto;
+import ru.practicum.dto.product.ProductOutDto;
 import ru.practicum.mapper.product.ProductMapper;
 import ru.practicum.model.cart.CartItem;
 import ru.practicum.model.product.Product;
@@ -59,12 +59,12 @@ class CartItemMapperTest {
         cartItem.setProduct(product);
         cartItem.setQuantity(3);
 
-        ProductDto productDto = new ProductDto();
+        ProductOutDto productDto = new ProductOutDto();
         productDto.setUuid(productId);
         productDto.setName("Test Product");
         productDto.setPrice(BigDecimal.valueOf(100.50));
 
-        when(productMapper.productToProductDto(product)).thenReturn(productDto);
+        when(productMapper.productToProductOutDto(product)).thenReturn(productDto);
 
         CartItemDto dto = cartItemMapper.cartItemToCartItemDto(cartItem);
 

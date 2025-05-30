@@ -1,7 +1,8 @@
 package ru.practicum.mapper.product;
 
 import org.mapstruct.Mapper;
-import ru.practicum.dto.product.ProductDto;
+import ru.practicum.dto.product.ProductInDto;
+import ru.practicum.dto.product.ProductOutDto;
 import ru.practicum.model.product.Product;
 
 /**
@@ -11,9 +12,18 @@ import ru.practicum.model.product.Product;
 public interface ProductMapper {
 
     /**
-     * Смаппить товар в DTO товара
+     * Смаппить товар в исходящее DTO товара
+     *
      * @param product Товар
      * @return DTO товара
      */
-    ProductDto productToProductDto(Product product);
+    ProductOutDto productToProductOutDto(Product product);
+
+    /**
+     * Смаппить входящее DTO товара в товар
+     *
+     * @param productInDto Входящее DTO товара
+     * @return Товар
+     */
+    Product productInDtoToProduct(ProductInDto productInDto);
 }

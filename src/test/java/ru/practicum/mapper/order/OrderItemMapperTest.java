@@ -6,7 +6,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ru.practicum.dto.order.OrderItemDto;
-import ru.practicum.dto.product.ProductDto;
+import ru.practicum.dto.product.ProductOutDto;
 import ru.practicum.mapper.product.ProductMapper;
 import ru.practicum.mapper.product.ProductMapperImpl;
 import ru.practicum.model.order.OrderItem;
@@ -43,11 +43,11 @@ class OrderItemMapperTest {
         orderItem.setQuantity(2);
         orderItem.setPriceAtOrder(BigDecimal.valueOf(199.98));
 
-        ProductDto productDto = new ProductDto();
+        ProductOutDto productDto = new ProductOutDto();
         productDto.setUuid(productId);
         productDto.setName("Test Product");
 
-        when(productMapper.productToProductDto(product)).thenReturn(productDto);
+        when(productMapper.productToProductOutDto(product)).thenReturn(productDto);
 
         OrderItemDto dto = orderItemMapper.orderItemToOrderItemDto(orderItem);
 
@@ -57,7 +57,7 @@ class OrderItemMapperTest {
         assertThat(dto.getPriceAtOrder()).isEqualTo(BigDecimal.valueOf(199.98));
         assertThat(dto.getProduct())
                 .isNotNull()
-                .extracting(ProductDto::getUuid, ProductDto::getName)
+                .extracting(ProductOutDto::getUuid, ProductOutDto::getName)
                 .containsExactly(productId, "Test Product");
     }
 

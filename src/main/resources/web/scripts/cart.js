@@ -23,20 +23,6 @@ document.addEventListener("DOMContentLoaded", () => {
                         showNotification('Ошибка при обновлении количества товара в корзине', 'error');
                     }
                 });
-
-            // console.log("document.querySelectorAll('.quantity-btn')");
-            // const cartItem = e.target.closest('.cart-item');
-            // const productUuid = cartItem.getAttribute('data-product-uuid');
-            // console.log("productUuid");
-            // console.log(productUuid);
-            // const input = e.target.closest('.quantity-controls').querySelector('.quantity-input');
-            // const delta = e.target.classList.contains('plus') ? 1 : -1;
-            //
-            // let newValue = parseInt(input.value) + delta;
-            // if (newValue < 1) newValue = 1;
-            // input.value = newValue;
-            //
-            // await setUpdateCartItem(productUuid, newValue);
         });
     });
 
@@ -59,26 +45,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 })
 
-// /**
-//  * Изменить количество товара в корзине
-//  * @param productUuid Идентификатор товара
-//  * @param quantity Количество товара
-//  * @returns {Promise<Response>}
-//  */
-// async function setUpdateCartItem(productUuid, quantity) {
-//     updateCartItem(productUuid, quantity)
-//         .then(async response => {
-//             if (response.ok) {
-//                 const cartTotalResponse = await response.text();
-//                 console.log("cartTotalResponse");
-//                 console.log(cartTotalResponse);
-//                 updateCartTotal(cartTotalResponse);
-//             } else {
-//                 showNotification('Ошибка обновления количества', 'error');
-//             }
-//         });
-// }
-
 /**
  * Обновить стоимость корзины
  * @param total Стоимость корзины
@@ -95,21 +61,3 @@ function updateCartTotal(total) {
         cartTotal.textContent = `${formattedTotal} ₽`;
     }
 }
-//
-// /**
-//  * Удалить из корзины
-//  * @param productUuid Идентификатор товара
-//  */
-// function setRemoveFromCart(productUuid) {
-//     removeFromCart(productUuid)
-//         .then(async response => {
-//             if (response.ok) {
-//                 const cartTotalResponse = await response.text();
-//                 updateProductUI(productUuid, false, 1);
-//                 updateCartTotal(cartTotalResponse);
-//                 showNotification('Товар удален из корзины', 'success');
-//             } else {
-//                 showNotification('Ошибка при удалении из корзины', 'error');
-//             }
-//         });
-// }

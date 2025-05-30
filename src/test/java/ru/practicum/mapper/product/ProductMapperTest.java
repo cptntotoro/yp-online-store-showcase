@@ -1,10 +1,8 @@
 package ru.practicum.mapper.product;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mapstruct.factory.Mappers;
-import org.mockito.junit.jupiter.MockitoExtension;
-import ru.practicum.dto.product.ProductDto;
+import ru.practicum.dto.product.ProductOutDto;
 import ru.practicum.model.product.Product;
 
 import java.math.BigDecimal;
@@ -28,7 +26,7 @@ class ProductMapperTest {
         product.setCreatedAt(LocalDateTime.now());
         product.setUpdatedAt(LocalDateTime.now());
 
-        ProductDto dto = mapper.productToProductDto(product);
+        ProductOutDto dto = mapper.productToProductOutDto(product);
 
         assertThat(dto).isNotNull();
         assertThat(dto.getUuid()).isEqualTo(product.getUuid());

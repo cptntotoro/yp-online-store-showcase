@@ -7,10 +7,14 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.dto.product.ProductInDto;
+import ru.practicum.dto.product.ProductListInDto;
 import ru.practicum.mapper.product.ProductMapper;
 import ru.practicum.model.product.Product;
 import ru.practicum.service.product.ProductService;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Controller
@@ -47,14 +51,26 @@ public class ProductViewController {
             productPage = productService.getAll(pageable);
         }
 
-        model.addAttribute("products", productPage.map(productMapper::productToProductDto));
+        model.addAttribute("products", productPage.map(productMapper::productToProductOutDto));
         return "product/catalog";
     }
 
     @GetMapping("/{uuid}")
     public String showProductDetails(@PathVariable("uuid") UUID uuid, Model model) {
         Product product = productService.getByUuid(uuid);
-        model.addAttribute("product", productMapper.productToProductDto(product));
+        model.addAttribute("product", productMapper.productToProductOutDto(product));
         return "product/product";
+    }
+
+    @GetMapping("/add")
+    public String showAddProductForm(Model model) {
+        model.addAttribute("products", new ProductListInDto());
+        return "product/add";
+    }
+
+    @PostMapping("/add")
+    public String addProducts(@ModelAttribute("products") ProductListInDto products) {
+        productService.batchAdd(products.getProducts().stream().map(productMapper::productInDtoToProduct).toList());
+        return "product/catalog";
     }
 }

@@ -4,6 +4,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import ru.practicum.model.product.Product;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -51,4 +52,11 @@ public interface ProductService {
      * @return Товар
      */
     Product add(Product product);
+
+    /**
+     * Добавить список товаров
+     *
+     * @param products Список товаров
+     */
+    void batchAdd(List<Product> products);
 }

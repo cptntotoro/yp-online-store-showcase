@@ -6,12 +6,12 @@ import java.math.BigDecimal;
 import java.util.UUID;
 
 /**
- * DTO товара
+ * Исходящее DTO товара
  */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ProductDto {
+public class ProductOutDto {
 
     /**
      * Идентификатор

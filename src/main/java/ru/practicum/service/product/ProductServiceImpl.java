@@ -8,6 +8,7 @@ import ru.practicum.exception.product.ProductNotFoundException;
 import ru.practicum.model.product.Product;
 import ru.practicum.repository.product.ProductRepository;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -43,5 +44,10 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public Product add(Product product) {
         return productRepository.save(product);
+    }
+
+    @Override
+    public void batchAdd(List<Product> products) {
+        productRepository.saveAll(products);
     }
 }

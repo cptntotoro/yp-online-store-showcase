@@ -59,7 +59,8 @@
 
                     <div class="summary-row mt-4">
                         <span>Итого:</span>
-                        <span class="font-bold" th:text="${#numbers.formatDecimal(order.totalPrice, 1, 2)} + ' ₽'"></span>
+                        <span class="font-bold"
+                              th:text="${#numbers.formatDecimal(order.totalPrice, 1, 2)} + ' ₽'"></span>
                     </div>
                 </a>
             </div>
