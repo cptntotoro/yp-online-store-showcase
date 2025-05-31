@@ -71,6 +71,6 @@ public class ProductViewController {
     @PostMapping("/add")
     public String addProducts(@ModelAttribute("products") ProductListInDto products) {
         productService.batchAdd(products.getProducts().stream().map(productMapper::productInDtoToProduct).toList());
-        return "product/catalog";
+        return "redirect:/products";
     }
 }

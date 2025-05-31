@@ -75,7 +75,7 @@ public class ControllerExceptionHandler {
     @ExceptionHandler(PaymentProcessingException.class)
     @ResponseStatus(value = HttpStatus.PAYMENT_REQUIRED)
     public String exceptionPaymentProcessing(PaymentProcessingException e, Model model) {
-        String reason = "Оишбка оплаты заказа. " + e.getMessage();
+        String reason = "Ошибка оплаты заказа. " + e.getMessage();
         ApiError error = new ApiError(HttpStatus.PAYMENT_REQUIRED.toString(), reason, e.getMessage(), LocalDateTime.now());
         model.addAttribute("error", error);
         return "error";
@@ -83,9 +83,8 @@ public class ControllerExceptionHandler {
 
     @ExceptionHandler(RuntimeException.class)
     @ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR)
-    public String exceptionNotFound(Model model) {
-        String reason = "Ошибка сервера.";
-        ApiError error = new ApiError(HttpStatus.INTERNAL_SERVER_ERROR.toString(), reason, "Возникла проблема на стороне сервера", LocalDateTime.now());
+    public String exceptionNotFound(RuntimeException e, Model model) {
+        ApiError error = new ApiError(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(), e.toString(), "Возникла проблема на стороне сервера", LocalDateTime.now());
         model.addAttribute("error", error);
         return "error";
     }
