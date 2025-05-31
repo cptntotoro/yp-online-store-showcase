@@ -53,7 +53,7 @@
                         </div>
                     </div>
 
-                    <div th:replace="~{../fragments/cart-controls :: cart-controls(true)}"></div>
+                    <div th:replace="~{../fragments/cart-controls :: cart-controls(isCartPage=true, item=${item})}"></div>
                 </div>
             </div>
 

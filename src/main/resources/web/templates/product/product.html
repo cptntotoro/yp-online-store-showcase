@@ -49,7 +49,7 @@
                          th:text="${product.description}"></div>
 
                     <div class="product-detail-actions">
-                        <div th:replace="~{../fragments/cart-controls :: cart-controls(false)}"></div>
+                        <div th:replace="~{../fragments/cart-controls :: cart-controls(isCartPage=false)}"></div>
                     </div>
                 </div>
             </div>

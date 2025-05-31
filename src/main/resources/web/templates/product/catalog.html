@@ -70,7 +70,7 @@
                             <span class="card-price"
                                   th:text="${#numbers.formatDecimal(product.price, 1, 2)} + ' ₽'"></span>
 
-                        <div th:replace="~{../fragments/cart-controls :: cart-controls(false)}"></div>
+                        <div th:replace="~{../fragments/cart-controls :: cart-controls(isCartPage=false)}"></div>
                     </div>
                 </div>
             </div>

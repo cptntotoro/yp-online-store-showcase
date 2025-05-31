@@ -54,6 +54,7 @@
                    placeholder="1234 5678 9012 3456"
                    maxlength="16"
                    value="cardNumber"
+                   pattern="\d{16}"
                    required
                    th:value="${cardNumber != null} ? ${cardNumber} : ''">
           </div>
