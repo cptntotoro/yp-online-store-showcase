@@ -142,31 +142,3 @@
     width: 1.25rem;
     height: 1.25rem;
 }
-
-/* Добавление в корзину */
-.cart-controls {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    margin-top: 10px;
-    width: min-content;
-}
-
-.quantity-controls {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 5px;
-}
-
-.quantity-input {
-    width: 100%;
-    text-align: center;
-    margin: 0 5px;
-}
-
-.quantity-input::-webkit-outer-spin-button,
-.quantity-input::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-}

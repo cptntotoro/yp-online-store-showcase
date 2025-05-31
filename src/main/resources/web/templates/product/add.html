@@ -9,7 +9,10 @@
     <link rel="stylesheet" type="text/css" th:href="@{/styles/components.css}">
     <link rel="stylesheet" type="text/css" th:href="@{/styles/layout.css}">
 
-    <script type="text/javascript" th:src="@{/scripts/add.js}"></script>
+    <th:block th:include="~{../fragments/header :: header-head}"></th:block>
+    <th:block th:include="~{../fragments/footer :: footer-head}"></th:block>
+
+    <script type="text/javascript" th:src="@{/scripts/product/add.js}"></script>
 </head>
 <body>
 <div th:replace="~{../fragments/header :: header}"></div>

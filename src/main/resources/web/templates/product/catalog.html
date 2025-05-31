@@ -9,11 +9,13 @@
     <link rel="stylesheet" type="text/css" th:href="@{/styles/components.css}">
     <link rel="stylesheet" type="text/css" th:href="@{/styles/layout.css}">
     <link rel="stylesheet" type="text/css" th:href="@{/styles/product/catalog.css}">
-    <link rel="stylesheet" type="text/css" th:href="@{/styles/notification.css}">
+
+    <th:block th:include="~{../fragments/header :: header-head}"></th:block>
+    <th:block th:include="~{../fragments/footer :: footer-head}"></th:block>
+    <th:block th:include="~{../fragments/notification :: notification-head}"></th:block>
+    <th:block th:include="~{../fragments/cart-controls :: cart-controls-head}"></th:block>
 
     <script type="text/javascript" th:src="@{/scripts/api-config.js}"></script>
-    <script type="text/javascript" th:src="@{/scripts/cart-controls.js}"></script>
-    <script type="text/javascript" th:src="@{/scripts/notification.js}"></script>
 </head>
 
 <body>
@@ -68,7 +70,7 @@
                             <span class="card-price"
                                   th:text="${#numbers.formatDecimal(product.price, 1, 2)} + ' ₽'"></span>
 
-                        <div th:replace="~{../fragments/cart-controls :: cart-controls}"></div>
+                        <div th:replace="~{../fragments/cart-controls :: cart-controls(false)}"></div>
                     </div>
                 </div>
             </div>

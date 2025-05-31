@@ -9,6 +9,10 @@
     <link rel="stylesheet" type="text/css" th:href="@{/styles/components.css}">
     <link rel="stylesheet" type="text/css" th:href="@{/styles/layout.css}">
     <link rel="stylesheet" type="text/css" th:href="@{/styles/order/orders.css}">
+
+    <th:block th:include="~{../fragments/header :: header-head}"></th:block>
+    <th:block th:include="~{../fragments/footer :: footer-head}"></th:block>
+    <th:block th:include="~{../fragments/notification :: notification-head}"></th:block>
 </head>
 <body>
 <div th:replace="~{../fragments/header :: header}"></div>

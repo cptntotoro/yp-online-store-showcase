@@ -1,16 +1,15 @@
 let cartTotal;
+let cartTotalValue;
 
 document.addEventListener("DOMContentLoaded", () => {
     cartTotal = document.querySelector(".cart-total");
+    cartTotalValue = document.querySelector(".summary-total-value");
 
+    // Обработчики для кнопок корзины
     document.querySelectorAll('.cart-action-btn').forEach(btn => {
-        console.log("document.querySelectorAll('.cart-action-btn')");
         btn.addEventListener('click', async (e) => {
             const card = e.target.closest('.card');
             const productUuid = card.getAttribute('data-product-uuid');
-            console.log("productUuid");
-            console.log(productUuid);
-            // const productUuid = card.dataset.productUuid;
 
             if (e.target.classList.contains('in-cart')) {
                 await setRemoveFromCart(productUuid);
@@ -21,13 +20,11 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
+    // Обработчики для кнопок изменения количества
     document.querySelectorAll('.quantity-btn').forEach(btn => {
         btn.addEventListener('click', async (e) => {
-            console.log("document.querySelectorAll('.quantity-btn')");
             const card = e.target.closest('.card');
             const productUuid = card.getAttribute('data-product-uuid');
-            console.log("productUuid");
-            console.log(productUuid);
             const input = e.target.closest('.quantity-controls').querySelector('.quantity-input');
             const delta = e.target.classList.contains('plus') ? 1 : -1;
 
@@ -36,21 +33,42 @@ document.addEventListener("DOMContentLoaded", () => {
             input.value = newValue;
 
             await setUpdateCartItem(productUuid, newValue);
+
+            updateItemDisplay(card, newValue);
         });
     });
 });
 
 /**
+ * Обновить количество и сумму товаров в корзине
+ *
+ * @param cardElement Элемент корзины
+ * @param newQuantity Новое значение
+ */
+function updateItemDisplay(cardElement, newQuantity) {
+    // Обновляем количество
+    const quantityElement = cardElement.querySelector('.item-quantity');
+    quantityElement.textContent = newQuantity;
+
+    // Обновляем общую сумму для товара
+    const priceElement = cardElement.querySelector('.item-price');
+    const price = parseFloat(priceElement.textContent.replace(',', '.').replace(' ₽', ''));
+    const totalElement = cardElement.querySelector('.item-total');
+    const total = (price * newQuantity).toFixed(2).replace('.', ',');
+    totalElement.textContent = `${total} ₽`;
+}
+
+/**
  * Добавить в корзину
+ *
+ * @param productUuid Идентификатор товара
+ * @param quantity Количество товара
  */
 function setAddToCart(productUuid, quantity) {
-    console.log("function setAddToCart(productUuid, quantity)");
     addToCart(productUuid, quantity)
         .then(async response => {
             if (response.ok) {
                 const cartTotalResponse = await response.text();
-                console.log("cartTotalResponse");
-                console.log(cartTotalResponse);
                 updateCartTotal(cartTotalResponse);
                 updateProductUI(productUuid, true, 1);
                 showNotification('Товар добавлен в корзину');
@@ -62,6 +80,7 @@ function setAddToCart(productUuid, quantity) {
 
 /**
  * Удалить из корзины
+ *
  * @param productUuid Идентификатор товара
  */
 function setRemoveFromCart(productUuid) {
@@ -80,6 +99,7 @@ function setRemoveFromCart(productUuid) {
 
 /**
  * Изменить количество товара в корзине
+ *
  * @param productUuid Идентификатор товара
  * @param quantity Количество товара
  * @returns {Promise<Response>}
@@ -98,6 +118,7 @@ async function setUpdateCartItem(productUuid, quantity) {
 
 /**
  * Отрисовать кнопку и количество товара после изменения карточки товара
+ *
  * @param productUuid Идентификатор товара
  * @param inCart Находится ли товар в корзине
  * @param quantity Количество товара
@@ -130,8 +151,6 @@ function updateProductUI(productUuid, inCart, quantity = 1) {
  * @param total Стоимость корзины
  */
 function updateCartTotal(total) {
-    console.log("function updateCartTotal(total)");
-    console.log(total);
     if (cartTotal) {
         const formattedTotal = new Intl.NumberFormat('ru-RU', {
             minimumFractionDigits: 2,
@@ -139,5 +158,9 @@ function updateCartTotal(total) {
         }).format(parseFloat(total));
 
         cartTotal.textContent = `${formattedTotal} ₽`;
+
+        if (cartTotalValue) {
+            cartTotalValue.textContent = `${formattedTotal} ₽`;
+        }
     }
 }

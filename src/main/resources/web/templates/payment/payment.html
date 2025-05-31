@@ -10,7 +10,10 @@
   <link rel="stylesheet" type="text/css" th:href="@{/styles/layout.css}">
   <link rel="stylesheet" type="text/css" th:href="@{/styles/payment/payment.css}">
 
-  <script type="text/javascript" th:src="@{/scripts/payment.js}"></script>
+  <th:block th:include="~{../fragments/header :: header-head}"></th:block>
+  <th:block th:include="~{../fragments/footer :: footer-head}"></th:block>
+
+  <script type="text/javascript" th:src="@{/scripts/payment/payment.js}"></script>
 </head>
 <body>
 <div th:replace="~{../fragments/header :: header}"></div>
@@ -51,7 +54,6 @@
                    placeholder="1234 5678 9012 3456"
                    maxlength="16"
                    value="cardNumber"
-                   pattern="\d{4} \d{4} \d{4} \d{4}"
                    required
                    th:value="${cardNumber != null} ? ${cardNumber} : ''">
           </div>

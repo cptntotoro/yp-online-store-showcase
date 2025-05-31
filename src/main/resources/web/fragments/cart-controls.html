@@ -1,25 +1,76 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<head th:fragment="cart-controls-head">
+    <link rel="stylesheet" th:href="@{/styles/fragments/cart-controls.css}">
+    <script type="text/javascript" th:src="@{/scripts/product/cart-controls.js}"></script>
 </head>
 
 <body>
-<div class="cart-controls" th:fragment="cart-controls">
-    <!-- Блок управления количеством (скрыт по умолчанию) -->
-    <div class="quantity-controls d-none">
-        <button class="btn btn-sm btn-secondary quantity-btn minus">-</button>
-        <input type="number"
-               class="form-control quantity-input"
-               value="1" min="1">
-        <button class="btn btn-sm btn-secondary quantity-btn plus">+</button>
+
+<div class="cart-controls" th:fragment="cart-controls(isCartPage)">
+    <!-- Для страницы корзины -->
+    <div th:if="${isCartPage}" class="item-controls">
+        <div class="quantity-controls">
+            <button class="btn btn-sm btn-secondary quantity-btn minus">-</button>
+            <input type="number"
+                   class="form-control quantity-input"
+                   value="1"
+                   min="1">
+            <button class="btn btn-sm btn-secondary quantity-btn plus">+</button>
+        </div>
+        <button class="btn btn-sm cart-action-btn btn-danger in-cart">
+            Удалить из корзины
+        </button>
     </div>
 
-    <!-- Основная кнопка (динамически меняется) -->
-    <button class="btn btn-primary btn-sm cart-action-btn">
-        Добавить в корзину
-    </button>
+    <!-- Для других страниц -->
+    <div th:if="${!isCartPage}" class="item-controls">
+        <div class="quantity-controls d-none">
+            <button class="btn btn-sm btn-secondary quantity-btn minus">-</button>
+            <input type="number"
+                   class="form-control quantity-input"
+                   value="1"
+                   min="1">
+            <button class="btn btn-sm btn-secondary quantity-btn plus">+</button>
+        </div>
+        <button class="btn btn-primary btn-sm cart-action-btn">
+            Добавить в корзину
+        </button>
+    </div>
 </div>
+
+
+<!--<div class="cart-controls" th:fragment="cart-controls(isCartPage)">-->
+<!--    &lt;!&ndash; Для страницы корзины всегда показываем управление количеством &ndash;&gt;-->
+<!--    <div th:if="${isCartPage}" class="quantity-controls">-->
+<!--        <button class="btn btn-sm btn-secondary quantity-btn minus">-</button>-->
+<!--        <input type="number"-->
+<!--               class="form-control quantity-input"-->
+<!--               th:value="${item.quantity}"-->
+<!--               min="1">-->
+<!--        <button class="btn btn-sm btn-secondary quantity-btn plus">+</button>-->
+<!--    </div>-->
+
+<!--    &lt;!&ndash; Для страницы корзины показываем кнопку удаления &ndash;&gt;-->
+<!--    <button th:if="${isCartPage}"-->
+<!--            class="btn btn-danger btn-sm cart-action-btn in-cart">-->
+<!--        Удалить-->
+<!--    </button>-->
+
+<!--    &lt;!&ndash; Для других страниц &ndash;&gt;-->
+<!--    <div th:if="${!isCartPage}" class="catalog-controls">-->
+<!--        <div class="quantity-controls d-none">-->
+<!--            <button class="btn btn-sm btn-secondary quantity-btn minus">-</button>-->
+<!--            <input type="number"-->
+<!--                   class="form-control quantity-input"-->
+<!--                   value="1"-->
+<!--                   min="1">-->
+<!--            <button class="btn btn-sm btn-secondary quantity-btn plus">+</button>-->
+<!--        </div>-->
+<!--        <button class="btn btn-primary btn-sm cart-action-btn">-->
+<!--            Добавить в корзину-->
+<!--        </button>-->
+<!--    </div>-->
+<!--</div>-->
 </body>
 </html>
