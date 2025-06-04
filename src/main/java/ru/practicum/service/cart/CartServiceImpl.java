@@ -6,6 +6,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.exception.cart.CartNotFoundException;
+import ru.practicum.exception.cart.IllegalCartStateException;
 import ru.practicum.model.cart.Cart;
 import ru.practicum.model.cart.CartItem;
 import ru.practicum.model.product.Product;
@@ -51,6 +52,10 @@ public class CartServiceImpl implements CartService {
     @Override
     @CacheEvict(value = "cart", key = "#userUuid")
     public Cart addToCart(UUID userUuid, UUID productUuid, int quantity) {
+        if (quantity <= 0) {
+            throw new IllegalCartStateException("Количество товара не может быть меньше или равно нулю");
+        }
+
         Cart cart = get(userUuid);
         Product product = productService.getByUuid(productUuid);
         updateOrAddItem(cart, product, quantity);
@@ -86,6 +91,10 @@ public class CartServiceImpl implements CartService {
     @Override
     @CacheEvict(value = "cart", key = "#userUuid")
     public void updateQuantity(UUID userUuid, UUID productUuid, int quantity) {
+        if (quantity <= 0) {
+            throw new IllegalCartStateException("Количество товара не может быть меньше или равно нулю");
+        }
+
         Cart cart = get(userUuid);
         updateItemQuantity(cart, productUuid, quantity);
         updateCartTotal(cart);

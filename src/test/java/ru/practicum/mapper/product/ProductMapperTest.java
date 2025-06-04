@@ -2,6 +2,7 @@ package ru.practicum.mapper.product;
 
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
+import ru.practicum.dto.product.ProductInDto;
 import ru.practicum.dto.product.ProductOutDto;
 import ru.practicum.model.product.Product;
 
@@ -32,5 +33,29 @@ class ProductMapperTest {
         assertThat(dto.getUuid()).isEqualTo(product.getUuid());
         assertThat(dto.getName()).isEqualTo("Test Product");
         assertThat(dto.getPrice()).isEqualTo(BigDecimal.valueOf(99.99));
+    }
+
+    @Test
+    void shouldMapProductInDtoToProduct() {
+        ProductInDto productInDto = new ProductInDto();
+        productInDto.setName("Test Product");
+        productInDto.setDescription("Test Description");
+        productInDto.setPrice(BigDecimal.valueOf(99.99));
+        productInDto.setImageUrl("http://test.com/image.jpg");
+
+        Product product = mapper.productInDtoToProduct(productInDto);
+
+        assertThat(product).isNotNull();
+        assertThat(product.getName()).isEqualTo(productInDto.getName());
+        assertThat(product.getDescription()).isEqualTo(productInDto.getDescription());
+        assertThat(product.getPrice()).isEqualTo(productInDto.getPrice());
+        assertThat(product.getImageUrl()).isEqualTo(productInDto.getImageUrl());
+    }
+
+    @Test
+    void shouldReturnNullWhenProductInDtoIsNull() {
+        Product product = mapper.productInDtoToProduct(null);
+
+        assertThat(product).isNull();
     }
 }

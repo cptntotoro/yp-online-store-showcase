@@ -1,0 +1,61 @@
+name: Java CI with Maven
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Set up JDK 21
+      uses: actions/setup-java@v4
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+        cache: maven
+
+    - name: Generate sources
+      run: mvn compile
+
+    - name: Wait for PostgreSQL to be ready
+      run: |
+        for i in {1..10}; do
+          nc -z localhost 5432 && break
+          sleep 2
+        done
+
+    - name: Run tests with coverage
+      run: mvn -B clean test jacoco:report
+      env:
+        TEST_DATASOURCE_URL: jdbc:postgresql://localhost:5432/test_db
+        POSTGRES_USER: postgres
+        POSTGRES_PASSWORD: postgres
+        SPRING_SQL_INIT_MODE: always
+        SPRING_SQL_INIT_SCHEMA_LOCATIONS: classpath:test-schema.sql
+        SPRING_PROFILES_ACTIVE: test
+
+    - name: Coveralls GitHub Action
+      uses: coverallsapp/github-action@v2.3.6
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
