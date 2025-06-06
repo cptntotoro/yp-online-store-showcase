@@ -101,8 +101,6 @@ class OrderViewControllerTest {
         when(orderService.getByUuid(userUuid, invalidOrderUuid))
                 .thenThrow(new OrderNotFoundException("Order not found"));
 
-        assertThrows(OrderNotFoundException.class, () -> {
-            orderViewController.showOrderDetails(userUuid, invalidOrderUuid, model);
-        });
+        assertThrows(OrderNotFoundException.class, () -> orderViewController.showOrderDetails(userUuid, invalidOrderUuid, model));
     }
 }

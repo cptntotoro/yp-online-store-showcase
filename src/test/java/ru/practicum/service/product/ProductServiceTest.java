@@ -12,12 +12,12 @@ import ru.practicum.exception.product.ProductNotFoundException;
 import ru.practicum.model.product.Product;
 import ru.practicum.repository.product.ProductRepository;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -137,4 +137,35 @@ class ProductServiceTest {
         verify(productRepository).findById(uuid);
     }
 
+    @Test
+    void batchAdd_shouldSaveAllProducts() {
+        Product product1 = new Product();
+        product1.setUuid(UUID.randomUUID());
+        product1.setName("Product 1");
+        product1.setDescription("Description 1");
+        product1.setPrice(BigDecimal.valueOf(100));
+
+        Product product2 = new Product();
+        product2.setUuid(UUID.randomUUID());
+        product2.setName("Product 2");
+        product2.setDescription("Description 2");
+        product2.setPrice(BigDecimal.valueOf(200));
+
+        List<Product> products = List.of(product1,product2);
+
+        productService.batchAdd(products);
+
+        verify(productRepository).saveAll(products);
+        verifyNoMoreInteractions(productRepository);
+    }
+
+    @Test
+    void batchAdd_withEmptyList_shouldDoNothing() {
+        List<Product> emptyList = List.of();
+
+        productService.batchAdd(emptyList);
+
+        verify(productRepository).saveAll(emptyList);
+        verifyNoMoreInteractions(productRepository);
+    }
 }

@@ -5,6 +5,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import ru.practicum.exception.order.OrderNotFoundException;
 import ru.practicum.model.cart.Cart;
 import ru.practicum.model.cart.CartItem;
 import ru.practicum.model.order.Order;
@@ -106,6 +107,31 @@ class OrderServiceTest {
 
         assertThat(result).hasSize(2);
         assertThat(result).allMatch(order -> order.getUserUuid().equals(testUserId));
+    }
+
+    @Test
+    void getByUuid_shouldReturnOrderWhenFound() {
+        Order expectedOrder = new Order();
+        expectedOrder.setUuid(testOrderId);
+        expectedOrder.setUserUuid(testUserId);
+
+        when(orderRepository.findByIdWhereUserUuidIn(testOrderId, testUserId))
+                .thenReturn(Optional.of(expectedOrder));
+
+        Order result = orderService.getByUuid(testUserId, testOrderId);
+
+        assertThat(result).isEqualTo(expectedOrder);
+        verify(orderRepository).findByIdWhereUserUuidIn(testOrderId, testUserId);
+    }
+
+    @Test
+    void getByUuid_shouldThrowOrderNotFoundExceptionWhenOrderNotFound() {
+        when(orderRepository.findByIdWhereUserUuidIn(testOrderId, testUserId))
+                .thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> orderService.getByUuid(testUserId, testOrderId))
+                .isInstanceOf(OrderNotFoundException.class);
+        verify(orderRepository).findByIdWhereUserUuidIn(testOrderId, testUserId);
     }
 
     @Test
