@@ -3,12 +3,9 @@ package ru.practicum.mapper.order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ru.practicum.dto.order.OrderItemDto;
 import ru.practicum.dto.product.ProductOutDto;
-import ru.practicum.mapper.product.ProductMapper;
-import ru.practicum.mapper.product.ProductMapperImpl;
 import ru.practicum.model.order.OrderItem;
 import ru.practicum.model.product.Product;
 
@@ -16,16 +13,12 @@ import java.math.BigDecimal;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class OrderItemMapperTest {
 
     @InjectMocks
     private OrderItemMapperImpl orderItemMapper;
-
-    @Spy
-    private ProductMapper productMapper = new ProductMapperImpl();
 
     @Test
     void shouldMapOrderItemToDto() {
@@ -39,7 +32,7 @@ class OrderItemMapperTest {
 
         OrderItem orderItem = new OrderItem();
         orderItem.setUuid(itemId);
-        orderItem.setProduct(product);
+        orderItem.setProductUuid(product.getUuid());
         orderItem.setQuantity(2);
         orderItem.setPriceAtOrder(BigDecimal.valueOf(199.98));
 
@@ -47,18 +40,12 @@ class OrderItemMapperTest {
         productDto.setUuid(productId);
         productDto.setName("Test Product");
 
-        when(productMapper.productToProductOutDto(product)).thenReturn(productDto);
-
         OrderItemDto dto = orderItemMapper.orderItemToOrderItemDto(orderItem);
 
         assertThat(dto).isNotNull();
         assertThat(dto.getUuid()).isEqualTo(itemId);
         assertThat(dto.getQuantity()).isEqualTo(2);
         assertThat(dto.getPriceAtOrder()).isEqualTo(BigDecimal.valueOf(199.98));
-        assertThat(dto.getProduct())
-                .isNotNull()
-                .extracting(ProductOutDto::getUuid, ProductOutDto::getName)
-                .containsExactly(productId, "Test Product");
     }
 
     @Test
@@ -71,7 +58,7 @@ class OrderItemMapperTest {
     void shouldHandleNullProduct() {
         OrderItem orderItem = new OrderItem();
         orderItem.setUuid(UUID.randomUUID());
-        orderItem.setProduct(null);
+        orderItem.setProductUuid(UUID.randomUUID());
         orderItem.setQuantity(1);
 
         OrderItemDto dto = orderItemMapper.orderItemToOrderItemDto(orderItem);

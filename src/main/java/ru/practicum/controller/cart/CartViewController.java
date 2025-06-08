@@ -2,11 +2,12 @@ package ru.practicum.controller.cart;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.reactive.result.view.RedirectView;
+import org.springframework.web.reactive.result.view.Rendering;
+import reactor.core.publisher.Mono;
 import ru.practicum.config.WebAttributes;
 import ru.practicum.mapper.cart.CartMapper;
-import ru.practicum.model.cart.Cart;
 import ru.practicum.service.cart.CartService;
 
 import java.util.UUID;
@@ -26,23 +27,23 @@ public class CartViewController {
     private final CartMapper cartMapper;
 
     @GetMapping
-    public String showCart(Model model, @RequestAttribute(WebAttributes.USER_UUID) UUID userUuid) {
-        Cart cart = cartService.get(userUuid);
-        model.addAttribute("cart", cartMapper.cartToCartDto(cart));
-        return "cart/cart";
+    public Mono<Rendering> showCart(@RequestAttribute(WebAttributes.USER_UUID) UUID userUuid) {
+        return cartService.get(userUuid)
+                .map(cartMapper::cartToCartDto)
+                .flatMap(cartDto -> Mono.just(Rendering.view("cart/cart")
+                        .modelAttribute("cart", cartDto).build()));
     }
 
     @PostMapping("/remove/{productUuid}")
-    public String removeFromCart(
-            @RequestAttribute(WebAttributes.USER_UUID) UUID userUuid,
-            @PathVariable UUID productUuid) {
-        cartService.removeFromCart(userUuid, productUuid);
-        return "redirect:/cart";
+    public Mono<RedirectView> removeFromCart(@RequestAttribute(WebAttributes.USER_UUID) UUID userUuid,
+                                             @PathVariable UUID productUuid) {
+        return cartService.removeFromCart(userUuid, productUuid)
+                .thenReturn(new RedirectView("/cart"));
     }
 
     @PostMapping("/clear")
-    public String clearCart(@RequestAttribute(WebAttributes.USER_UUID) UUID userUuid) {
-        cartService.clear(userUuid);
-        return "redirect:/cart";
+    public Mono<RedirectView> clearCart(@RequestAttribute(WebAttributes.USER_UUID) UUID userUuid) {
+        return cartService.clear(userUuid)
+                .thenReturn(new RedirectView("/cart"));
     }
 }

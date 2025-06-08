@@ -1,7 +1,7 @@
 [![Java CI with Maven](https://github.com/cptntotoro/yp-online-store-showcase/actions/workflows/maven.yml/badge.svg)](https://github.com/cptntotoro/yp-online-store-showcase/actions/workflows/maven.yml) [![Coverage Status](https://coveralls.io/repos/github/cptntotoro/yp-online-store-showcase/badge.svg)](https://coveralls.io/github/cptntotoro/yp-online-store-showcase)
 
 # Приложение "Витрина онлайн-магазина"
-Java 21, Spring Boot, Hibernate, PostgreSQL, Lombok, Mapstruct, Maven, Docker, Thymeleaf, HTML, CSS, JavaScript
+Приложение на реактивном стеке: Java 21, Spring Boot (WebFlux, R2DBC), PostgreSQL, Lombok, Mapstruct, Maven, Docker, Thymeleaf, HTML, CSS, JavaScript
 
 ## О проекте
 Веб-приложение представляет собой витрину товаров.
@@ -59,7 +59,7 @@ mvn clean package
 
 3. Запустите приложение:
 ```
-java -jar target/yp-online-store.jar
+java -jar target/yp-online-store.jar --spring.profiles.active=prod
 ```
 
 Приложение будет доступно по адресу: http://localhost:8080/products.

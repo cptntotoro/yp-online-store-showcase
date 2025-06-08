@@ -1,10 +1,15 @@
-FROM maven:3.9.6-eclipse-temurin-21 as test-builder
+FROM maven:3.9.6-eclipse-temurin-21
+
+# Установка утилит
+RUN apt-get update && apt-get install -y \
+    iputils-ping \
+    dnsutils \
+    netcat-openbsd \
+    postgresql-client && \
+    rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
-COPY pom.xml .
-COPY src ./src
+COPY . .
 
-# Установка TestContainers и зависимостей
-RUN mvn dependency:resolve-plugins dependency:resolve
-
-# Запуск тестов
-CMD ["mvn", "test"]
+# Проверка доступности БД перед тестами
+CMD ["sh", "-c", "until nc -z test-db 5432; do sleep 1; echo 'Waiting for DB...'; done && mvn test"]

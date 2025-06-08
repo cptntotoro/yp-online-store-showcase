@@ -1,0 +1,274 @@
+openapi: 3.0.1
+info:
+  title: Yandex Practicum | Онлайн Витрина Магазина
+  description: API для управления товарами, корзиной и заказами
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8080
+    description: Local server
+
+paths:
+  /cart/add/{productUuid}:
+    post:
+      tags:
+        - Cart
+      summary: Добавить товар в корзину
+      parameters:
+        - name: productUuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Идентификатор товара
+        - name: quantity
+          in: query
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+          description: Количество товара
+      responses:
+        '200':
+          description: Товар добавлен в корзину
+        '400':
+          description: Неверное количество товара
+        '404':
+          description: Товар не найден
+
+  /cart/update/{productUuid}:
+    patch:
+      tags:
+        - Cart
+      summary: Обновить количество товара в корзине
+      parameters:
+        - name: productUuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Идентификатор товара
+        - name: quantity
+          in: query
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+          description: Новое количество товара в корзине
+      responses:
+        '200':
+          description: Козина обновлена
+        '400':
+          description: Неверное количество товара
+        '404':
+          description: Товар не найден в корзине
+
+  /cart/remove/{productUuid}:
+    delete:
+      tags:
+        - Cart
+      summary: Удалить товар из корзины
+      parameters:
+        - name: productUuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Идентификатор товара
+      responses:
+        '200':
+          description: Товар удален из корзины
+        '404':
+          description: Товар не найден в корзине
+
+  /orders:
+    get:
+      tags:
+        - Orders
+      summary: Получить заказы пользователя
+      responses:
+        '200':
+          description: Страница заказов пользователя
+
+
+  /orders/{orderUuid}:
+    get:
+      tags:
+        - Orders
+      summary: Получить заказ пользователя
+      parameters:
+        - name: orderUuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Идентификатор заказа
+      responses:
+        '200':
+          description: Страница заказа
+        '404':
+          description: Заказ не найден
+
+  /payment/checkout:
+    get:
+      tags:
+        - Payment
+      summary: Просмотр заказа перед оплатой
+      responses:
+        '200':
+          description: Страница заказа перед оплатой
+        '400':
+          description: Корзина пуста
+
+  /payment/checkout/{orderUuid}:
+    post:
+      tags:
+        - Payment
+      summary: Обработать заказ
+      parameters:
+        - name: orderUuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Идентификатор заказа
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                cardNumber:
+                  type: string
+                  description: Номер кредитной карты (16 цифр)
+                  example: "4111111111111111"
+              required:
+                - cardNumber
+      responses:
+        '302':
+          description: Редирект на страницу заказа
+        '400':
+          description: Некорректные данные для оплаты
+        '404':
+          description: Заказ не найден
+
+  /products:
+    get:
+      tags:
+        - Products
+      summary: Получить каталог товаров
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+          description: Номер страницы
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 10
+          description: Количество товаров на странице
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: Поисковый запрос по названию товара
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum: [price-asc, price-desc, name-asc]
+          description: Способ сортировки
+      responses:
+        '200':
+          description: Страница каталога товаров
+
+  /products/{uuid}:
+    get:
+      tags:
+        - Products
+      summary: Получить страницу товара
+      parameters:
+        - name: uuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Идентификатор товара
+      responses:
+        '200':
+          description: Страница товара
+        '404':
+          description: Товар не найден
+
+  /products/add:
+    post:
+      tags:
+        - Products
+      summary: Добавить товар(ы) на витрину товаров
+      description: Добавляет один или несколько новых товаров на витрину товаров
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductListInDto'
+      responses:
+        '302':
+          description: Редирект на страницу витрины товаров
+        '400':
+          description: Некорректные данные товара
+
+components:
+  schemas:
+    ProductListInDto:
+      type: object
+      properties:
+        products:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductInDto'
+          description: Список товаров для добавления
+      required:
+        - products
+
+    ProductInDto:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Название товара
+          example: "Смартфон"
+        description:
+          type: string
+          description: Описание товара
+          example: "Новый флагманский смартфон"
+        price:
+          type: number
+          format: double
+          minimum: 0
+          description: Цена товара
+          example: 999.99
+        imageUrl:
+          type: string
+          format: uri
+          description: Ссылка на изображение товара
+          example: "https://example.com/image.jpg"
+      required:
+        - name
+        - price
+
+  securitySchemes:
+    userAuth:
+      type: apiKey
+      in: cookie
+      name: SESSION

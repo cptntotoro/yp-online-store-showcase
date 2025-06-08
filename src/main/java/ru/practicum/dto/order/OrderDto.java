@@ -1,7 +1,5 @@
 package ru.practicum.dto.order;
 
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import lombok.*;
 import ru.practicum.model.order.OrderStatus;
 
@@ -17,6 +15,7 @@ import java.util.UUID;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class OrderDto {
     /**
      * Идентификатор
@@ -26,7 +25,6 @@ public class OrderDto {
     /**
      * Статус заказа
      */
-    @Enumerated(EnumType.STRING)
     private OrderStatus status;
 
     /**
@@ -37,6 +35,7 @@ public class OrderDto {
     /**
      * Товары заказа
      */
+    @Builder.Default
     private List<OrderItemDto> items = new ArrayList<>();
 
     /**

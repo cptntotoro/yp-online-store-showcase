@@ -1,27 +1,33 @@
 package ru.practicum.service.cart;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.exception.cart.CartNotFoundException;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import ru.practicum.dao.cart.CartDao;
 import ru.practicum.exception.cart.IllegalCartStateException;
+import ru.practicum.mapper.cart.CartItemMapper;
+import ru.practicum.mapper.cart.CartMapper;
 import ru.practicum.model.cart.Cart;
 import ru.practicum.model.cart.CartItem;
 import ru.practicum.model.product.Product;
+import ru.practicum.repository.cart.CartItemRepository;
 import ru.practicum.repository.cart.CartRepository;
 import ru.practicum.service.product.ProductService;
 
 import java.math.BigDecimal;
-import java.util.*;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 /**
  * Сервис управления корзиной товаров
  */
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class CartServiceImpl implements CartService {
 
     /**
@@ -30,116 +36,194 @@ public class CartServiceImpl implements CartService {
     private final CartRepository cartRepository;
 
     /**
+     * Репозиторий товаров козины
+     */
+    private final CartItemRepository cartItemRepository;
+
+    /**
      * Сервис управления товарами
      */
     private final ProductService productService;
 
-    @Override
-    public Cart create(UUID userUuid) {
-        Cart newCart = new Cart();
-        newCart.setUserUuid(userUuid);
-        newCart.setTotalPrice(BigDecimal.ZERO);
-        return cartRepository.save(newCart);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public Cart get(UUID userUuid) {
-        return cartRepository.findByUserUuid(userUuid)
-                .orElseThrow(() -> new CartNotFoundException("Корзина пользователя с uuid = " + userUuid + " не найдена"));
-    }
-
-    @Override
-    @CacheEvict(value = "cart", key = "#userUuid")
-    public Cart addToCart(UUID userUuid, UUID productUuid, int quantity) {
-        if (quantity <= 0) {
-            throw new IllegalCartStateException("Количество товара не может быть меньше или равно нулю");
-        }
-
-        Cart cart = get(userUuid);
-        Product product = productService.getByUuid(productUuid);
-        updateOrAddItem(cart, product, quantity);
-        updateCartTotal(cart);
-        return cartRepository.save(cart);
-    }
-
-    @Override
-    @CacheEvict(value = "cart", key = "#userUuid")
-    public Cart removeFromCart(UUID userUuid, UUID productUuid) {
-        Cart cart = get(userUuid);
-        removeCartItem(cart, productUuid);
-        updateCartTotal(cart);
-        return cartRepository.save(cart);
-    }
-
-    @Override
-    @CacheEvict(value = "cart", key = "#userUuid")
-    public void clear(UUID userUuid) {
-        Cart cart = get(userUuid);
-        cart.getItems().clear();
-        updateCartTotal(cart);
-        cartRepository.save(cart);
-    }
-
-    @Override
-    @Cacheable(value = "cart", key = "#userUuid")
-    @Transactional(readOnly = true)
-    public Cart getCachedCart(UUID userUuid) {
-        return get(userUuid);
-    }
-
-    @Override
-    @CacheEvict(value = "cart", key = "#userUuid")
-    public void updateQuantity(UUID userUuid, UUID productUuid, int quantity) {
-        if (quantity <= 0) {
-            throw new IllegalCartStateException("Количество товара не может быть меньше или равно нулю");
-        }
-
-        Cart cart = get(userUuid);
-        updateItemQuantity(cart, productUuid, quantity);
-        updateCartTotal(cart);
-        cartRepository.save(cart);
-    }
+    /**
+     * Кеш сервис корзины
+     */
+    private final CartCacheService cartCacheService;
 
     /**
-     * Изменить наличие товара в корзине или добавить новый товар
-     *
-     * @param cart Корзина
-     * @param product Товар
-     * @param quantity Количество товара
+     * Маппер корзины товаров
      */
-    private void updateOrAddItem(Cart cart, Product product, int quantity) {
-        cart.getItems().stream()
-                .filter(item -> item.getProduct().equals(product))
+    private final CartMapper cartMapper;
+
+    /**
+     * Маппер товаров корзины
+     */
+    private final CartItemMapper cartItemMapper;
+
+
+    @Override
+    @Transactional(propagation = Propagation.REQUIRED)
+    public Mono<Cart> createGuest(UUID userUuid) {
+        Cart newCart = Cart.builder()
+                .userUuid(userUuid)
+                .items(new ArrayList<>())
+                .totalPrice(BigDecimal.ZERO)
+                .build();
+
+        return cartRepository.save(cartMapper.cartToCartDao(newCart))
+                .map(cartMapper::cartDaoToCart)
+                .onErrorResume(e -> Mono.error(new IllegalCartStateException("Ошибка создания корзины.")));
+    }
+
+    @Override
+    public Mono<Cart> get(UUID userUuid) {
+        return cartCacheService.getCart(userUuid)
+                .map(cartMapper::cartToCartDao)
+                .flatMap(this::loadCartItems);
+    }
+
+    private Mono<Cart> loadCartItems(CartDao cartDao) {
+        return cartItemRepository.findByCartUuid(cartDao.getUuid())
+                .flatMap(itemDao -> productService.getByUuid(itemDao.getProductUuid())
+                        .map(product -> {
+                            CartItem item = cartItemMapper.cartItemDaoToCartItem(itemDao);
+                            item.setProduct(product);
+                            return item;
+                        }))
+                .collectList()
+                .map(items -> {
+                    Cart cart = cartMapper.cartDaoToCart(cartDao);
+                    cart.setItems(items);
+                    return cart;
+                });
+    }
+
+    @Override
+    @Transactional
+    public Mono<Cart> addToCart(UUID userUuid, UUID productUuid, int quantity) {
+        if (quantity <= 0) {
+            return Mono.error(new IllegalCartStateException("Количество товара должно быть больше нуля"));
+        }
+
+        return get(userUuid).zipWith(productService.getByUuid(productUuid))
+                .flatMap(tuple -> {
+                    Cart cart = tuple.getT1();
+                    Product product = tuple.getT2();
+                    List<CartItem> updatedItems = updateCartItems(cart, product, quantity);
+                    cart.setItems(updatedItems);
+                    cart.setUpdatedAt(LocalDateTime.now());
+
+                    return updateCartTotal(cart);
+                })
+                .flatMap(updatedCart -> {
+                    CartDao cartDao = cartMapper.cartToCartDao(updatedCart);
+                    return cartRepository.save(cartDao)
+                            .then(saveCartItems(updatedCart.getItems()))
+                            .thenReturn(updatedCart);
+                })
+                .doOnSuccess(cart -> cartCacheService.evict(userUuid).subscribe())
+                .onErrorResume(e -> Mono.error(new IllegalCartStateException("Не удалось добавить товар в корзину", e)))
+                ;
+    }
+
+    private List<CartItem> updateCartItems(Cart cart, Product product, int quantity) {
+        List<CartItem> updatedItems = new ArrayList<>(cart.getItems());
+
+        updatedItems.stream()
+                .filter(item -> item.getProduct().getUuid().equals(product.getUuid()))
                 .findFirst()
                 .ifPresentOrElse(
                         item -> item.setQuantity(item.getQuantity() + quantity),
-                        () -> cart.getItems().add(new CartItem(cart, product, quantity))
+                        () -> updatedItems.add(CartItem.builder()
+                                .cartUuid(cart.getUuid())
+                                .product(product)
+                                .quantity(quantity)
+                                .build())
                 );
+
+        return updatedItems;
     }
 
-    /**
-     * Удалить товар из корзины
-     *
-     * @param cart Корзина
-     * @param productUuid Идентификатор товара
-     */
-    private void removeCartItem(Cart cart, UUID productUuid) {
-        cart.getItems().removeIf(item -> item.getProduct().getUuid().equals(productUuid));
+    @Override
+    @Transactional
+    public Mono<Cart> removeFromCart(UUID userUuid, UUID productUuid) {
+        return get(userUuid)
+                .flatMap(cart -> {
+                    List<CartItem> updatedItems = cart.getItems().stream()
+                            .filter(item -> !item.getProduct().getUuid().equals(productUuid))
+                            .toList();
+
+                    cart.setItems(updatedItems);
+
+                    return updateCartTotal(cart)
+                            .flatMap(updatedCart -> {
+                                CartDao cartDao = cartMapper.cartToCartDao(updatedCart);
+                                cartDao.setUpdatedAt(LocalDateTime.now());
+                                return cartRepository.save(cartDao)
+                                        .then(cartItemRepository.deleteByCartUuidAndProductUuid(cart.getUuid(), productUuid))
+                                        .thenReturn(updatedCart);
+                            });
+                })
+                .doOnSuccess(saved -> cartCacheService.evict(userUuid).subscribe())
+                .onErrorResume(e -> Mono.error(new IllegalCartStateException("Не удалось удалить товар из корзины")));
     }
 
-    /**
-     * Обновить количество товара
-     *
-     * @param cart Корзина
-     * @param productUuid Идентификатор товара
-     * @param quantity Количество товара
-     */
-    private void updateItemQuantity(Cart cart, UUID productUuid, int quantity) {
-        cart.getItems().stream()
-                .filter(item -> item.getProduct().getUuid().equals(productUuid))
-                .findFirst()
-                .ifPresent(item -> item.setQuantity(quantity));
+    @Override
+    @Transactional
+    public Mono<Void> clear(UUID userUuid) {
+        return get(userUuid)
+                .flatMap(cart ->
+                        cartItemRepository.deleteByCartUuid(cart.getUuid())
+                                .then(cartRepository.save(
+                                        CartDao.builder()
+                                                .uuid(cart.getUuid())
+                                                .userUuid(cart.getUserUuid())
+                                                .totalPrice(BigDecimal.ZERO)
+                                                .updatedAt(LocalDateTime.now())
+                                                .build()
+                                ))
+                )
+                .then()
+                .doOnSuccess(unused -> cartCacheService.evict(userUuid).subscribe())
+                .onErrorResume(e -> Mono.error(new IllegalCartStateException("Не удалось очистить корзину")));
+    }
+
+    @Override
+    @Transactional
+    public Mono<Cart> updateQuantity(UUID userUuid, UUID productUuid, int quantity) {
+        if (quantity <= 0) {
+            return Mono.error(new IllegalCartStateException("Количество товара не может быть меньше или равно нулю"));
+        }
+
+        return get(userUuid)
+                .flatMap(cart -> {
+                    List<CartItem> items = new ArrayList<>(cart.getItems());
+
+                    items.stream()
+                            .filter(item -> item.getProduct().getUuid().equals(productUuid))
+                            .findFirst()
+                            .ifPresent(item -> item.setQuantity(quantity));
+
+                    cart.setItems(items);
+
+                    return updateCartTotal(cart)
+                            .flatMap(updatedCart -> {
+                                CartDao cartDao = cartMapper.cartToCartDao(updatedCart);
+                                cartDao.setUpdatedAt(LocalDateTime.now());
+                                return cartRepository.save(cartDao)
+                                        .then(saveCartItems(updatedCart.getItems()))
+                                        .thenReturn(updatedCart);
+                            });
+                })
+                .doOnSuccess(unused -> cartCacheService.evict(userUuid).subscribe())
+                .onErrorResume(e -> Mono.error(new IllegalCartStateException("Не удалось обновить товар в корзине")));
+    }
+
+    private Mono<Void> saveCartItems(List<CartItem> items) {
+        return Flux.fromIterable(items)
+                .map(cartItemMapper::cartItemToCartItemDao)
+                .flatMap(cartItemRepository::save)
+                .then();
     }
 
     /**
@@ -147,8 +231,12 @@ public class CartServiceImpl implements CartService {
      *
      * @param cart Корзина
      */
-    private void updateCartTotal(Cart cart) {
-        cart.setTotalPrice(calculateTotalPrice(cart.getItems()));
+    private Mono<Cart> updateCartTotal(Cart cart) {
+        return calculateTotalPrice(cart.getItems())
+                .map(total -> {
+                    cart.setTotalPrice(total);
+                    return cart;
+                });
     }
 
     /**
@@ -157,8 +245,8 @@ public class CartServiceImpl implements CartService {
      * @param items Товары
      * @return Стоимость товаров в корзине
      */
-    private BigDecimal calculateTotalPrice(List<CartItem> items) {
-        return items.stream()
+    private Mono<BigDecimal> calculateTotalPrice(List<CartItem> items) {
+        return Flux.fromIterable(items)
                 .map(CartItem::getTotalPrice)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }

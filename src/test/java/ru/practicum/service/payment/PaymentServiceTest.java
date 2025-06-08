@@ -5,12 +5,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 import ru.practicum.exception.payment.PaymentProcessingException;
 import ru.practicum.service.order.OrderService;
 
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -24,55 +25,47 @@ class PaymentServiceTest {
 
     private final UUID testUserUuid = UUID.randomUUID();
     private final UUID testOrderUuid = UUID.randomUUID();
-    private final String validCardNumber = "1234567890123456";
+    private final String validCardNumber = "1234567812345678";
 
     @Test
-    void checkout_ShouldCallOrderService_WhenCardNumberIsValid() {
-        paymentService.checkout(testUserUuid, testOrderUuid, validCardNumber);
+    void checkout_ShouldFail_WhenCardNumberIsNull() {
+        StepVerifier.create(paymentService.checkout(testUserUuid, testOrderUuid, null))
+                .expectErrorMatches(ex -> ex instanceof PaymentProcessingException &&
+                        ex.getMessage().equals("Некорректный номер карты."))
+                .verify();
 
-        verify(orderService, times(1)).checkout(testUserUuid, testOrderUuid);
+        verifyNoInteractions(orderService);
     }
 
     @Test
-    void checkout_ShouldThrowException_WhenCardNumberIsNull() {
-        assertThrows(PaymentProcessingException.class,
-                () -> paymentService.checkout(testUserUuid, testOrderUuid, null));
+    void checkout_ShouldFail_WhenCardNumberIsInvalid() {
+        StepVerifier.create(paymentService.checkout(testUserUuid, testOrderUuid, "invalid"))
+                .expectErrorMatches(ex -> ex instanceof PaymentProcessingException &&
+                        ex.getMessage().equals("Некорректный номер карты."))
+                .verify();
 
-        verify(orderService, never()).checkout(any(), any());
+        verifyNoInteractions(orderService);
     }
 
     @Test
-    void checkout_ShouldThrowException_WhenCardNumberIsTooShort() {
-        String shortCardNumber = "123456789012345";
+    void checkout_ShouldSuccess_WhenCardIsValid() {
+        when(orderService.checkout(testUserUuid, testOrderUuid))
+                .thenReturn(Mono.empty());
 
-        assertThrows(PaymentProcessingException.class,
-                () -> paymentService.checkout(testUserUuid, testOrderUuid, shortCardNumber));
+        StepVerifier.create(paymentService.checkout(testUserUuid, testOrderUuid, validCardNumber))
+                .verifyComplete();
 
-        verify(orderService, never()).checkout(any(), any());
+        verify(orderService).checkout(testUserUuid, testOrderUuid);
     }
 
     @Test
-    void checkout_ShouldThrowException_WhenCardNumberIsTooLong() {
-        String longCardNumber = "12345678901234567";
+    void checkout_ShouldPropagateOrderServiceError() {
+        RuntimeException expectedError = new RuntimeException("Order error");
+        when(orderService.checkout(testUserUuid, testOrderUuid))
+                .thenReturn(Mono.error(expectedError));
 
-        assertThrows(PaymentProcessingException.class,
-                () -> paymentService.checkout(testUserUuid, testOrderUuid, longCardNumber));
-
-        verify(orderService, never()).checkout(any(), any());
-    }
-
-    @Test
-    void checkout_ShouldThrowException_WhenCardNumberContainsNonDigits() {
-        String invalidCardNumber = "1234abcd56789012";
-
-        assertThrows(PaymentProcessingException.class,
-                () -> paymentService.checkout(testUserUuid, testOrderUuid, invalidCardNumber));
-
-        verify(orderService, never()).checkout(any(), any());
-    }
-
-    @Test
-    void validateCardNumber_ShouldNotThrow_WhenCardNumberIsValid() {
-        assertDoesNotThrow(() -> paymentService.checkout(testUserUuid, testOrderUuid, validCardNumber));
+        StepVerifier.create(paymentService.checkout(testUserUuid, testOrderUuid, validCardNumber))
+                .expectErrorMatches(ex -> ex.equals(expectedError))
+                .verify();
     }
 }

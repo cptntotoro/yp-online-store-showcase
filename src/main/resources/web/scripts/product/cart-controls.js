@@ -12,7 +12,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const productUuid = card.getAttribute('data-product-uuid');
 
             if (e.target.classList.contains('in-cart')) {
-                await setRemoveFromCart(productUuid, btn.getAttribute('data-cart') ? true : false);
+                await setRemoveFromCart(productUuid, !!btn.getAttribute('data-cart'));
             } else {
                 const quantity = 1; // Стандартное количество при добавлении
                 await setAddToCart(productUuid, quantity);

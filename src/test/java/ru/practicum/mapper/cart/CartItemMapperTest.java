@@ -45,14 +45,13 @@ class CartItemMapperTest {
 
     @Test
     void shouldMapCartItemToDto() {
-        // Given
         UUID productId = UUID.randomUUID();
         UUID itemId = UUID.randomUUID();
 
         Product product = new Product();
         product.setUuid(productId);
         product.setName("Test Product");
-        product.setPrice(BigDecimal.valueOf(100.50)); // Устанавливаем цену продукта
+        product.setPrice(BigDecimal.valueOf(100.50));
 
         CartItem cartItem = new CartItem();
         cartItem.setUuid(itemId);

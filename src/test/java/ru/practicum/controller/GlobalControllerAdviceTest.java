@@ -6,6 +6,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.ui.Model;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 import ru.practicum.dto.cart.CartDto;
 import ru.practicum.mapper.cart.CartMapper;
 import ru.practicum.model.cart.Cart;
@@ -13,8 +15,7 @@ import ru.practicum.service.cart.CartService;
 
 import java.util.UUID;
 
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class GlobalControllerAdviceTest {
@@ -33,31 +34,21 @@ class GlobalControllerAdviceTest {
 
     @Test
     void addCommonAttributes_ShouldAddCartToModel() {
-        UUID userUuid = UUID.randomUUID();
-        Cart expectedCart = new Cart();
-        CartDto expectedCartDto = new CartDto();
+        UUID userId = UUID.randomUUID();
+        Cart cart = new Cart();
+        CartDto cartDto = new CartDto();
 
-        when(cartService.getCachedCart(userUuid)).thenReturn(expectedCart);
-        when(cartMapper.cartToCartDto(expectedCart)).thenReturn(expectedCartDto);
+        Mono<Cart> cartMono = Mono.just(cart);
+        when(cartService.get(userId)).thenReturn(cartMono);
+        when(cartMapper.cartToCartDto(cart)).thenReturn(cartDto);
 
-        globalControllerAdvice.addCommonAttributes(userUuid, model);
+        Mono<Void> result = globalControllerAdvice.addCommonAttributes(userId, model);
 
-        verify(cartService).getCachedCart(userUuid);
-        verify(cartMapper).cartToCartDto(expectedCart);
-        verify(model).addAttribute("cart", expectedCartDto);
-    }
+        StepVerifier.create(result)
+                .verifyComplete();
 
-    @Test
-    void addCommonAttributes_ShouldWorkWithEmptyCart() {
-        UUID userUuid = UUID.randomUUID();
-        Cart emptyCart = new Cart();
-        CartDto emptyCartDto = new CartDto();
-
-        when(cartService.getCachedCart(userUuid)).thenReturn(emptyCart);
-        when(cartMapper.cartToCartDto(emptyCart)).thenReturn(emptyCartDto);
-
-        globalControllerAdvice.addCommonAttributes(userUuid, model);
-
-        verify(model).addAttribute("cart", emptyCartDto);
+        verify(cartService).get(userId);
+        verify(cartMapper).cartToCartDto(cart);
+        verify(model).addAttribute("cart", cartDto);
     }
 }

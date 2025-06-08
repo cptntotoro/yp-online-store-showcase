@@ -43,7 +43,7 @@ CREATE TABLE IF NOT EXISTS cart_items (
     quantity INT NOT NULL CHECK (quantity > 0),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (cart_uuid) REFERENCES carts(cart_uuid) ON DELETE CASCADE,
-    FOREIGN KEY (product_uuid) REFERENCES products(product_uuid)
+    FOREIGN KEY (product_uuid) REFERENCES products(product_uuid) ON DELETE CASCADE
 );
 
 CREATE INDEX IF NOT EXISTS idx_cart_items_product ON cart_items(product_uuid);
@@ -56,14 +56,15 @@ CREATE TABLE IF NOT EXISTS orders (
     status VARCHAR(50) NOT NULL DEFAULT 'CREATED',
     total_amount DECIMAL(10, 2) DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_uuid) REFERENCES users(user_uuid),
-    FOREIGN KEY (cart_uuid) REFERENCES carts(cart_uuid)
+    FOREIGN KEY (user_uuid) REFERENCES users(user_uuid) ON DELETE CASCADE,
+    FOREIGN KEY (cart_uuid) REFERENCES carts(cart_uuid) ON DELETE CASCADE
 );
 
 CREATE INDEX IF NOT EXISTS idx_orders_created_at ON orders(created_at);
 CREATE INDEX IF NOT EXISTS idx_orders_user ON orders(user_uuid);
 CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);
 
+-- Таблица товаров заказа
 CREATE TABLE IF NOT EXISTS order_items (
    order_item_uuid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
    order_uuid UUID NOT NULL,
@@ -71,7 +72,7 @@ CREATE TABLE IF NOT EXISTS order_items (
    quantity INT NOT NULL,
    price_at_order numeric(10,2),
    FOREIGN KEY (order_uuid) REFERENCES orders(order_uuid) ON DELETE CASCADE,
-   FOREIGN KEY (product_uuid) REFERENCES products(product_uuid)
+   FOREIGN KEY (product_uuid) REFERENCES products(product_uuid) ON DELETE CASCADE
 );
 
 CREATE INDEX IF NOT EXISTS idx_order_items_order_id ON order_items(order_uuid);

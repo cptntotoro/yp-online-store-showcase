@@ -1,8 +1,11 @@
 package ru.practicum.config;
 
-public class WebAttributes {
+public final class WebAttributes {
+
+    private WebAttributes() {}
+
     /**
-     * Куки идентификатора пользователя
+     * Имя cookie с UUID пользователя
      */
     public static final String USER_UUID = "USER_UUID";
 }

@@ -13,6 +13,7 @@ import java.util.UUID;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class CartDto {
     /**
      * Идентификатор
@@ -22,6 +23,7 @@ public class CartDto {
     /**
      * Список DTO товаров корзины
      */
+    @Builder.Default
     private List<CartItemDto> items = new ArrayList<>();
 
     /**

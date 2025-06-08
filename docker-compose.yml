@@ -1,11 +1,12 @@
-version: '3.8'
-
 services:
   app:
     profiles: ["prod"]
+    restart: on-failure
     build:
       context: .
       dockerfile: Dockerfile
+    image: yp-online-showcase
+    container_name: "yp-online-showcase"
     ports:
       - "8080:8080"
     depends_on:
@@ -13,17 +14,12 @@ services:
         condition: service_healthy
     environment:
       - SPRING_PROFILES_ACTIVE=prod
-      # DB config
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/postgres
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - SPRING_DATASOURCE_HIKARI_CONNECTION_TIMEOUT=20000
-      - SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE=5
-      # DB init
-      - SPRING_SQL_INIT_MODE=always
-      - SPRING_SQL_INIT_SCHEMA_LOCATIONS=classpath:schema.sql
-      - SPRING_SQL_INIT_DATA_LOCATIONS=classpath:data.sql
-      - SPRING_SQL_INIT_CONTINUE_ON_ERROR=true
+      - SPRING_R2DBC_URL=r2dbc:postgresql://postgres:5432/postgres
+      - SPRING_R2DBC_USERNAME=postgres
+      - SPRING_R2DBC_PASSWORD=postgres
+      - DB_NAME=postgres
+      - DB_HOST=postgres
+      - DB_PORT=5432
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
       interval: 30s
@@ -33,6 +29,7 @@ services:
   postgres:
     profiles: ["prod"]
     image: postgres:15-alpine
+    container_name: "postgres"
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -48,37 +45,44 @@ services:
       retries: 5
 
   test:
-    profiles: ["test"]
     build:
       context: .
       dockerfile: Dockerfile-test
-    depends_on:
-      test_db:
-        condition: service_healthy
+    image: test-image
+    container_name: "test-container"
+    ports:
+      - "9090:9090"
     environment:
-      - SPRING_PROFILES_ACTIVE=test
+      SPRING_PROFILES_ACTIVE: test
       # DB config
-      - TEST_DATASOURCE_URL=jdbc:postgresql://test_db:5432/test_db
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - SPRING_DATASOURCE_HIKARI_CONNECTION_TIMEOUT=20000
-      - SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE=5
-      # DB init
-      - SPRING_SQL_INIT_MODE=always
-      - SPRING_SQL_INIT_SCHEMA_LOCATIONS=classpath:test-schema.sql
+      SPRING_DATASOURCE_URL: r2dbc:postgresql://test-db:5432/test_db
+      SPRING_R2DBC_USERNAME: postgres
+      SPRING_R2DBC_PASSWORD: postgres
+      DB_NAME: test_db
+      DB_HOST: test-db
+      DB_PORT: 5432
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8080/actuator/health" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    depends_on:
+      - test-db
 
-  test_db:
-    profiles: ["test"]
+  test-db:
+    container_name: "test-db"
     image: postgres:14-alpine
+    ports:
+      - "6542:5432"
     environment:
       POSTGRES_DB: test_db
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U postgres -d test_db" ]
-      interval: 2s
-      timeout: 2s
-      retries: 10
+      test: ["CMD-SHELL", "pg_isready -U postgres -d test_db"]
+      interval: 5s
+      timeout: 10s
+      retries: 20
     volumes:
       - test_db_data:/var/lib/postgresql/data
 

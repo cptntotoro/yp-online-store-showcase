@@ -1,29 +1,31 @@
 package ru.practicum.controller.product;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.ui.Model;
-import ru.practicum.dto.product.ProductInDto;
+import reactor.core.publisher.Mono;
+import ru.practicum.controller.BaseControllerTest;
 import ru.practicum.dto.product.ProductListInDto;
 import ru.practicum.dto.product.ProductOutDto;
 import ru.practicum.mapper.product.ProductMapper;
 import ru.practicum.model.product.Product;
 import ru.practicum.service.product.ProductService;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class ProductViewControllerTest {
+class ProductViewControllerTest extends BaseControllerTest {
 
     @Mock
     private ProductService productService;
@@ -31,96 +33,118 @@ class ProductViewControllerTest {
     @Mock
     private ProductMapper productMapper;
 
-    @Mock
-    private Model model;
-
     @InjectMocks
     private ProductViewController productViewController;
 
-    @Test
-    void showProductList_ShouldReturnCatalogView() {
-        int page = 0;
-        int size = 10;
-        Pageable pageable = PageRequest.of(page, size);
-        Page<Product> mockPage = new PageImpl<>(List.of(new Product(), new Product()));
+    private UUID testProductId;
+    private Product testProduct;
+    private ProductOutDto testProductDto;
 
-        when(productService.getAll(pageable)).thenReturn(mockPage);
-        when(productMapper.productToProductOutDto(any(Product.class))).thenReturn(new ProductOutDto());
+    @Override
+    protected Object getController() {
+        return productViewController;
+    }
 
-        String viewName = productViewController.showProductList(page, size, null, null, model);
-
-        assertEquals("product/catalog", viewName);
-        verify(productService).getAll(pageable);
-        verify(model).addAttribute(eq("products"), any(Page.class));
+    @BeforeEach
+    void setUp() {
+        super.baseSetUp();
+        testProductId = UUID.randomUUID();
+        testProduct = createTestProduct();
+        testProductDto = createTestProductDto();
     }
 
     @Test
-    void showProductList_WithSearch_ShouldUseSearchService() {
+    void showProductList_ShouldReturnCatalogPage() {
+        PageRequest pageable = PageRequest.of(0, 10);
+        when(productService.getProducts(any(), any(), any()))
+                .thenReturn(Mono.just(new PageImpl<>(List.of(testProduct), pageable, 1)));
+        when(productMapper.productToProductOutDto(any()))
+                .thenReturn(testProductDto);
+
+        webTestClient.get()
+                .uri("/products?page=0&size=10")
+                .exchange()
+                .expectStatus().isOk();
+    }
+
+    @Test
+    void showProductList_WithSearch_ShouldReturnFilteredResults() {
         String searchQuery = "test";
-        Pageable pageable = PageRequest.of(0, 10);
-        Page<Product> mockPage = new PageImpl<>(List.of(new Product()));
+        PageRequest pageable = PageRequest.of(0, 10);
+        when(productService.getProducts(eq(searchQuery), any(), any()))
+                .thenReturn(Mono.just(new PageImpl<>(List.of(testProduct), pageable, 1)));
+        when(productMapper.productToProductOutDto(any()))
+                .thenReturn(testProductDto);
 
-        when(productService.search(searchQuery, pageable)).thenReturn(mockPage);
-        when(productMapper.productToProductOutDto(any(Product.class))).thenReturn(new ProductOutDto());
-
-        String viewName = productViewController.showProductList(0, 10, searchQuery, null, model);
-
-        assertEquals("product/catalog", viewName);
-        verify(productService).search(searchQuery, pageable);
-        verify(productService, never()).getAll(any());
+        webTestClient.get()
+                .uri("/products?search=test&page=0&size=10")
+                .exchange()
+                .expectStatus().isOk();
     }
 
     @Test
-    void showProductList_WithSort_ShouldUseSortService() {
-        String sortParam = "price,asc";
-        Pageable pageable = PageRequest.of(0, 10);
-        Page<Product> mockPage = new PageImpl<>(List.of(new Product()));
+    void showProductList_WithSort_ShouldReturnSortedResults() {
+        String sort = "price-asc";
+        PageRequest pageable = PageRequest.of(0, 10);
+        when(productService.getProducts(any(), eq(sort), any()))
+                .thenReturn(Mono.just(new PageImpl<>(List.of(testProduct), pageable, 1)));
+        when(productMapper.productToProductOutDto(any()))
+                .thenReturn(testProductDto);
 
-        when(productService.getSorted(sortParam, pageable)).thenReturn(mockPage);
-        when(productMapper.productToProductOutDto(any(Product.class))).thenReturn(new ProductOutDto());
-
-        String viewName = productViewController.showProductList(0, 10, null, sortParam, model);
-
-        assertEquals("product/catalog", viewName);
-        verify(productService).getSorted(sortParam, pageable);
-        verify(productService, never()).getAll(any());
+        webTestClient.get()
+                .uri("/products?sort=price-asc&page=0&size=10")
+                .exchange()
+                .expectStatus().isOk();
     }
 
     @Test
-    void showProductDetails_ShouldReturnProductView() {
-        UUID productUuid = UUID.randomUUID();
-        Product mockProduct = new Product();
-        ProductOutDto mockDto = new ProductOutDto();
+    void showProductDetails_ShouldReturnProductPage() {
+        when(productService.getByUuid(testProductId))
+                .thenReturn(Mono.just(testProduct));
+        when(productMapper.productToProductOutDto(testProduct))
+                .thenReturn(testProductDto);
 
-        when(productService.getByUuid(productUuid)).thenReturn(mockProduct);
-        when(productMapper.productToProductOutDto(mockProduct)).thenReturn(mockDto);
-
-        String viewName = productViewController.showProductDetails(productUuid, model);
-
-        assertEquals("product/product", viewName);
-        verify(productService).getByUuid(productUuid);
-        verify(model).addAttribute("product", mockDto);
+        webTestClient.get()
+                .uri("/products/" + testProductId)
+                .exchange()
+                .expectStatus().isOk();
     }
 
     @Test
-    void showAddProductForm_ShouldReturnAddViewWithEmptyDto() {
-        String viewName = productViewController.showAddProductForm(model);
-
-        assertEquals("product/add", viewName);
-        verify(model).addAttribute(eq("products"), any(ProductListInDto.class));
+    void showAddProductForm_ShouldReturnAddProductPage() {
+        webTestClient.get()
+                .uri("/products/add")
+                .exchange()
+                .expectStatus().isOk();
     }
 
     @Test
-    void addProducts_ShouldProcessBatchAndRedirect() {
+    void addProducts_ShouldRedirectToCatalog_WhenSuccess() {
         ProductListInDto productsDto = new ProductListInDto();
-        productsDto.setProducts(List.of(new ProductInDto(), new ProductInDto()));
+        when(productService.batchAdd(any()))
+                .thenReturn(Mono.empty());
 
-        when(productMapper.productInDtoToProduct(any(ProductInDto.class))).thenReturn(new Product());
+        webTestClient.post()
+                .uri("/products/add")
+                .bodyValue(productsDto)
+                .exchange()
+                .expectStatus().is3xxRedirection()
+                .expectHeader().valueEquals("Location", "/products");
+    }
 
-        String redirectUrl = productViewController.addProducts(productsDto);
+    private Product createTestProduct() {
+        return Product.builder()
+                .uuid(testProductId)
+                .name("Test Product")
+                .price(BigDecimal.valueOf(100))
+                .build();
+    }
 
-        assertEquals("redirect:/products", redirectUrl);
-        verify(productService).batchAdd(anyList());
-        verify(productMapper, times(2)).productInDtoToProduct(any(ProductInDto.class));
+    private ProductOutDto createTestProductDto() {
+        return ProductOutDto.builder()
+                .uuid(testProductId)
+                .name("Test Product")
+                .price(BigDecimal.valueOf(100))
+                .build();
     }
 }

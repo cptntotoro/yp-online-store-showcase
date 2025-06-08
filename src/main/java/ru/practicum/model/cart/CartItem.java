@@ -1,8 +1,7 @@
 package ru.practicum.model.cart;
 
-import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
+import org.springframework.data.annotation.Transient;
 import ru.practicum.model.product.Product;
 
 import java.math.BigDecimal;
@@ -12,34 +11,26 @@ import java.util.UUID;
 /**
  * Товар корзины
  */
-@Entity
-@Table(name = "cart_items")
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class CartItem {
 
     /**
      * Идентификатор
      */
-    @Id
-    @GeneratedValue(generator = "UUID")
-    @Column(name = "cart_item_uuid", updatable = false, nullable = false)
     private UUID uuid;
 
     /**
      * Корзина товаров
      */
-    @ManyToOne
-    @JoinColumn(name = "cart_uuid", nullable = false)
-    private Cart cart;
+    private UUID cartUuid;
 
     /**
      * Товар
      */
-    @ManyToOne
-    @JoinColumn(name = "product_uuid", nullable = false)
     private Product product;
 
     /**
@@ -50,14 +41,7 @@ public class CartItem {
     /**
      * Дата создания
      */
-    @CreationTimestamp
     private LocalDateTime createdAt;
-
-    public CartItem(Cart cart, Product product, int quantity) {
-        this.cart = cart;
-        this.product = product;
-        this.quantity = quantity;
-    }
 
     /**
      * Получить стоимость товара корзины

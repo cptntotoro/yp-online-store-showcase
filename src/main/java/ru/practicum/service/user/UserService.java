@@ -1,5 +1,6 @@
 package ru.practicum.service.user;
 
+import reactor.core.publisher.Mono;
 import ru.practicum.model.user.User;
 
 import java.util.UUID;
@@ -13,7 +14,7 @@ public interface UserService {
      *
      * @return Пользователь
      */
-    User add();
+    Mono<User> createGuest();
 
     /**
      * Проверить существование пользователя
@@ -21,5 +22,5 @@ public interface UserService {
      * @param userUuid Идентификатор пользователя
      * @return Да/Нет
      */
-    boolean existsByUuid(UUID userUuid);
+    Mono<Boolean> existsByUuid(UUID userUuid);
 }

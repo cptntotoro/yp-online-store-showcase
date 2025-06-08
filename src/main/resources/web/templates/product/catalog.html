@@ -87,15 +87,34 @@
                    th:classappend="${!products.hasPrevious()} ? 'disabled'">Предыдущая</a>
 
                 <!-- Номера страниц -->
-                <th:block th:with="
-        start=${T(java.lang.Math).max(1, products.number - 2)},
-        end=${T(java.lang.Math).min(products.number + 3, products.totalPages)}">
-        <span th:each="i : ${#numbers.sequence(start, end)}">
-            <a th:href="@{/products(size=${param.size},page=${i-1},search=${param.search},sort=${param.sort})}"
-               class="page-link"
-               th:classappend="${products.number == i-1} ? 'active'"
-               th:text="${i}">1</a>
-        </span>
+                <th:block th:if="${products.totalPages > 1}">
+                    <div>
+                        <!-- Кнопка "Назад" -->
+                        <a th:href="@{/products(size=${param.size},page=${products.number-1 < 0 ? 0 : products.number-1},search=${param.search},sort=${param.sort})}"
+                           th:classappend="${products.first} ? 'disabled'"
+                           class="page-link">
+                            &laquo;
+                        </a>
+
+                        <!-- Номера страниц -->
+                        <th:block th:with="
+            start=${T(java.lang.Math).max(1, products.number + 1 - 2)},
+            end=${T(java.lang.Math).min(products.number + 1 + 2, products.totalPages)}">
+            <span th:each="i : ${#numbers.sequence(start, end)}">
+                <a th:href="@{/products(size=${param.size},page=${i-1},search=${param.search},sort=${param.sort})}"
+                   class="page-link"
+                   th:classappend="${products.number == i-1} ? 'active'"
+                   th:text="${i}">1</a>
+            </span>
+                        </th:block>
+
+                        <!-- Кнопка "Вперед" -->
+                        <a th:href="@{/products(size=${param.size},page=${products.number+1 >= products.totalPages ? products.totalPages-1 : products.number+1},search=${param.search},sort=${param.sort})}"
+                           th:classappend="${products.last} ? 'disabled'"
+                           class="page-link">
+                            &raquo;
+                        </a>
+                    </div>
                 </th:block>
 
                 <!-- Следующая страница -->

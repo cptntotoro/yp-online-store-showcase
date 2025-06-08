@@ -5,15 +5,15 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import ru.practicum.model.cart.Cart;
-import ru.practicum.model.user.User;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
+import ru.practicum.mapper.user.UserMapper;
 import ru.practicum.repository.user.UserRepository;
 import ru.practicum.service.cart.CartService;
 
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class UserServiceTest {
@@ -24,48 +24,34 @@ class UserServiceTest {
     @Mock
     private CartService cartService;
 
+    @Mock
+    private UserMapper userMapper;
+
     @InjectMocks
     private UserServiceImpl userService;
 
+
     @Test
-    void add_ShouldCreateNewUserAndCart() {
-        User expectedUser = User.builder()
-                .uuid(UUID.randomUUID())
-                .username("guest")
-                .build();
+    void existsByUuid_ShouldReturnTrue_WhenUserExists() {
+        UUID userId = UUID.randomUUID();
+        when(userRepository.existsById(userId)).thenReturn(Mono.just(true));
 
-        when(userRepository.save(any(User.class))).thenReturn(expectedUser);
-        when(cartService.create(any(UUID.class))).thenReturn(new Cart());
+        Mono<Boolean> result = userService.existsByUuid(userId);
 
-        User actualUser = userService.add();
-
-        assertNotNull(actualUser);
-        assertEquals("guest", actualUser.getUsername());
-        assertNotNull(actualUser.getUuid());
-
-        verify(userRepository, times(1)).save(any(User.class));
-        verify(cartService, times(1)).create(actualUser.getUuid());
+        StepVerifier.create(result)
+                .expectNext(true)
+                .verifyComplete();
     }
 
     @Test
-    void existsByUuid_WhenUserExists_ShouldReturnTrue() {
+    void existsByUuid_ShouldReturnFalse_WhenUserNotExists() {
         UUID userId = UUID.randomUUID();
-        when(userRepository.existsById(userId)).thenReturn(true);
+        when(userRepository.existsById(userId)).thenReturn(Mono.just(false));
 
-        boolean exists = userService.existsByUuid(userId);
+        Mono<Boolean> result = userService.existsByUuid(userId);
 
-        assertTrue(exists);
-        verify(userRepository, times(1)).existsById(userId);
-    }
-
-    @Test
-    void existsByUuid_WhenUserNotExists_ShouldReturnFalse() {
-        UUID userId = UUID.randomUUID();
-        when(userRepository.existsById(userId)).thenReturn(false);
-
-        boolean exists = userService.existsByUuid(userId);
-
-        assertFalse(exists);
-        verify(userRepository, times(1)).existsById(userId);
+        StepVerifier.create(result)
+                .expectNext(false)
+                .verifyComplete();
     }
 }

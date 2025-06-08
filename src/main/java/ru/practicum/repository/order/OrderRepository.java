@@ -1,55 +1,46 @@
 package ru.practicum.repository.order;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
+import org.springframework.data.r2dbc.repository.Query;
+import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import org.springframework.stereotype.Repository;
-import ru.practicum.model.order.Order;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import ru.practicum.dao.order.OrderDao;
 
 import java.math.BigDecimal;
-import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 /**
  * Репозиторий заказов
  */
 @Repository
-public interface OrderRepository extends JpaRepository<Order, UUID> {
+public interface OrderRepository extends ReactiveCrudRepository<OrderDao, UUID> {
 
     /**
      * Получить список заказов по идентификатору пользователя
      *
      * @param userUuid Идентификатор пользователя
-     * @return Список заказов
+     * @return DAO заказа
      */
-    List<Order> findByUserUuid(UUID userUuid);
+    @Query("SELECT * FROM orders WHERE user_uuid = :userUuid")
+    Flux<OrderDao> findByUserUuid(UUID userUuid);
 
     /**
-     * Получить заказ пользователя по идентификаторам заказа и пользователя
+     * Получить заказ по идентификатору заказа и идентификатору пользователя
      *
      * @param orderUuid Идентификатор заказа
      * @param userUuid Идентификатор пользователя
-     * @return Optional с заказом, если найден
+     * @return DAO заказа
      */
-    Optional<Order> findByUuidAndUserUuid(UUID orderUuid, UUID userUuid);
+    @Query("SELECT * FROM orders WHERE order_uuid = :orderUuid AND user_uuid = :userUuid")
+    Mono<OrderDao> findByUuidAndUserUuid(UUID orderUuid, UUID userUuid);
 
     /**
-     * Получить заказ пользователя
-     *
-     * @param uuid Идентификатор заказа
-     * @param userUuid Идентификатор пользователя
-     * @return Optional с заказом, если найден
-     */
-    @Query("SELECT o FROM Order o WHERE o.uuid = :uuid AND o.userUuid = :userUuid")
-    Optional<Order> findByIdWhereUserUuidIn(@Param("uuid") UUID uuid, @Param("userUuid") UUID userUuid);
-
-    /**
-     * Получить стоимость всех заказов пользователя
+     * Получить стоимость заказов пользователя по идентификатору пользователя
      *
      * @param userUuid Идентификатор пользователя
-     * @return Стоимость всех заказов пользователя
+     * @return Стоимость заказов пользователя
      */
-    @Query("SELECT COALESCE(SUM(o.totalPrice), 0) FROM Order o WHERE o.userUuid = :userUuid")
-    BigDecimal getTotalOrdersAmountByUser(@Param("userUuid") UUID userUuid);
+    @Query("SELECT COALESCE(SUM(total_amount), 0) FROM orders WHERE user_uuid = :userUuid")
+    Mono<BigDecimal> getTotalOrdersAmountByUser(UUID userUuid);
 }

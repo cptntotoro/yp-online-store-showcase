@@ -3,21 +3,23 @@ package ru.practicum.repository.cart;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.testcontainers.junit.jupiter.Testcontainers;
-import ru.practicum.model.cart.Cart;
-import ru.practicum.model.user.User;
+import org.springframework.boot.test.autoconfigure.data.r2dbc.DataR2dbcTest;
+import org.springframework.context.annotation.Import;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
+import ru.practicum.config.TestR2dbcConfiguration;
+import ru.practicum.dao.cart.CartDao;
+import ru.practicum.dao.user.UserDao;
+import ru.practicum.repository.order.OrderItemRepository;
+import ru.practicum.repository.order.OrderRepository;
 import ru.practicum.repository.user.UserRepository;
 
-import java.util.Optional;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
-
-@DataJpaTest
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Testcontainers
+@DataR2dbcTest
+@Import(TestR2dbcConfiguration.class)
 class CartRepositoryTest {
 
     @Autowired
@@ -26,61 +28,88 @@ class CartRepositoryTest {
     @Autowired
     private UserRepository userRepository;
 
-    private UUID testUserUuid;
-    private UUID secondUserUuid;
+    @Autowired
+    private OrderRepository orderRepository;
+
+    @Autowired
+    private OrderItemRepository orderItemRepository;
+
+    @Autowired
+    private CartItemRepository cartItemRepository;
 
     @BeforeEach
     void setUp() {
-        User user1 = new User();
-        user1.setUsername("testuser1");
-        user1.setEmail("test1@example.com");
-        user1 = userRepository.save(user1);
-        testUserUuid = user1.getUuid();
-
-        User user2 = new User();
-        user2.setUsername("testuser2");
-        user2.setEmail("test2@example.com");
-        user2 = userRepository.save(user2);
-        secondUserUuid = user2.getUuid();
+        orderItemRepository.deleteAll().block();
+        orderRepository.deleteAll().block();
+        cartItemRepository.deleteAll().block();
+        cartRepository.deleteAll().block();
+        userRepository.deleteAll().block();
     }
 
     @Test
-    void findByUserUuid_shouldReturnEmptyOptional_whenCartNotFound() {
-        UUID nonExistingUserUuid = UUID.randomUUID();
-        Optional<Cart> result = cartRepository.findByUserUuid(nonExistingUserUuid);
-        assertTrue(result.isEmpty());
+    void findByUserUuid_shouldReturnEmpty_whenCartNotFound() {
+        UUID nonExistingUuid = UUID.randomUUID();
+
+        StepVerifier.create(cartRepository.findByUserUuid(nonExistingUuid))
+                .verifyComplete();
     }
 
     @Test
-    void findByUserUuid_shouldReturnCart_whenCartExists() {
-        Cart cart = new Cart();
-        cart.setUserUuid(testUserUuid);
-        cartRepository.save(cart);
+    void findByUserUuid_shouldReturnCart_whenExists() {
+        UserDao user = new UserDao();
+        user.setUsername("testuser");
+        user.setEmail("test@example.com");
 
-        Optional<Cart> result = cartRepository.findByUserUuid(testUserUuid);
+        Mono<CartDao> testFlow = userRepository.save(user)
+                .flatMap(savedUser -> {
+                    CartDao cart = new CartDao();
+                    cart.setUserUuid(savedUser.getUuid());
+                    cart.setTotalPrice(BigDecimal.ZERO);
+                    cart.setCreatedAt(LocalDateTime.now());
+                    cart.setUpdatedAt(LocalDateTime.now());
+                    return cartRepository.save(cart);
+                })
+                .flatMap(savedCart -> cartRepository.findByUserUuid(savedCart.getUserUuid()));
 
-        assertTrue(result.isPresent());
-        assertEquals(testUserUuid, result.get().getUserUuid());
+        StepVerifier.create(testFlow)
+                .expectNextMatches(found ->
+                        found.getTotalPrice().compareTo(BigDecimal.ZERO) == 0)
+                .verifyComplete();
     }
 
     @Test
     void findByUserUuid_shouldReturnCorrectCart_whenMultipleCartsExist() {
-        Cart cart1 = new Cart();
-        cart1.setUserUuid(testUserUuid);
-        cartRepository.save(cart1);
+        UserDao user1 = new UserDao();
+        user1.setUsername("user1");
+        user1.setEmail("user1@example.com");
 
-        Cart cart2 = new Cart();
-        cart2.setUserUuid(secondUserUuid);
-        cartRepository.save(cart2);
+        UserDao user2 = new UserDao();
+        user2.setUsername("user2");
+        user2.setEmail("user2@example.com");
 
-        Optional<Cart> result1 = cartRepository.findByUserUuid(testUserUuid);
-        Optional<Cart> result2 = cartRepository.findByUserUuid(secondUserUuid);
+        Mono<CartDao> testFlow = Mono.zip(userRepository.save(user1), userRepository.save(user2))
+                .flatMap(tuple -> {
+                    UserDao savedUser1 = tuple.getT1();
+                    UserDao savedUser2 = tuple.getT2();
 
-        assertAll(
-                () -> assertTrue(result1.isPresent()),
-                () -> assertEquals(testUserUuid, result1.get().getUserUuid()),
-                () -> assertTrue(result2.isPresent()),
-                () -> assertEquals(secondUserUuid, result2.get().getUserUuid())
-        );
+                    CartDao cart1 = new CartDao();
+                    cart1.setUserUuid(savedUser1.getUuid());
+                    cart1.setTotalPrice(BigDecimal.ONE);
+                    cart1.setCreatedAt(LocalDateTime.now());
+
+                    CartDao cart2 = new CartDao();
+                    cart2.setUserUuid(savedUser2.getUuid());
+                    cart2.setTotalPrice(BigDecimal.TEN);
+                    cart2.setCreatedAt(LocalDateTime.now());
+
+                    return cartRepository.save(cart1)
+                            .then(cartRepository.save(cart2))
+                            .then(cartRepository.findByUserUuid(savedUser1.getUuid()));
+                });
+
+        StepVerifier.create(testFlow)
+                .expectNextMatches(cart ->
+                        cart.getTotalPrice().compareTo(BigDecimal.ONE) == 0)
+                .verifyComplete();
     }
 }
