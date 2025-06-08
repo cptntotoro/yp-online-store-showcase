@@ -5,6 +5,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import reactor.core.publisher.Mono;
 import ru.practicum.model.cart.Cart;
 import ru.practicum.service.cart.CartServiceImpl;
 import java.math.BigDecimal;
@@ -30,9 +31,9 @@ class CartRestControllerTest {
         Cart mockCart = new Cart();
         mockCart.setTotalPrice(expectedTotal);
 
-        when(cartService.addToCart(userUuid, productUuid, quantity)).thenReturn(mockCart);
+        when(cartService.addToCart(userUuid, productUuid, quantity)).thenReturn(Mono.just(mockCart));
 
-        BigDecimal result = cartRestController.addToCart(userUuid, productUuid, quantity);
+        BigDecimal result = cartRestController.addToCart(userUuid, productUuid, quantity).block();
 
         assertEquals(expectedTotal, result);
         verify(cartService).addToCart(userUuid, productUuid, quantity);
@@ -47,13 +48,14 @@ class CartRestControllerTest {
         Cart mockCart = new Cart();
         mockCart.setTotalPrice(expectedTotal);
 
-        when(cartService.getCachedCart(userUuid)).thenReturn(mockCart);
+        when(cartService.updateQuantity(userUuid, productUuid, newQuantity)).thenReturn(Mono.empty());
+        when(cartService.get(userUuid)).thenReturn(Mono.just(mockCart));
 
-        BigDecimal result = cartRestController.updateCartItem(productUuid, newQuantity, userUuid);
+        BigDecimal result = cartRestController.updateCartItem(productUuid, newQuantity, userUuid).block();
 
         assertEquals(expectedTotal, result);
         verify(cartService).updateQuantity(userUuid, productUuid, newQuantity);
-        verify(cartService).getCachedCart(userUuid);
+        verify(cartService).get(userUuid);
     }
 
     @Test
@@ -64,12 +66,13 @@ class CartRestControllerTest {
         Cart mockCart = new Cart();
         mockCart.setTotalPrice(expectedTotal);
 
-        when(cartService.getCachedCart(userUuid)).thenReturn(mockCart);
+        when(cartService.removeFromCart(userUuid, productUuid)).thenReturn(Mono.empty());
+        when(cartService.get(userUuid)).thenReturn(Mono.just(mockCart));
 
-        BigDecimal result = cartRestController.removeFromCart(productUuid, userUuid);
+        BigDecimal result = cartRestController.removeFromCart(productUuid, userUuid).block();
 
         assertEquals(expectedTotal, result);
         verify(cartService).removeFromCart(userUuid, productUuid);
-        verify(cartService).getCachedCart(userUuid);
+        verify(cartService).get(userUuid);
     }
 }

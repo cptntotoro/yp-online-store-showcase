@@ -2,7 +2,9 @@ package ru.practicum.controller.cart;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Mono;
 import ru.practicum.config.WebAttributes;
+import ru.practicum.model.cart.Cart;
 import ru.practicum.service.cart.CartServiceImpl;
 
 import java.math.BigDecimal;
@@ -18,27 +20,29 @@ public class CartRestController {
     private final CartServiceImpl cartService;
 
     @PostMapping("/add/{productUuid}")
-    public BigDecimal addToCart(
+    public Mono<BigDecimal> addToCart(
             @RequestAttribute(WebAttributes.USER_UUID) UUID userUuid,
             @PathVariable UUID productUuid,
             @RequestParam int quantity) {
-        return cartService.addToCart(userUuid, productUuid, quantity).getTotalPrice();
+        return cartService.addToCart(userUuid, productUuid, quantity)
+                .map(Cart::getTotalPrice);
     }
 
     @PatchMapping("/update/{productUuid}")
-    public BigDecimal updateCartItem(
+    public Mono<BigDecimal> updateCartItem(
             @PathVariable UUID productUuid,
             @RequestParam int quantity,
             @RequestAttribute(WebAttributes.USER_UUID) UUID userUuid) {
-        cartService.updateQuantity(userUuid, productUuid, quantity);
-        return cartService.getCachedCart(userUuid).getTotalPrice();
+        return cartService.updateQuantity(userUuid, productUuid, quantity)
+                .then(cartService.get(userUuid))
+                .map(Cart::getTotalPrice);
     }
 
     @DeleteMapping("/remove/{productUuid}")
-    public BigDecimal removeFromCart(
+    public Mono<BigDecimal> removeFromCart(
             @PathVariable UUID productUuid,
             @RequestAttribute(WebAttributes.USER_UUID) UUID userUuid) {
-        cartService.removeFromCart(userUuid, productUuid);
-        return cartService.getCachedCart(userUuid).getTotalPrice();
+        return cartService.removeFromCart(userUuid, productUuid)
+                .map(Cart::getTotalPrice);
     }
 }

@@ -3,6 +3,8 @@ package ru.practicum.service.order;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import ru.practicum.exception.cart.IllegalCartStateException;
 import ru.practicum.exception.order.IllegalOrderStateException;
 import ru.practicum.exception.order.OrderNotFoundException;
@@ -39,65 +41,61 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public Order create(UUID userUuid) {
-        Cart cart = cartService.get(userUuid);
+    public Mono<Order> create(UUID userUuid) {
+        return cartService.get(userUuid)
+                .flatMap(cart -> {
+                    if (cart.getItems().isEmpty()) {
+                        return Mono.error(new IllegalCartStateException("Нельзя создать заказ из пустой корзины"));
+                    }
 
-        if (cart.getItems().isEmpty()) {
-            throw new IllegalCartStateException("Нельзя создать заказ из пустой корзины");
-        }
+                    Order order = new Order(userUuid, cart);
+                    BigDecimal calculatedTotal = calculateOrderTotal(order.getItems());
 
-        Order order = new Order(userUuid, cart);
+                    if (calculatedTotal.compareTo(BigDecimal.ZERO) <= 0) {
+                        return Mono.error(new IllegalOrderStateException("Сумма заказа должна быть больше нуля"));
+                    }
 
-        BigDecimal calculatedTotal = calculateOrderTotal(order.getItems());
-
-        if (calculatedTotal.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalOrderStateException("Сумма заказа должна быть больше нуля");
-        }
-
-        order.setTotalPrice(calculatedTotal);
-
-        order = orderRepository.save(order);
-
-        // Очищаем корзину после создания заказа
-        cartService.clear(userUuid);
-
-        return order;
+                    order.setTotalPrice(calculatedTotal);
+                    return orderRepository.save(order)
+                            .doOnSuccess(o -> cartService.clear(userUuid).subscribe()); // очищаем корзину
+                });
     }
 
     @Override
-    public List<Order> getUserOrders(UUID userUuid) {
+    public Flux<Order> getUserOrders(UUID userUuid) {
         return orderRepository.findByUserUuid(userUuid);
     }
 
     @Override
-    public Order getByUuid(UUID userUuid, UUID uuid) {
-        return orderRepository.findByIdWhereUserUuidIn(uuid, userUuid).orElseThrow(() -> new OrderNotFoundException("Заказ не найден"));
+    public Mono<Order> getByUuid(UUID userUuid, UUID uuid) {
+        return orderRepository.findByIdWhereUserUuidIn(uuid, userUuid)
+                .switchIfEmpty(Mono.error(new OrderNotFoundException("Заказ не найден")));
     }
 
     @Override
     @Transactional
-    public void checkout(UUID userUuid, UUID orderUuid) {
-        updateStatus(userUuid, orderUuid, OrderStatus.PAID);
+    public Mono<Void> checkout(UUID userUuid, UUID orderUuid) {
+        return updateStatus(userUuid, orderUuid, OrderStatus.PAID);
     }
 
     @Override
-    public void cancel(UUID userUuid, UUID orderUuid) {
-        updateStatus(userUuid, orderUuid, OrderStatus.CANCELLED);
+    public Mono<Void> cancel(UUID userUuid, UUID orderUuid) {
+        return updateStatus(userUuid, orderUuid, OrderStatus.CANCELLED);
     }
 
     @Override
-    public BigDecimal getUserTotalAmount(UUID userUuid) {
+    public Mono<BigDecimal> getUserTotalAmount(UUID userUuid) {
         return orderRepository.getTotalOrdersAmountByUser(userUuid);
     }
 
-    private void updateStatus(UUID userUuid, UUID orderUuid, OrderStatus newStatus) {
-        Order order = orderRepository.findByUuidAndUserUuid(orderUuid, userUuid)
-                .orElseThrow(() -> new OrderNotFoundException("Заказ не найден и не был обновлен."));
-
-        validateStatusTransition(order.getStatus(), newStatus);
-
-        order.setStatus(newStatus);
-        orderRepository.save(order);
+    private Mono<Void> updateStatus(UUID userUuid, UUID orderUuid, OrderStatus newStatus) {
+        return orderRepository.findByUuidAndUserUuid(orderUuid, userUuid)
+                .switchIfEmpty(Mono.error(new OrderNotFoundException("Заказ не найден и не был обновлен.")))
+                .flatMap(order -> {
+                    validateStatusTransition(order.getStatus(), newStatus);
+                    order.setStatus(newStatus);
+                    return orderRepository.save(order).then();
+                });
     }
 
     private void validateStatusTransition(OrderStatus current, OrderStatus newStatus) {

@@ -37,12 +37,12 @@ class GlobalControllerAdviceTest {
         Cart expectedCart = new Cart();
         CartDto expectedCartDto = new CartDto();
 
-        when(cartService.getCachedCart(userUuid)).thenReturn(expectedCart);
+        when(cartService.get(userUuid)).thenReturn(expectedCart);
         when(cartMapper.cartToCartDto(expectedCart)).thenReturn(expectedCartDto);
 
         globalControllerAdvice.addCommonAttributes(userUuid, model);
 
-        verify(cartService).getCachedCart(userUuid);
+        verify(cartService).get(userUuid);
         verify(cartMapper).cartToCartDto(expectedCart);
         verify(model).addAttribute("cart", expectedCartDto);
     }
@@ -53,7 +53,7 @@ class GlobalControllerAdviceTest {
         Cart emptyCart = new Cart();
         CartDto emptyCartDto = new CartDto();
 
-        when(cartService.getCachedCart(userUuid)).thenReturn(emptyCart);
+        when(cartService.get(userUuid)).thenReturn(emptyCart);
         when(cartMapper.cartToCartDto(emptyCart)).thenReturn(emptyCartDto);
 
         globalControllerAdvice.addCommonAttributes(userUuid, model);

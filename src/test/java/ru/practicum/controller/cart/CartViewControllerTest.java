@@ -6,6 +6,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.ui.Model;
+import reactor.core.publisher.Mono;
 import ru.practicum.dto.cart.CartDto;
 import ru.practicum.mapper.cart.CartMapper;
 import ru.practicum.model.cart.Cart;
@@ -35,10 +36,10 @@ class CartViewControllerTest {
         Cart cart = new Cart();
         CartDto cartDto = new CartDto();
 
-        when(cartService.get(userUuid)).thenReturn(cart);
+        when(cartService.get(userUuid)).thenReturn(Mono.just(cart));
         when(cartMapper.cartToCartDto(cart)).thenReturn(cartDto);
 
-        String viewName = cartViewController.showCart(model, userUuid);
+        String viewName = cartViewController.showCart(model, userUuid).block();
 
         assertEquals("cart/cart", viewName);
         verify(model).addAttribute("cart", cartDto);
@@ -51,7 +52,9 @@ class CartViewControllerTest {
         UUID userUuid = UUID.randomUUID();
         UUID productUuid = UUID.randomUUID();
 
-        String redirectUrl = cartViewController.removeFromCart(userUuid, productUuid);
+        when(cartService.removeFromCart(userUuid, productUuid)).thenReturn(Mono.empty());
+
+        String redirectUrl = cartViewController.removeFromCart(userUuid, productUuid).block();
 
         assertEquals("redirect:/cart", redirectUrl);
         verify(cartService).removeFromCart(userUuid, productUuid);
@@ -61,7 +64,9 @@ class CartViewControllerTest {
     void clearCart_ShouldClearCartAndRedirect() {
         UUID userUuid = UUID.randomUUID();
 
-        String redirectUrl = cartViewController.clearCart(userUuid);
+        when(cartService.clear(userUuid)).thenReturn(Mono.empty());
+
+        String redirectUrl = cartViewController.clearCart(userUuid).block();
 
         assertEquals("redirect:/cart", redirectUrl);
         verify(cartService).clear(userUuid);
@@ -73,10 +78,10 @@ class CartViewControllerTest {
         Cart emptyCart = new Cart();
         CartDto emptyCartDto = new CartDto();
 
-        when(cartService.get(userUuid)).thenReturn(emptyCart);
+        when(cartService.get(userUuid)).thenReturn(Mono.just(emptyCart));
         when(cartMapper.cartToCartDto(emptyCart)).thenReturn(emptyCartDto);
 
-        String viewName = cartViewController.showCart(model, userUuid);
+        String viewName = cartViewController.showCart(model, userUuid).block();
 
         assertEquals("cart/cart", viewName);
         verify(model).addAttribute("cart", emptyCartDto);

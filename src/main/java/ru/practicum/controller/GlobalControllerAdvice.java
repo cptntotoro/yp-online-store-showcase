@@ -27,6 +27,6 @@ public class GlobalControllerAdvice {
     @ModelAttribute
     public void addCommonAttributes(@RequestAttribute(WebAttributes.USER_UUID) UUID userUuid,
                                     Model model) {
-        model.addAttribute("cart", cartMapper.cartToCartDto(cartService.getCachedCart(userUuid)));
+        model.addAttribute("cart", cartMapper.cartToCartDto(cartService.get(userUuid)));
     }
 }

@@ -1,9 +1,10 @@
 package ru.practicum.service.order;
 
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import ru.practicum.model.order.Order;
 
 import java.math.BigDecimal;
-import java.util.List;
 import java.util.UUID;
 
 /**
@@ -17,7 +18,7 @@ public interface OrderService {
      * @param userUuid Идентификатор пользователя
      * @return Заказ
      */
-    Order create(UUID userUuid);
+    Mono<Order> create(UUID userUuid);
 
     /**
      * Получить заказы пользователя
@@ -25,7 +26,7 @@ public interface OrderService {
      * @param userUuid Идентификатор пользователя
      * @return Список заказов
      */
-    List<Order> getUserOrders(UUID userUuid);
+    Flux<Order> getUserOrders(UUID userUuid);
 
     /**
      * Получить заказ
@@ -34,7 +35,7 @@ public interface OrderService {
      * @param orderUuid Идентификатор заказа
      * @return Заказ
      */
-    Order getByUuid(UUID userUuid, UUID orderUuid);
+    Mono<Order> getByUuid(UUID userUuid, UUID orderUuid);
 
     /**
      * Оплатить заказ
@@ -42,7 +43,7 @@ public interface OrderService {
      * @param userUuid Идентификатор пользователя
      * @param orderUuid Идентификатор заказа
      */
-    void checkout(UUID userUuid, UUID orderUuid);
+    Mono<Void> checkout(UUID userUuid, UUID orderUuid);
 
     /**
      * Отменить заказ
@@ -50,7 +51,7 @@ public interface OrderService {
      * @param userUuid Идентификатор пользователя
      * @param orderUuid Идентификатор заказа
      */
-    void cancel(UUID userUuid, UUID orderUuid);
+    Mono<Void> cancel(UUID userUuid, UUID orderUuid);
 
     /**
      * Получить стоимость всех заказов пользователя
@@ -58,5 +59,5 @@ public interface OrderService {
      * @param userUuid Идентификатор пользователя
      * @return Стоимость всех заказов пользователя
      */
-    BigDecimal getUserTotalAmount(UUID userUuid);
+    Mono<BigDecimal> getUserTotalAmount(UUID userUuid);
 }

@@ -6,6 +6,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.ui.Model;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import ru.practicum.dto.order.OrderDto;
 import ru.practicum.exception.order.OrderNotFoundException;
 import ru.practicum.mapper.order.OrderMapper;
@@ -43,12 +45,12 @@ class OrderViewControllerTest {
         List<Order> orders = List.of(order1, order2);
         BigDecimal totalAmount = BigDecimal.valueOf(100.0);
 
-        when(orderService.getUserOrders(userUuid)).thenReturn(orders);
+        when(orderService.getUserOrders(userUuid)).thenReturn(Flux.just(order1, order2));
         when(orderMapper.orderToOrderDto(order1)).thenReturn(orderDto1);
         when(orderMapper.orderToOrderDto(order2)).thenReturn(orderDto2);
-        when(orderService.getUserTotalAmount(userUuid)).thenReturn(totalAmount);
+        when(orderService.getUserTotalAmount(userUuid)).thenReturn(Mono.just(totalAmount));
 
-        String viewName = orderViewController.showOrderList(userUuid, model);
+        String viewName = orderViewController.showOrderList(userUuid, model).block();
 
         assertEquals("order/orders", viewName);
         verify(model).addAttribute("orders", List.of(orderDto1, orderDto2));
@@ -59,11 +61,16 @@ class OrderViewControllerTest {
     @Test
     void showOrderList_WithEmptyOrders_ShouldSetHasOrdersFalse() {
         UUID userUuid = UUID.randomUUID();
-        when(orderService.getUserOrders(userUuid)).thenReturn(List.of());
+        BigDecimal totalAmount = BigDecimal.ZERO;
 
-        orderViewController.showOrderList(userUuid, model);
+        when(orderService.getUserOrders(userUuid)).thenReturn(Flux.empty());
+        when(orderService.getUserTotalAmount(userUuid)).thenReturn(Mono.just(totalAmount));
 
-        verify(model).addAttribute(eq("hasOrders"), eq(false));
+        orderViewController.showOrderList(userUuid, model).block();
+
+        verify(model).addAttribute("orders", List.of());
+        verify(model).addAttribute("hasOrders", false);
+        verify(model).addAttribute("cartTotal", totalAmount);
     }
 
     @Test
@@ -73,10 +80,10 @@ class OrderViewControllerTest {
         Order order = new Order();
         OrderDto orderDto = new OrderDto();
 
-        when(orderService.getByUuid(userUuid, orderUuid)).thenReturn(order);
+        when(orderService.getByUuid(userUuid, orderUuid)).thenReturn(Mono.just(order));
         when(orderMapper.orderToOrderDto(order)).thenReturn(orderDto);
 
-        String viewName = orderViewController.showOrderDetails(userUuid, orderUuid, model);
+        String viewName = orderViewController.showOrderDetails(userUuid, orderUuid, model).block();
 
         assertEquals("order/order", viewName);
         verify(model).addAttribute("order", orderDto);
@@ -87,7 +94,9 @@ class OrderViewControllerTest {
         UUID userUuid = UUID.randomUUID();
         UUID orderUuid = UUID.randomUUID();
 
-        String redirectUrl = orderViewController.cancel(userUuid, orderUuid);
+        when(orderService.cancel(userUuid, orderUuid)).thenReturn(Mono.empty());
+
+        String redirectUrl = orderViewController.cancel(userUuid, orderUuid).block();
 
         assertEquals("redirect:/orders/" + orderUuid, redirectUrl);
         verify(orderService).cancel(userUuid, orderUuid);
@@ -99,8 +108,9 @@ class OrderViewControllerTest {
         UUID invalidOrderUuid = UUID.randomUUID();
 
         when(orderService.getByUuid(userUuid, invalidOrderUuid))
-                .thenThrow(new OrderNotFoundException("Order not found"));
+                .thenReturn(Mono.error(new OrderNotFoundException("Order not found")));
 
-        assertThrows(OrderNotFoundException.class, () -> orderViewController.showOrderDetails(userUuid, invalidOrderUuid, model));
+        assertThrows(OrderNotFoundException.class,
+                () -> orderViewController.showOrderDetails(userUuid, invalidOrderUuid, model).block());
     }
 }

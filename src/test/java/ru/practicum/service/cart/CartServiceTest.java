@@ -46,13 +46,13 @@ class CartServiceTest {
     }
 
     @Test
-    void create_shouldCreateNewCart() {
+    void create_shouldCreateGuestNewCart() {
         Cart newCart = new Cart();
         newCart.setUserUuid(testUserId);
 
         when(cartRepository.save(any(Cart.class))).thenReturn(newCart);
 
-        Cart createdCart = cartService.create(testUserId);
+        Cart createdCart = cartService.createGuest(testUserId);
 
         assertThat(createdCart.getUserUuid()).isEqualTo(testUserId);
         verify(cartRepository).save(any(Cart.class));
@@ -229,7 +229,7 @@ class CartServiceTest {
 
         when(cartRepository.findByUserUuid(testUserId)).thenReturn(Optional.of(cart));
 
-        Cart cachedCart = cartService.getCachedCart(testUserId);
+        Cart cachedCart = cartService.get(testUserId);
 
         assertThat(cachedCart).isNotNull();
     }

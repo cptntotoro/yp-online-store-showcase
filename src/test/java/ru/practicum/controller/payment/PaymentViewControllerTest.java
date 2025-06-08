@@ -6,6 +6,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.ui.Model;
+import reactor.core.publisher.Mono;
 import ru.practicum.dto.order.OrderDto;
 import ru.practicum.mapper.order.OrderMapper;
 import ru.practicum.model.order.Order;
@@ -43,15 +44,16 @@ class PaymentViewControllerTest {
         Order mockOrder = new Order();
         OrderDto mockOrderDto = new OrderDto();
 
-        when(orderService.create(userUuid)).thenReturn(mockOrder);
+        when(orderService.create(userUuid)).thenReturn(Mono.just(mockOrder));
+        when(cartService.clear(userUuid)).thenReturn(Mono.empty());
         when(orderMapper.orderToOrderDto(mockOrder)).thenReturn(mockOrderDto);
 
-        String viewName = paymentViewController.previewOrder(userUuid, model);
+        String viewName = paymentViewController.previewOrder(userUuid, model).block();
 
         assertEquals("payment/payment", viewName);
         verify(orderService).create(userUuid);
         verify(cartService).clear(userUuid);
-        verify(model).addAttribute(eq("order"), eq(mockOrderDto));
+        verify(model).addAttribute("order", mockOrderDto);
     }
 
     @Test
@@ -60,7 +62,9 @@ class PaymentViewControllerTest {
         UUID orderUuid = UUID.randomUUID();
         String cardNumber = "1234567812345678";
 
-        String redirectUrl = paymentViewController.checkout(userUuid, orderUuid, cardNumber);
+        when(paymentService.checkout(userUuid, orderUuid, cardNumber)).thenReturn(Mono.empty());
+
+        String redirectUrl = paymentViewController.checkout(userUuid, orderUuid, cardNumber).block();
 
         assertEquals("redirect:/orders/" + orderUuid, redirectUrl);
         verify(paymentService).checkout(userUuid, orderUuid, cardNumber);

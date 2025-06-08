@@ -1,7 +1,12 @@
-package ru.practicum.model.cart;
+package ru.practicum.dao.cart;
 
-import lombok.*;
-import reactor.core.publisher.Flux;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.relational.core.mapping.Column;
+import org.springframework.data.relational.core.mapping.Table;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -10,38 +15,40 @@ import java.util.UUID;
 /**
  * Корзина товаров
  */
+@Table(name = "carts")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Cart {
+public class CartDao {
     /**
      * Идентификатор
      */
+    @Id
+    @Column("cart_uuid")
     private UUID uuid;
 
     /**
      * Идентификатор пользователя
      */
+    @Column("user_uuid")
     private UUID userUuid;
-
-    /**
-     * Товары корзины
-     */
-    private Flux<CartItem> items;
 
     /**
      * Стоимость корзины товаров
      */
+    @Column("total_price")
     private BigDecimal totalPrice;
 
     /**
      * Дата создания
      */
+    @Column("created_at")
     private LocalDateTime createdAt;
 
     /**
      * Дата обновления
      */
+    @Column("updated_at")
     private LocalDateTime updatedAt;
 }

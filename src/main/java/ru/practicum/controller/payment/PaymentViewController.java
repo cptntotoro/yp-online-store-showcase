@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Mono;
 import ru.practicum.config.WebAttributes;
 import ru.practicum.mapper.order.OrderMapper;
 import ru.practicum.model.order.Order;
@@ -38,17 +39,20 @@ public class PaymentViewController {
     private final OrderMapper orderMapper;
 
     @GetMapping("/checkout")
-    public String previewOrder(@RequestAttribute(WebAttributes.USER_UUID) UUID userUuid, Model model) {
-        Order order = orderService.create(userUuid);
-        cartService.clear(userUuid);
-        model.addAttribute("order", orderMapper.orderToOrderDto(order));
-        return "payment/payment";
+    public Mono<String> previewOrder(@RequestAttribute(WebAttributes.USER_UUID) UUID userUuid, Model model) {
+        return orderService.create(userUuid)
+                .flatMap(order -> cartService.clear(userUuid)
+                        .thenReturn(order))
+                .map(order -> {
+                    model.addAttribute("order", orderMapper.orderToOrderDto(order));
+                    return "payment/payment";
+                });
     }
 
     @PostMapping("/checkout/{orderUuid}")
-    public String checkout(@RequestAttribute(WebAttributes.USER_UUID) UUID userUuid, @PathVariable UUID orderUuid,
+    public Mono<String> checkout(@RequestAttribute(WebAttributes.USER_UUID) UUID userUuid, @PathVariable UUID orderUuid,
                            @RequestParam String cardNumber) {
-        paymentService.checkout(userUuid, orderUuid, cardNumber);
-        return "redirect:/orders/" + orderUuid;
+        return paymentService.checkout(userUuid, orderUuid, cardNumber)
+                .thenReturn("redirect:/orders/" + orderUuid);
     }
 }

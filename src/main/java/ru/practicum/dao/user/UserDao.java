@@ -1,4 +1,4 @@
-package ru.practicum.model.user;
+package ru.practicum.dao.user;
 
 import lombok.*;
 import org.springframework.data.annotation.Id;
@@ -17,7 +17,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class User {
+public class UserDao {
 
     /**
      * Идентификатор

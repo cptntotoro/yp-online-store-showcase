@@ -1,5 +1,6 @@
 package ru.practicum.service.cart;
 
+import reactor.core.publisher.Mono;
 import ru.practicum.model.cart.Cart;
 
 import java.util.UUID;
@@ -14,55 +15,47 @@ public interface CartService {
      * @param userUuid Идентификатор пользователя
      * @return Корзина
      */
-    Cart create(UUID userUuid);
-
-    /**
-     * Получить корзину
-     *
-     * @param userUuid Идентификатор пользователя
-     * @return Корзина
-     */
-    Cart get(UUID userUuid);
+    Mono<Cart> createGuest(UUID userUuid);
 
     /**
      * Добавить товор в корзину
      *
-     * @param userUuid Идентификатор пользователя
+     * @param userUuid    Идентификатор пользователя
      * @param productUuid Идентификатор товара
-     * @param quantity Количество
+     * @param quantity    Количество
      * @return Корзина
      */
-    Cart addToCart(UUID userUuid, UUID productUuid, int quantity);
+    Mono<Cart> addToCart(UUID userUuid, UUID productUuid, int quantity);
 
     /**
      * Удалить товор из корзины
      *
-     * @param userUuid Идентификатор пользователя
+     * @param userUuid    Идентификатор пользователя
      * @param productUuid Идентификатор товара
      */
-    Cart removeFromCart(UUID userUuid, UUID productUuid);
+    Mono<Cart> removeFromCart(UUID userUuid, UUID productUuid);
 
     /**
      * Очистить корзину товаров
      *
      * @param userUuid Идентификатор пользователя
      */
-    void clear(UUID userUuid);
+    Mono<Void> clear(UUID userUuid);
 
     /**
-     * Получить кеш корзины
+     * Получить корзину пользователя
      *
      * @param userUuid Идентификатор пользователя
      * @return Корзина
      */
-    Cart getCachedCart(UUID userUuid);
+    Mono<Cart> get(UUID userUuid);
 
     /**
-     * Обновить количество товара
+     * Обновить количество товара в корзине
      *
-     * @param userUuid Идентификатор пользователя
+     * @param userUuid    Идентификатор пользователя
      * @param productUuid Идентификатор товара
-     * @param quantity Количество товара
+     * @param quantity    Количество товара
      */
-    void updateQuantity(UUID userUuid, UUID productUuid, int quantity);
+    Mono<Cart> updateQuantity(UUID userUuid, UUID productUuid, int quantity);
 }

@@ -1,8 +1,14 @@
-package ru.practicum.model.order;
+package ru.practicum.dao.order;
 
 import jakarta.validation.constraints.Positive;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Transient;
+import org.springframework.data.relational.core.mapping.Column;
+import org.springframework.data.relational.core.mapping.Table;
 
 import java.math.BigDecimal;
 import java.util.UUID;
@@ -10,25 +16,30 @@ import java.util.UUID;
 /**
  * Товар заказа
  */
+@Table(name = "order_items")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class OrderItem {
+public class OrderItemDao {
 
     /**
      * Идентификатор
      */
+    @Id
+    @Column("order_item_uuid")
     private UUID uuid;
 
     /**
      * Заказ
      */
+    @Column("order_uuid")
     private UUID orderUuid;
 
     /**
      * Товар
      */
+    @Column("product_uuid")
     private UUID productUuid;
 
     /**
@@ -40,6 +51,7 @@ public class OrderItem {
     /**
      * Цена товара в заказе
      */
+    @Column("price_at_order")
     private BigDecimal priceAtOrder;
 
     /**

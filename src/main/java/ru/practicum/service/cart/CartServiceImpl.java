@@ -5,7 +5,7 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.exception.cart.CartNotFoundException;
+import reactor.core.publisher.Mono;
 import ru.practicum.exception.cart.IllegalCartStateException;
 import ru.practicum.model.cart.Cart;
 import ru.practicum.model.cart.CartItem;
@@ -34,8 +34,10 @@ public class CartServiceImpl implements CartService {
      */
     private final ProductService productService;
 
+    private final CartCacheService cartCacheService;
+
     @Override
-    public Cart create(UUID userUuid) {
+    public Mono<Cart> createGuest(UUID userUuid) {
         Cart newCart = new Cart();
         newCart.setUserUuid(userUuid);
         newCart.setTotalPrice(BigDecimal.ZERO);
@@ -43,69 +45,69 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public Cart get(UUID userUuid) {
-        return cartRepository.findByUserUuid(userUuid)
-                .orElseThrow(() -> new CartNotFoundException("Корзина пользователя с uuid = " + userUuid + " не найдена"));
+    public Mono<Cart> get(UUID userUuid) {
+        return cartCacheService.getCart(userUuid);
     }
 
     @Override
-    @CacheEvict(value = "cart", key = "#userUuid")
-    public Cart addToCart(UUID userUuid, UUID productUuid, int quantity) {
+    public Mono<Cart> addToCart(UUID userUuid, UUID productUuid, int quantity) {
         if (quantity <= 0) {
-            throw new IllegalCartStateException("Количество товара не может быть меньше или равно нулю");
+            return Mono.error(new IllegalCartStateException("Количество товара не может быть меньше или равно нулю"));
         }
 
-        Cart cart = get(userUuid);
-        Product product = productService.getByUuid(productUuid);
-        updateOrAddItem(cart, product, quantity);
-        updateCartTotal(cart);
-        return cartRepository.save(cart);
+        return Mono.zip(get(userUuid), productService.getByUuid(productUuid))
+                .flatMap(tuple -> {
+                    Cart cart = tuple.getT1();
+                    Product product = tuple.getT2();
+                    updateOrAddItem(cart, product, quantity);
+                    updateCartTotal(cart);
+                    return cartRepository.save(cart);
+                })
+                .doOnSuccess(saved -> cartCacheService.evict(userUuid));
     }
 
     @Override
-    @CacheEvict(value = "cart", key = "#userUuid")
-    public Cart removeFromCart(UUID userUuid, UUID productUuid) {
-        Cart cart = get(userUuid);
-        removeCartItem(cart, productUuid);
-        updateCartTotal(cart);
-        return cartRepository.save(cart);
+    public Mono<Cart> removeFromCart(UUID userUuid, UUID productUuid) {
+        return get(userUuid)
+                .flatMap(cart -> {
+                    removeCartItem(cart, productUuid);
+                    updateCartTotal(cart);
+                    return cartRepository.save(cart);
+                })
+                .doOnSuccess(saved -> cartCacheService.evict(userUuid));
     }
 
     @Override
-    @CacheEvict(value = "cart", key = "#userUuid")
-    public void clear(UUID userUuid) {
-        Cart cart = get(userUuid);
-        cart.getItems().clear();
-        updateCartTotal(cart);
-        cartRepository.save(cart);
+    public Mono<Void> clear(UUID userUuid) {
+        return get(userUuid)
+                .flatMap(cart -> {
+                    cart.getItems().clear();
+                    updateCartTotal(cart);
+                    return cartRepository.save(cart).then();
+                })
+                .doOnSuccess(saved -> cartCacheService.evict(userUuid));
     }
 
     @Override
-    @Cacheable(value = "cart", key = "#userUuid")
-    @Transactional(readOnly = true)
-    public Cart getCachedCart(UUID userUuid) {
-        return get(userUuid);
-    }
-
-    @Override
-    @CacheEvict(value = "cart", key = "#userUuid")
-    public void updateQuantity(UUID userUuid, UUID productUuid, int quantity) {
+    public Mono<Cart> updateQuantity(UUID userUuid, UUID productUuid, int quantity) {
         if (quantity <= 0) {
-            throw new IllegalCartStateException("Количество товара не может быть меньше или равно нулю");
+            return Mono.error(new IllegalCartStateException("Количество товара не может быть меньше или равно нулю"));
         }
 
-        Cart cart = get(userUuid);
-        updateItemQuantity(cart, productUuid, quantity);
-        updateCartTotal(cart);
-        cartRepository.save(cart);
+        return get(userUuid)
+                .flatMap(cart -> {
+                    updateItemQuantity(cart, productUuid, quantity);
+                    updateCartTotal(cart);
+                    return cartRepository.save(cart);
+                })
+                .doOnSuccess(unused -> cartCacheService.evict(userUuid));
     }
 
     /**
      * Изменить наличие товара в корзине или добавить новый товар
      *
-     * @param cart Корзина
-     * @param product Товар
+     * @param cart     Корзина
+     * @param product  Товар
      * @param quantity Количество товара
      */
     private void updateOrAddItem(Cart cart, Product product, int quantity) {
@@ -121,7 +123,7 @@ public class CartServiceImpl implements CartService {
     /**
      * Удалить товар из корзины
      *
-     * @param cart Корзина
+     * @param cart        Корзина
      * @param productUuid Идентификатор товара
      */
     private void removeCartItem(Cart cart, UUID productUuid) {
@@ -131,9 +133,9 @@ public class CartServiceImpl implements CartService {
     /**
      * Обновить количество товара
      *
-     * @param cart Корзина
+     * @param cart        Корзина
      * @param productUuid Идентификатор товара
-     * @param quantity Количество товара
+     * @param quantity    Количество товара
      */
     private void updateItemQuantity(Cart cart, UUID productUuid, int quantity) {
         cart.getItems().stream()

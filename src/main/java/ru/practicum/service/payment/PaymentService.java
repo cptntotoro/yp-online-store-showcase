@@ -1,5 +1,7 @@
 package ru.practicum.service.payment;
 
+import reactor.core.publisher.Mono;
+
 import java.util.UUID;
 
 /**
@@ -14,5 +16,5 @@ public interface PaymentService {
      * @param orderUuid Идентификатор заказа
      * @param cardNumber Номер карты
      */
-    void checkout(UUID userUuid, UUID orderUuid, String cardNumber);
+    Mono<Void> checkout(UUID userUuid, UUID orderUuid, String cardNumber);
 }
