@@ -5,17 +5,23 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import ru.practicum.dao.order.OrderDao;
+import ru.practicum.dao.order.OrderItemDao;
 import ru.practicum.exception.cart.IllegalCartStateException;
 import ru.practicum.exception.order.IllegalOrderStateException;
 import ru.practicum.exception.order.OrderNotFoundException;
+import ru.practicum.mapper.order.OrderItemMapper;
+import ru.practicum.mapper.order.OrderMapper;
 import ru.practicum.model.cart.Cart;
 import ru.practicum.model.order.Order;
 import ru.practicum.model.order.OrderItem;
 import ru.practicum.model.order.OrderStatus;
+import ru.practicum.repository.order.OrderItemRepository;
 import ru.practicum.repository.order.OrderRepository;
 import ru.practicum.service.cart.CartService;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
@@ -27,9 +33,24 @@ public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
 
     /**
+     * Репозиторий товаров заказа
+     */
+    private final OrderItemRepository orderItemRepository;
+
+    /**
      * Сервис управления корзиной товаров
      */
     private final CartService cartService;
+
+    /**
+     * Маппер заказов
+     */
+    private final OrderMapper orderMapper;
+
+    /**
+     * Маппер товаров заказа
+     */
+    private final OrderItemMapper orderItemMapper;
 
     /**
      * Валидные переключения статусов
@@ -48,28 +69,49 @@ public class OrderServiceImpl implements OrderService {
                         return Mono.error(new IllegalCartStateException("Нельзя создать заказ из пустой корзины"));
                     }
 
-                    Order order = new Order(userUuid, cart);
-                    BigDecimal calculatedTotal = calculateOrderTotal(order.getItems());
+                    UUID orderUuid = UUID.randomUUID();
+                    LocalDateTime createdAt = LocalDateTime.now();
 
-                    if (calculatedTotal.compareTo(BigDecimal.ZERO) <= 0) {
+                    List<OrderItem> orderItems = cart.getItems().stream()
+                            .map(cartItem -> new OrderItem(
+                                    UUID.randomUUID(),
+                                    orderUuid,
+                                    cartItem.getProduct().getUuid(),
+                                    cartItem.getQuantity(),
+                                    cartItem.getProduct().getPrice()
+                            )).toList();
+
+                    BigDecimal total = calculateOrderTotal(orderItems);
+                    if (total.compareTo(BigDecimal.ZERO) <= 0) {
                         return Mono.error(new IllegalOrderStateException("Сумма заказа должна быть больше нуля"));
                     }
 
-                    order.setTotalPrice(calculatedTotal);
-                    return orderRepository.save(order)
-                            .doOnSuccess(o -> cartService.clear(userUuid).subscribe()); // очищаем корзину
+                    Order order = new Order(orderUuid, userUuid, cart.getUuid(), OrderStatus.CREATED, total,
+                            Flux.fromIterable(orderItems), createdAt);
+                    OrderDao orderDao = orderMapper.orderToOrderDao(order);
+
+                    List<OrderItemDao> orderItemDaos = orderItems.stream()
+                            .map(orderItemMapper::orderItemToOrderItemDao)
+                            .toList();
+
+                    return orderRepository.save(orderDao)
+                            .thenMany(orderItemRepository.saveAll(orderItemDaos))
+                            .then(cartService.clear(userUuid))
+                            .thenReturn(order);
                 });
     }
 
     @Override
     public Flux<Order> getUserOrders(UUID userUuid) {
-        return orderRepository.findByUserUuid(userUuid);
+        return orderRepository.findByUserUuid(userUuid)
+                .flatMap(this::enrichOrderWithItems);
     }
 
     @Override
     public Mono<Order> getByUuid(UUID userUuid, UUID uuid) {
-        return orderRepository.findByIdWhereUserUuidIn(uuid, userUuid)
-                .switchIfEmpty(Mono.error(new OrderNotFoundException("Заказ не найден")));
+        return orderRepository.findByUuidAndUserUuid(uuid, userUuid)
+                .switchIfEmpty(Mono.error(new OrderNotFoundException("Заказ не найден")))
+                .flatMap(this::enrichOrderWithItems);
     }
 
     @Override
@@ -91,11 +133,19 @@ public class OrderServiceImpl implements OrderService {
     private Mono<Void> updateStatus(UUID userUuid, UUID orderUuid, OrderStatus newStatus) {
         return orderRepository.findByUuidAndUserUuid(orderUuid, userUuid)
                 .switchIfEmpty(Mono.error(new OrderNotFoundException("Заказ не найден и не был обновлен.")))
-                .flatMap(order -> {
-                    validateStatusTransition(order.getStatus(), newStatus);
-                    order.setStatus(newStatus);
-                    return orderRepository.save(order).then();
+                .flatMap(orderDao -> {
+                    validateStatusTransition(orderDao.getStatus(), newStatus);
+                    orderDao.setStatus(newStatus);
+                    return orderRepository.save(orderDao).then();
                 });
+    }
+
+    private Mono<Order> enrichOrderWithItems(OrderDao orderDao) {
+        Order order = orderMapper.orderDaoToOrder(orderDao);
+        Flux<OrderItem> items = orderItemRepository.findByOrderUuid(orderDao.getUuid())
+                .map(orderItemMapper::orderItemDaoToOrderItem);
+        order.setItems(items);
+        return Mono.just(order);
     }
 
     private void validateStatusTransition(OrderStatus current, OrderStatus newStatus) {

@@ -11,7 +11,6 @@ import java.util.UUID;
 /**
  * Пользователь
  */
-@Table(name = "users")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -22,8 +21,6 @@ public class User {
     /**
      * Идентификатор
      */
-    @Id
-    @Column("user_uuid")
     private UUID uuid;
 
     /**
@@ -39,6 +36,5 @@ public class User {
     /**
      * Дата создания
      */
-    @Column("created_at")
     private LocalDateTime createdAt;
 }

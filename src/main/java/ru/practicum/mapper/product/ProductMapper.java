@@ -2,6 +2,7 @@ package ru.practicum.mapper.product;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import ru.practicum.dao.product.ProductDao;
 import ru.practicum.dto.product.ProductInDto;
 import ru.practicum.dto.product.ProductOutDto;
 import ru.practicum.model.product.Product;
@@ -30,4 +31,20 @@ public interface ProductMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     Product productInDtoToProduct(ProductInDto productInDto);
+
+    /**
+     * Смаппить товар в DAO товара
+     *
+     * @param productDao DAO товара
+     * @return Товар
+     */
+    Product productDaoToProduct(ProductDao productDao);
+
+    /**
+     * Смаппить DAO товара в товар
+     *
+     * @param product Товар
+     * @return DAO товара
+     */
+    ProductDao productToProductDao(Product product);
 }

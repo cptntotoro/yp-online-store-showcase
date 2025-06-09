@@ -1,6 +1,7 @@
 package ru.practicum.mapper.cart;
 
 import org.mapstruct.Mapper;
+import ru.practicum.dao.cart.CartDao;
 import ru.practicum.dto.cart.CartDto;
 import ru.practicum.model.cart.Cart;
 
@@ -17,4 +18,20 @@ public interface CartMapper {
      * @return DTO корзины
      */
     CartDto cartToCartDto(Cart cartDto);
+
+    /**
+     * Смаппить корзину в DAO корзины
+     *
+     * @param cart Корзина
+     * @return DAO корзины
+     */
+    CartDao toDao(Cart cart);
+
+    /**
+     * Смаппить DAO корзины в корзину
+     *
+     * @param cartDao DAO корзины
+     * @return Корзина
+     */
+    Cart toDomain(CartDao cartDao);
 }

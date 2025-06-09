@@ -2,7 +2,6 @@ package ru.practicum.service.product;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -10,6 +9,7 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import ru.practicum.exception.product.ProductNotFoundException;
+import ru.practicum.mapper.product.ProductMapper;
 import ru.practicum.model.product.Product;
 import ru.practicum.model.product.ProductSort;
 import ru.practicum.repository.product.ProductRepository;
@@ -31,10 +31,10 @@ public class ProductServiceImpl implements ProductService {
      */
     private final ProductCacheService productCacheService;
 
-    @Override
-    public Flux<Product> getAllProductsCached() {
-        return productRepository.findAll().cache();
-    }
+    /**
+     * Маппер товаров
+     */
+    private final ProductMapper productMapper;
 
     @Override
     public Mono<Page<Product>> getAll(Pageable pageable) {
@@ -77,7 +77,9 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @CacheEvict(value = "allProducts", allEntries = true)
     public Mono<Void> batchAdd(Flux<Product> products) {
-        return productRepository.saveAll(products).then();
+        return productRepository
+                .saveAll(products.map(productMapper::productToProductDao))
+                .then();
     }
 
     private Page<Product> toPage(List<Product> allItems, Pageable pageable, long total) {

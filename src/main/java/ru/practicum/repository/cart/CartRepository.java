@@ -1,5 +1,6 @@
 package ru.practicum.repository.cart;
 
+import org.springframework.data.r2dbc.repository.Query;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Mono;
@@ -18,5 +19,6 @@ public interface CartRepository extends ReactiveCrudRepository<CartDao, UUID> {
      *
      * @param userUuid Идентификатор пользователя
      */
+    @Query("SELECT * FROM carts WHERE user_uuid = :userUuid")
     Mono<CartDao> findByUserUuid(UUID userUuid);
 }

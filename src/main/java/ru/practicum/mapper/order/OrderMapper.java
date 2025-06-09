@@ -1,6 +1,7 @@
 package ru.practicum.mapper.order;
 
 import org.mapstruct.Mapper;
+import ru.practicum.dao.order.OrderDao;
 import ru.practicum.dto.order.OrderDto;
 import ru.practicum.mapper.cart.CartMapper;
 import ru.practicum.model.order.Order;
@@ -18,4 +19,21 @@ public interface OrderMapper {
      * @return DTO заказа
      */
     OrderDto orderToOrderDto(Order orderDto);
+
+    /**
+     * Смаппить заказ в DAO заказа
+     *
+     * @param order Заказ
+     * @return DAO заказа
+     */
+    OrderDao orderToOrderDao(Order order);
+
+    /**
+     * Смаппить DAO заказа в заказ
+     *
+     * @param orderDao DAO заказа
+     * @return Заказ
+     */
+    Order orderDaoToOrder(OrderDao orderDao);
+
 }

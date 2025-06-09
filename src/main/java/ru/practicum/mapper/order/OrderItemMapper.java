@@ -2,6 +2,7 @@ package ru.practicum.mapper.order;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import ru.practicum.dao.order.OrderItemDao;
 import ru.practicum.dto.order.OrderItemDto;
 import ru.practicum.mapper.product.ProductMapper;
 import ru.practicum.model.order.OrderItem;
@@ -20,4 +21,20 @@ public interface OrderItemMapper {
      */
     @Mapping(source = "product", target = "product")
     OrderItemDto orderItemToOrderItemDto(OrderItem orderItem);
+
+    /**
+     * Смаппить DAO товара заказа в товар заказа
+     *
+     * @param orderItemDao DAO товара заказа
+     * @return Товар заказа
+     */
+    OrderItem orderItemDaoToOrderItem(OrderItemDao orderItemDao);
+
+    /**
+     * Смаппить товар заказа в DAO товара заказа
+     *
+     * @param orderItem Товар заказа
+     * @return DAO товара заказа
+     */
+    OrderItemDao orderItemToOrderItemDao(OrderItem orderItem);
 }

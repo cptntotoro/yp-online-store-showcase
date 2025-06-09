@@ -5,6 +5,7 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
+import ru.practicum.mapper.product.ProductMapper;
 import ru.practicum.model.product.Product;
 import ru.practicum.repository.product.ProductRepository;
 
@@ -17,12 +18,17 @@ public class ProductCacheServiceImpl implements ProductCacheService {
     private final ProductRepository productRepository;
 
     /**
+     * Маппер товаров
+     */
+    private final ProductMapper productMapper;
+
+    /**
      * Кешируемая загрузка всех товаров
      */
     @Cacheable("products")
     @Override
     public Flux<Product> getAllProducts() {
-        return productRepository.findAll().cache();
+        return productRepository.findAll().map(productMapper::productDaoToProduct).cache();
     }
 
     /**

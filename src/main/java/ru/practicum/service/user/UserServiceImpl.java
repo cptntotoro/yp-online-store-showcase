@@ -4,10 +4,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
+import ru.practicum.dao.user.UserDao;
+import ru.practicum.mapper.user.UserMapper;
 import ru.practicum.model.user.User;
 import ru.practicum.repository.user.UserRepository;
 import ru.practicum.service.cart.CartService;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Service
@@ -22,15 +25,23 @@ public class UserServiceImpl implements UserService {
      */
     private final CartService cartService;
 
+    private final UserMapper userMapper;
+
     @Override
     @Transactional
     public Mono<User> add() {
-        return Mono.just(User.builder().username("guest").build())
-                .flatMap(userRepository::save)
-                .flatMap(user -> cartService.createGuest(user.getUuid())
-                        .then(userRepository.findById(user.getUuid()))
-                        .onErrorResume(e -> Mono.error(new RuntimeException("Ошибка создания гостевого пользователя и его корзины.")))
-                );
+        User newUser = User.builder()
+                .uuid(UUID.randomUUID())
+                .username("guest")
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        UserDao newUserDao = userMapper.userToUserDao(newUser);
+
+        return userRepository.save(newUserDao)
+                .flatMap(savedDao -> cartService.createGuest(savedDao.getUuid())
+                        .thenReturn(userMapper.userDaoToUser(savedDao)))
+                .onErrorResume(e -> Mono.error(new RuntimeException("Ошибка создания гостевого пользователя и его корзины.", e)));
     }
 
     @Override

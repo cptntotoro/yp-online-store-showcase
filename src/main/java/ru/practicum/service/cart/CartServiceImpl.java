@@ -5,15 +5,21 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import ru.practicum.dao.cart.CartDao;
 import ru.practicum.exception.cart.IllegalCartStateException;
+import ru.practicum.mapper.cart.CartItemMapper;
+import ru.practicum.mapper.cart.CartMapper;
 import ru.practicum.model.cart.Cart;
 import ru.practicum.model.cart.CartItem;
 import ru.practicum.model.product.Product;
+import ru.practicum.repository.cart.CartItemRepository;
 import ru.practicum.repository.cart.CartRepository;
 import ru.practicum.service.product.ProductService;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.*;
 
 /**
@@ -30,23 +36,51 @@ public class CartServiceImpl implements CartService {
     private final CartRepository cartRepository;
 
     /**
+     * Репозиторий товаров козины
+     */
+    private final CartItemRepository cartItemRepository;
+
+    /**
      * Сервис управления товарами
      */
     private final ProductService productService;
 
+    /**
+     * Кеш сервис корзины
+     */
     private final CartCacheService cartCacheService;
+
+    private final CartMapper cartMapper;
+
+    private final CartItemMapper cartItemMapper;
 
     @Override
     public Mono<Cart> createGuest(UUID userUuid) {
-        Cart newCart = new Cart();
-        newCart.setUserUuid(userUuid);
-        newCart.setTotalPrice(BigDecimal.ZERO);
-        return cartRepository.save(newCart);
+        Cart cart = new Cart();
+        cart.setUuid(UUID.randomUUID());
+        cart.setUserUuid(userUuid);
+        cart.setTotalPrice(BigDecimal.ZERO);
+        cart.setCreatedAt(LocalDateTime.now());
+        cart.setUpdatedAt(LocalDateTime.now());
+        return cartRepository.save(cartMapper.toDao(cart)).thenReturn(cart);
     }
 
     @Override
     public Mono<Cart> get(UUID userUuid) {
-        return cartCacheService.getCart(userUuid);
+        return cartRepository.findByUserUuid(userUuid)
+                .flatMap(cartDao -> cartItemRepository.findByCartUuid(cartDao.getUuid())
+                        .flatMap(itemDao -> productService.getByUuid(itemDao.getProductUuid())
+                                .map(product -> {
+                                    CartItem item = cartItemMapper.toDomain(itemDao);
+                                    item.setProduct(product);
+                                    return item;
+                                }))
+                        .collectList()
+                        .map(items -> {
+                            Cart cart = cartMapper.toDomain(cartDao);
+                            cart.setItems(Flux.fromIterable(items));
+                            return cart;
+                        }));
     }
 
     @Override
@@ -59,9 +93,29 @@ public class CartServiceImpl implements CartService {
                 .flatMap(tuple -> {
                     Cart cart = tuple.getT1();
                     Product product = tuple.getT2();
-                    updateOrAddItem(cart, product, quantity);
-                    updateCartTotal(cart);
-                    return cartRepository.save(cart);
+
+                    return cart.getItems().collectList().flatMap(existingItems -> {
+                        Optional<CartItem> existing = existingItems.stream()
+                                .filter(item -> item.getProduct().getUuid().equals(product.getUuid()))
+                                .findFirst();
+
+                        if (existing.isPresent()) {
+                            existing.get().setQuantity(existing.get().getQuantity() + quantity);
+                        } else {
+                            existingItems.add(new CartItem(UUID.randomUUID(), cart.getUuid(), product, quantity, LocalDateTime.now()));
+                        }
+
+                        cart.setItems(Flux.fromIterable(existingItems));
+
+                        return updateCartTotal(cart)
+                                .flatMap(updatedCart -> {
+                                    CartDao cartDao = cartMapper.toDao(updatedCart);
+                                    cartDao.setUpdatedAt(LocalDateTime.now());
+                                    return cartRepository.save(cartDao)
+                                            .then(saveCartItems(updatedCart))
+                                            .thenReturn(updatedCart);
+                                });
+                    });
                 })
                 .doOnSuccess(saved -> cartCacheService.evict(userUuid));
     }
@@ -69,23 +123,36 @@ public class CartServiceImpl implements CartService {
     @Override
     public Mono<Cart> removeFromCart(UUID userUuid, UUID productUuid) {
         return get(userUuid)
-                .flatMap(cart -> {
-                    removeCartItem(cart, productUuid);
-                    updateCartTotal(cart);
-                    return cartRepository.save(cart);
-                })
+                .flatMap(cart -> cart.getItems().collectList()
+                        .flatMap(items -> {
+                            List<CartItem> updatedItems = items.stream()
+                                    .filter(item -> !item.getProduct().getUuid().equals(productUuid))
+                                    .toList();
+
+                            cart.setItems(Flux.fromIterable(updatedItems));
+
+                            return updateCartTotal(cart)
+                                    .flatMap(updatedCart -> {
+                                        CartDao cartDao = cartMapper.toDao(updatedCart);
+                                        cartDao.setUpdatedAt(LocalDateTime.now());
+                                        return cartRepository.save(cartDao)
+                                                .then(cartItemRepository.deleteByCartUuidAndProductUuid(cart.getUuid(), productUuid))
+                                                .thenReturn(updatedCart);
+                                    });
+                        }))
                 .doOnSuccess(saved -> cartCacheService.evict(userUuid));
     }
 
     @Override
     public Mono<Void> clear(UUID userUuid) {
         return get(userUuid)
-                .flatMap(cart -> {
-                    cart.getItems().clear();
-                    updateCartTotal(cart);
-                    return cartRepository.save(cart).then();
-                })
-                .doOnSuccess(saved -> cartCacheService.evict(userUuid));
+                .flatMap(cart -> cartItemRepository.deleteByCartUuid(cart.getUuid())
+                        .then(cartRepository.save(
+                                new CartDao(cart.getUuid(), cart.getUserUuid(), BigDecimal.ZERO,
+                                        cart.getCreatedAt(), LocalDateTime.now()))
+                        ))
+                .then()
+                .doOnSuccess(unused -> cartCacheService.evict(userUuid));
     }
 
     @Override
@@ -95,53 +162,32 @@ public class CartServiceImpl implements CartService {
         }
 
         return get(userUuid)
-                .flatMap(cart -> {
-                    updateItemQuantity(cart, productUuid, quantity);
-                    updateCartTotal(cart);
-                    return cartRepository.save(cart);
-                })
+                .flatMap(cart -> cart.getItems().collectList()
+                        .flatMap(items -> {
+                            items.stream()
+                                    .filter(item -> item.getProduct().getUuid().equals(productUuid))
+                                    .findFirst()
+                                    .ifPresent(item -> item.setQuantity(quantity));
+
+                            cart.setItems(Flux.fromIterable(items));
+
+                            return updateCartTotal(cart)
+                                    .flatMap(updatedCart -> {
+                                        CartDao cartDao = cartMapper.toDao(updatedCart);
+                                        cartDao.setUpdatedAt(LocalDateTime.now());
+                                        return cartRepository.save(cartDao)
+                                                .then(saveCartItems(updatedCart))
+                                                .thenReturn(updatedCart);
+                                    });
+                        }))
                 .doOnSuccess(unused -> cartCacheService.evict(userUuid));
     }
 
-    /**
-     * Изменить наличие товара в корзине или добавить новый товар
-     *
-     * @param cart     Корзина
-     * @param product  Товар
-     * @param quantity Количество товара
-     */
-    private void updateOrAddItem(Cart cart, Product product, int quantity) {
-        cart.getItems().stream()
-                .filter(item -> item.getProduct().equals(product))
-                .findFirst()
-                .ifPresentOrElse(
-                        item -> item.setQuantity(item.getQuantity() + quantity),
-                        () -> cart.getItems().add(new CartItem(cart, product, quantity))
-                );
-    }
-
-    /**
-     * Удалить товар из корзины
-     *
-     * @param cart        Корзина
-     * @param productUuid Идентификатор товара
-     */
-    private void removeCartItem(Cart cart, UUID productUuid) {
-        cart.getItems().removeIf(item -> item.getProduct().getUuid().equals(productUuid));
-    }
-
-    /**
-     * Обновить количество товара
-     *
-     * @param cart        Корзина
-     * @param productUuid Идентификатор товара
-     * @param quantity    Количество товара
-     */
-    private void updateItemQuantity(Cart cart, UUID productUuid, int quantity) {
-        cart.getItems().stream()
-                .filter(item -> item.getProduct().getUuid().equals(productUuid))
-                .findFirst()
-                .ifPresent(item -> item.setQuantity(quantity));
+    private Mono<Void> saveCartItems(Cart cart) {
+        return cart.getItems()
+                .map(cartItemMapper::toDao)
+                .flatMap(cartItemRepository::save)
+                .then();
     }
 
     /**
@@ -149,8 +195,12 @@ public class CartServiceImpl implements CartService {
      *
      * @param cart Корзина
      */
-    private void updateCartTotal(Cart cart) {
-        cart.setTotalPrice(calculateTotalPrice(cart.getItems()));
+    private Mono<Cart> updateCartTotal(Cart cart) {
+        return calculateTotalPrice(cart.getItems())
+                .map(total -> {
+                    cart.setTotalPrice(total);
+                    return cart;
+                });
     }
 
     /**
@@ -159,9 +209,8 @@ public class CartServiceImpl implements CartService {
      * @param items Товары
      * @return Стоимость товаров в корзине
      */
-    private BigDecimal calculateTotalPrice(List<CartItem> items) {
-        return items.stream()
-                .map(CartItem::getTotalPrice)
+    private Mono<BigDecimal> calculateTotalPrice(Flux<CartItem> items) {
+        return items.map(CartItem::getTotalPrice)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 }
