@@ -1,10 +1,10 @@
 package ru.practicum.model.cart;
 
 import lombok.*;
-import reactor.core.publisher.Flux;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -29,7 +29,7 @@ public class Cart {
     /**
      * Товары корзины
      */
-    private Flux<CartItem> items;
+    private List<CartItem> items;
 
     /**
      * Стоимость корзины товаров

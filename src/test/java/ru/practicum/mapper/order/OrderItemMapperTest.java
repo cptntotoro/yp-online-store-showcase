@@ -24,9 +24,6 @@ class OrderItemMapperTest {
     @InjectMocks
     private OrderItemMapperImpl orderItemMapper;
 
-    @Spy
-    private ProductMapper productMapper = new ProductMapperImpl();
-
     @Test
     void shouldMapOrderItemToDto() {
         UUID itemId = UUID.randomUUID();
@@ -39,7 +36,7 @@ class OrderItemMapperTest {
 
         OrderItem orderItem = new OrderItem();
         orderItem.setUuid(itemId);
-        orderItem.setProduct(product);
+        orderItem.setProductUuid(product.getUuid());
         orderItem.setQuantity(2);
         orderItem.setPriceAtOrder(BigDecimal.valueOf(199.98));
 
@@ -47,18 +44,12 @@ class OrderItemMapperTest {
         productDto.setUuid(productId);
         productDto.setName("Test Product");
 
-        when(productMapper.productToProductOutDto(product)).thenReturn(productDto);
-
         OrderItemDto dto = orderItemMapper.orderItemToOrderItemDto(orderItem);
 
         assertThat(dto).isNotNull();
         assertThat(dto.getUuid()).isEqualTo(itemId);
         assertThat(dto.getQuantity()).isEqualTo(2);
         assertThat(dto.getPriceAtOrder()).isEqualTo(BigDecimal.valueOf(199.98));
-        assertThat(dto.getProduct())
-                .isNotNull()
-                .extracting(ProductOutDto::getUuid, ProductOutDto::getName)
-                .containsExactly(productId, "Test Product");
     }
 
     @Test
@@ -71,7 +62,7 @@ class OrderItemMapperTest {
     void shouldHandleNullProduct() {
         OrderItem orderItem = new OrderItem();
         orderItem.setUuid(UUID.randomUUID());
-        orderItem.setProduct(null);
+        orderItem.setProductUuid(UUID.randomUUID());
         orderItem.setQuantity(1);
 
         OrderItemDto dto = orderItemMapper.orderItemToOrderItemDto(orderItem);

@@ -13,6 +13,7 @@ import ru.practicum.exception.order.OrderNotFoundException;
 import ru.practicum.mapper.order.OrderItemMapper;
 import ru.practicum.mapper.order.OrderMapper;
 import ru.practicum.model.cart.Cart;
+import ru.practicum.model.cart.CartItem;
 import ru.practicum.model.order.Order;
 import ru.practicum.model.order.OrderItem;
 import ru.practicum.model.order.OrderStatus;
@@ -65,14 +66,15 @@ public class OrderServiceImpl implements OrderService {
     public Mono<Order> create(UUID userUuid) {
         return cartService.get(userUuid)
                 .flatMap(cart -> {
-                    if (cart.getItems().isEmpty()) {
+                    List<CartItem> items = cart.getItems();
+                    if (items.isEmpty()) {
                         return Mono.error(new IllegalCartStateException("Нельзя создать заказ из пустой корзины"));
                     }
 
                     UUID orderUuid = UUID.randomUUID();
                     LocalDateTime createdAt = LocalDateTime.now();
 
-                    List<OrderItem> orderItems = cart.getItems().stream()
+                    List<OrderItem> orderItems = items.stream()
                             .map(cartItem -> new OrderItem(
                                     UUID.randomUUID(),
                                     orderUuid,
@@ -87,7 +89,7 @@ public class OrderServiceImpl implements OrderService {
                     }
 
                     Order order = new Order(orderUuid, userUuid, cart.getUuid(), OrderStatus.CREATED, total,
-                            Flux.fromIterable(orderItems), createdAt);
+                            orderItems, createdAt);
                     OrderDao orderDao = orderMapper.orderToOrderDao(order);
 
                     List<OrderItemDao> orderItemDaos = orderItems.stream()
@@ -142,10 +144,13 @@ public class OrderServiceImpl implements OrderService {
 
     private Mono<Order> enrichOrderWithItems(OrderDao orderDao) {
         Order order = orderMapper.orderDaoToOrder(orderDao);
-        Flux<OrderItem> items = orderItemRepository.findByOrderUuid(orderDao.getUuid())
-                .map(orderItemMapper::orderItemDaoToOrderItem);
-        order.setItems(items);
-        return Mono.just(order);
+        return orderItemRepository.findByOrderUuid(orderDao.getUuid())
+                .map(orderItemMapper::orderItemDaoToOrderItem)
+                .collectList()
+                .map(orderItems -> {
+                    order.setItems(orderItems);
+                    return order;
+                });
     }
 
     private void validateStatusTransition(OrderStatus current, OrderStatus newStatus) {

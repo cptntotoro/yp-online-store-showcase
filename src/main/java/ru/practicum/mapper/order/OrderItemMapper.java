@@ -19,7 +19,7 @@ public interface OrderItemMapper {
      * @param orderItem Товар заказа
      * @return DTO товара заказа
      */
-    @Mapping(source = "product", target = "product")
+    @Mapping(source = "productUuid", target = "product", ignore = true)
     OrderItemDto orderItemToOrderItemDto(OrderItem orderItem);
 
     /**

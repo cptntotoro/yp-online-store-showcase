@@ -1,21 +1,21 @@
 package ru.practicum.repository.cart;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.autoconfigure.data.r2dbc.DataR2dbcTest;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import ru.practicum.model.cart.Cart;
-import ru.practicum.model.user.User;
-import ru.practicum.repository.user.UserRepository;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
+import ru.practicum.dao.cart.CartDao;
 
-import java.util.Optional;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
-
-@DataJpaTest
+@DataR2dbcTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Testcontainers
 class CartRepositoryTest {
@@ -23,64 +23,62 @@ class CartRepositoryTest {
     @Autowired
     private CartRepository cartRepository;
 
-    @Autowired
-    private UserRepository userRepository;
-
-    private UUID testUserUuid;
-    private UUID secondUserUuid;
+    private UUID userUuid1;
+    private UUID userUuid2;
 
     @BeforeEach
     void setUp() {
-        User user1 = new User();
-        user1.setUsername("testuser1");
-        user1.setEmail("test1@example.com");
-        user1 = userRepository.save(user1);
-        testUserUuid = user1.getUuid();
-
-        User user2 = new User();
-        user2.setUsername("testuser2");
-        user2.setEmail("test2@example.com");
-        user2 = userRepository.save(user2);
-        secondUserUuid = user2.getUuid();
+        userUuid1 = UUID.randomUUID();
+        userUuid2 = UUID.randomUUID();
     }
 
     @Test
-    void findByUserUuid_shouldReturnEmptyOptional_whenCartNotFound() {
-        UUID nonExistingUserUuid = UUID.randomUUID();
-        Optional<Cart> result = cartRepository.findByUserUuid(nonExistingUserUuid);
-        assertTrue(result.isEmpty());
+    @DisplayName("findByUserUuid should return empty when cart does not exist")
+    void findByUserUuid_shouldReturnEmpty_whenCartNotFound() {
+        UUID nonExistingUuid = UUID.randomUUID();
+
+        StepVerifier.create(cartRepository.findByUserUuid(nonExistingUuid))
+                .verifyComplete();
     }
 
     @Test
-    void findByUserUuid_shouldReturnCart_whenCartExists() {
-        Cart cart = new Cart();
-        cart.setUserUuid(testUserUuid);
-        cartRepository.save(cart);
+    @DisplayName("findByUserUuid should return cart when it exists")
+    void findByUserUuid_shouldReturnCart_whenExists() {
+        CartDao cart = new CartDao();
+        cart.setUuid(UUID.randomUUID());
+        cart.setUserUuid(userUuid1);
+        cart.setTotalPrice(BigDecimal.ZERO);
+        cart.setCreatedAt(LocalDateTime.now());
+        cart.setUpdatedAt(LocalDateTime.now());
 
-        Optional<Cart> result = cartRepository.findByUserUuid(testUserUuid);
+        Mono<CartDao> saveAndFind = cartRepository.save(cart)
+                .then(cartRepository.findByUserUuid(userUuid1));
 
-        assertTrue(result.isPresent());
-        assertEquals(testUserUuid, result.get().getUserUuid());
+        StepVerifier.create(saveAndFind)
+                .expectNextMatches(found ->
+                        found.getUserUuid().equals(userUuid1) &&
+                                found.getTotalPrice().compareTo(BigDecimal.ZERO) == 0)
+                .verifyComplete();
     }
 
     @Test
+    @DisplayName("findByUserUuid should return correct cart when multiple carts exist")
     void findByUserUuid_shouldReturnCorrectCart_whenMultipleCartsExist() {
-        Cart cart1 = new Cart();
-        cart1.setUserUuid(testUserUuid);
-        cartRepository.save(cart1);
+        CartDao cart1 = new CartDao(UUID.randomUUID(), userUuid1, BigDecimal.ONE, LocalDateTime.now(), LocalDateTime.now());
+        CartDao cart2 = new CartDao(UUID.randomUUID(), userUuid2, BigDecimal.TEN, LocalDateTime.now(), LocalDateTime.now());
 
-        Cart cart2 = new Cart();
-        cart2.setUserUuid(secondUserUuid);
-        cartRepository.save(cart2);
+        Mono<CartDao> findUser1 = cartRepository.save(cart1)
+                .then(cartRepository.save(cart2))
+                .then(cartRepository.findByUserUuid(userUuid1));
 
-        Optional<Cart> result1 = cartRepository.findByUserUuid(testUserUuid);
-        Optional<Cart> result2 = cartRepository.findByUserUuid(secondUserUuid);
+        Mono<CartDao> findUser2 = cartRepository.findByUserUuid(userUuid2);
 
-        assertAll(
-                () -> assertTrue(result1.isPresent()),
-                () -> assertEquals(testUserUuid, result1.get().getUserUuid()),
-                () -> assertTrue(result2.isPresent()),
-                () -> assertEquals(secondUserUuid, result2.get().getUserUuid())
-        );
+        StepVerifier.create(findUser1)
+                .expectNextMatches(cart -> cart.getUserUuid().equals(userUuid1))
+                .verifyComplete();
+
+        StepVerifier.create(findUser2)
+                .expectNextMatches(cart -> cart.getUserUuid().equals(userUuid2))
+                .verifyComplete();
     }
 }

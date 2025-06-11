@@ -30,8 +30,7 @@ public class GlobalControllerAdvice {
                                           Model model) {
         return cartService.get(userUuid)
                 .map(cartMapper::cartToCartDto)
-                .thenReturn(cartDto -> model.addAttribute("cart", cartDto));
-
-        Mono.just(model.addAttribute("cart", cartMapper.cartToCartDto(cartService.get(userUuid))));
+                .doOnNext(cartDto -> model.addAttribute("cart", cartDto))
+                .then();
     }
 }

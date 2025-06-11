@@ -11,10 +11,13 @@ import java.time.LocalDateTime;
 public class ControllerExceptionHandler {
 
     @ExceptionHandler(BaseException.class)
-    public Mono<String> exceptionNotFound(BaseException e, Model model) {
-        String reason = "Товар не найден. " + e.getMessage();
-        ApiError error = new ApiError(e.getStatus().toString(), reason, e.getMessage(), LocalDateTime.now());
+    public Mono<String> exception(BaseException e, Model model) {
+        ApiError error = new ApiError(
+                e.getStatus().toString(),
+                e.getMessage().concat(" ").concat(e.getReason()),
+                LocalDateTime.now()
+        );
         model.addAttribute("error", error);
-        return "error";
+        return Mono.just("error");
     }
 }

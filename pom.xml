@@ -144,6 +144,16 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>io.projectreactor</groupId>
+            <artifactId>reactor-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>io.projectreactor.addons</groupId>-->
+<!--            <artifactId>reactor-test</artifactId>-->
+<!--            <version>3.0.7.RELEASE</version>-->
+<!--        </dependency>-->
+        <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>postgresql</artifactId>
             <scope>test</scope>

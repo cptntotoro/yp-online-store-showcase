@@ -28,8 +28,8 @@ public interface CartItemMapper {
      * @param cartItem Товар из корзины
      * @return DAO товара из корзины
      */
-    @Mapping(target = "product", source = "product")
-    CartItemDao toDao(CartItem cartItem);
+    @Mapping(target = "productUuid", source = "product.uuid")
+    CartItemDao cartItemToCartItemDao(CartItem cartItem);
 
     /**
      * Смаппить DAO товара из корзины в товар из корзины
@@ -42,5 +42,5 @@ public interface CartItemMapper {
     @Mapping(target = "quantity", source = "cartItemDao.quantity")
     @Mapping(target = "createdAt", source = "cartItemDao.createdAt")
     @Mapping(target = "product", ignore = true)
-    CartItem toDomain(CartItemDao cartItemDao);
+    CartItem cartItemDaoToCartItem(CartItemDao cartItemDao);
 }

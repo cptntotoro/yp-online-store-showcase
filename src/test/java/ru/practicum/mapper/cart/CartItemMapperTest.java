@@ -45,7 +45,6 @@ class CartItemMapperTest {
 
     @Test
     void shouldMapCartItemToDto() {
-        // Given
         UUID productId = UUID.randomUUID();
         UUID itemId = UUID.randomUUID();
 

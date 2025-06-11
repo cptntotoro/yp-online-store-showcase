@@ -1,10 +1,10 @@
 package ru.practicum.model.order;
 
 import lombok.*;
-import reactor.core.publisher.Flux;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -27,6 +27,9 @@ public class Order {
      */
     private UUID userUuid;
 
+    /**
+     * дентификатор корзины
+     */
     private UUID cartUuid;
 
     /**
@@ -42,7 +45,7 @@ public class Order {
     /**
      * Товары заказа
      */
-    private Flux<OrderItem> items;
+    private List<OrderItem> items;
 
     /**
      * Дата создания

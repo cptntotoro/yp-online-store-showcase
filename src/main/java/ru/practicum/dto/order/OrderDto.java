@@ -1,7 +1,5 @@
 package ru.practicum.dto.order;
 
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import lombok.*;
 import ru.practicum.model.order.OrderStatus;
 
@@ -26,7 +24,6 @@ public class OrderDto {
     /**
      * Статус заказа
      */
-    @Enumerated(EnumType.STRING)
     private OrderStatus status;
 
     /**

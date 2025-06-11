@@ -36,11 +36,9 @@ public class OrderDao {
     @Column("user_uuid")
     private UUID userUuid;
 
-//    /**
-//     * Корзина
-//     */
-//    private Cart cart;
-
+    /**
+     * Идентификатор корзины
+     */
     @Column("cart_uuid")
     private UUID cartUuid;
 
@@ -54,11 +52,6 @@ public class OrderDao {
      */
     @Column("total_amount")
     private BigDecimal totalPrice;
-
-//    /**
-//     * Товары заказа
-//     */
-//    private List<OrderItem> items = new ArrayList<>();
 
     /**
      * Дата создания
