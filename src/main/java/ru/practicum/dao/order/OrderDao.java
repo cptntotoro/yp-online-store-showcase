@@ -1,9 +1,6 @@
 package ru.practicum.dao.order;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
@@ -21,6 +18,7 @@ import java.util.UUID;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class OrderDao {
 
     /**
@@ -58,22 +56,4 @@ public class OrderDao {
      */
     @Column("created_at")
     private LocalDateTime createdAt;
-
-//    public Order(UUID userUuid, Cart cart) {
-//        this.userUuid = userUuid;
-//        this.cart = cart;
-//        this.status = OrderStatus.CREATED;
-//        this.totalPrice = cart.getTotalPrice();
-//
-//        // Переносим элементы из корзины в заказ
-//        cart.getItems().forEach(cartItem -> {
-//            OrderItem orderItem = new OrderItem(
-//                    this,
-//                    cartItem.getProduct(),
-//                    cartItem.getQuantity(),
-//                    cartItem.getProduct().getPrice()
-//            );
-//            items.add(orderItem);
-//        });
-//    }
 }
