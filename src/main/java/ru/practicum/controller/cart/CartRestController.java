@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 import ru.practicum.config.WebAttributes;
 import ru.practicum.model.cart.Cart;
+import ru.practicum.service.cart.CartService;
 import ru.practicum.service.cart.CartServiceImpl;
 
 import java.math.BigDecimal;
@@ -17,7 +18,7 @@ public class CartRestController {
     /**
      * Сервис управления корзиной товаров
      */
-    private final CartServiceImpl cartService;
+    private final CartService cartService;
 
     @PostMapping("/add/{productUuid}")
     public Mono<BigDecimal> addToCart(
