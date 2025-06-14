@@ -12,7 +12,6 @@ import ru.practicum.exception.order.IllegalOrderStateException;
 import ru.practicum.exception.order.OrderNotFoundException;
 import ru.practicum.mapper.order.OrderItemMapper;
 import ru.practicum.mapper.order.OrderMapper;
-import ru.practicum.model.cart.Cart;
 import ru.practicum.model.cart.CartItem;
 import ru.practicum.model.order.Order;
 import ru.practicum.model.order.OrderItem;

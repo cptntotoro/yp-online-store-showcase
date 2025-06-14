@@ -3,12 +3,9 @@ package ru.practicum.mapper.order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ru.practicum.dto.order.OrderItemDto;
 import ru.practicum.dto.product.ProductOutDto;
-import ru.practicum.mapper.product.ProductMapper;
-import ru.practicum.mapper.product.ProductMapperImpl;
 import ru.practicum.model.order.OrderItem;
 import ru.practicum.model.product.Product;
 
@@ -16,7 +13,6 @@ import java.math.BigDecimal;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class OrderItemMapperTest {
