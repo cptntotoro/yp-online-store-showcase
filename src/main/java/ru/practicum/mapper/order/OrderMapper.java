@@ -6,6 +6,9 @@ import ru.practicum.dao.order.OrderDao;
 import ru.practicum.dto.order.OrderDto;
 import ru.practicum.mapper.cart.CartMapper;
 import ru.practicum.model.order.Order;
+import ru.practicum.model.order.OrderItem;
+
+import java.util.List;
 
 /**
  * Маппер заказов
@@ -37,5 +40,18 @@ public interface OrderMapper {
      */
     @Mapping(target = "items", ignore = true)
     Order orderDaoToOrder(OrderDao orderDao);
+
+    /**
+     * Смаппить DAO заказа с товарами заказа в заказ
+     *
+     * @param orderDao DAO заказа
+     * @param items Товары заказа
+     * @return Заказ
+     */
+    default Order orderDaoToOrderWithItems(OrderDao orderDao, List<OrderItem> items) {
+        Order order = orderDaoToOrder(orderDao);
+        order.setItems(items);
+        return order;
+    }
 
 }

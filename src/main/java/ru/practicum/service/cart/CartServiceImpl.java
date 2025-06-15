@@ -2,6 +2,7 @@ package ru.practicum.service.cart;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -11,7 +12,6 @@ import ru.practicum.mapper.cart.CartItemMapper;
 import ru.practicum.mapper.cart.CartMapper;
 import ru.practicum.model.cart.Cart;
 import ru.practicum.model.cart.CartItem;
-import ru.practicum.model.product.Product;
 import ru.practicum.repository.cart.CartItemRepository;
 import ru.practicum.repository.cart.CartRepository;
 import ru.practicum.service.product.ProductService;
@@ -59,14 +59,12 @@ public class CartServiceImpl implements CartService {
     private final CartItemMapper cartItemMapper;
 
     @Override
+    @Transactional(propagation = Propagation.MANDATORY)
     public Mono<Cart> createGuest(UUID userUuid) {
         Cart newCart = Cart.builder()
-                .uuid(UUID.randomUUID())
                 .userUuid(userUuid)
                 .items(new ArrayList<>())
                 .totalPrice(BigDecimal.ZERO)
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
                 .build();
 
         return cartRepository.save(cartMapper.cartToCartDao(newCart))
@@ -95,40 +93,55 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
+    @Transactional
     public Mono<Cart> addToCart(UUID userUuid, UUID productUuid, int quantity) {
         if (quantity <= 0) {
             return Mono.error(new IllegalCartStateException("Количество товара не может быть меньше или равно нулю"));
         }
 
-        return Mono.zip(get(userUuid), productService.getByUuid(productUuid))
-                .flatMap(tuple -> {
-                    Cart cart = tuple.getT1();
-                    Product product = tuple.getT2();
+        // Получаем корзину или создаем новую, если не существует
+        return get(userUuid)
+                .flatMap(cart -> productService.getByUuid(productUuid)
+                        .flatMap(product -> {
+                            // Создаем копию списка элементов для безопасного изменения
+                            List<CartItem> updatedItems = new ArrayList<>(cart.getItems());
 
-                    List<CartItem> items = new ArrayList<>(cart.getItems());
+                            // Ищем существующий товар в корзине
+                            Optional<CartItem> existingItem = updatedItems.stream()
+                                    .filter(item -> item.getProduct().getUuid().equals(product.getUuid()))
+                                    .findFirst();
 
-                    Optional<CartItem> existing = items.stream()
-                            .filter(item -> item.getProduct().getUuid().equals(product.getUuid()))
-                            .findFirst();
+                            if (existingItem.isPresent()) {
+                                // Обновляем количество существующего товара
+                                CartItem item = existingItem.get();
+                                item.setQuantity(item.getQuantity() + quantity);
+                            } else {
+                                // Добавляем новый товар в корзину
+                                updatedItems.add(CartItem.builder()
+                                        .cartUuid(cart.getUuid())
+                                        .product(product)
+                                        .quantity(quantity)
+                                        .build());
+                            }
 
-                    if (existing.isPresent()) {
-                        existing.get().setQuantity(existing.get().getQuantity() + quantity);
-                    } else {
-                        items.add(new CartItem(UUID.randomUUID(), cart.getUuid(), product, quantity, LocalDateTime.now()));
-                    }
+                            // Обновляем корзину
+                            cart.setItems(updatedItems);
+                            cart.setUpdatedAt(LocalDateTime.now());
 
-                    cart.setItems(items);
-
-                    return updateCartTotal(cart)
-                            .flatMap(updatedCart -> {
-                                CartDao cartDao = cartMapper.cartToCartDao(updatedCart);
-                                cartDao.setUpdatedAt(LocalDateTime.now());
-                                return cartRepository.save(cartDao)
-                                        .then(saveCartItems(updatedCart.getItems()))
-                                        .thenReturn(updatedCart);
-                            });
-                })
-                .doOnSuccess(saved -> cartCacheService.evict(userUuid));
+                            // Пересчитываем общую сумму и сохраняем изменения
+                            return updateCartTotal(cart)
+                                    .flatMap(updatedCart -> {
+                                        CartDao cartDao = cartMapper.cartToCartDao(updatedCart);
+                                        return cartRepository.save(cartDao)
+                                                .then(saveCartItems(updatedCart.getItems()))
+                                                .thenReturn(updatedCart);
+                                    });
+                        })
+                )
+                .doOnSuccess(cart -> {
+                    // Инвалидируем кэш после успешного обновления
+                    cartCacheService.evict(userUuid);
+                });
     }
 
     @Override
@@ -158,13 +171,14 @@ public class CartServiceImpl implements CartService {
         return get(userUuid)
                 .flatMap(cart ->
                         cartItemRepository.deleteByCartUuid(cart.getUuid())
-                                .then(cartRepository.save(new CartDao(
-                                        cart.getUuid(),
-                                        cart.getUserUuid(),
-                                        BigDecimal.ZERO,
-                                        cart.getCreatedAt(),
-                                        LocalDateTime.now()
-                                )))
+                                .then(cartRepository.save(
+                                        CartDao.builder()
+                                                .uuid(cart.getUuid())
+                                                .userUuid(cart.getUserUuid())
+                                                .totalPrice(BigDecimal.ZERO)
+                                                .updatedAt(LocalDateTime.now())
+                                                .build()
+                                ))
                 )
                 .then()
                 .doOnSuccess(unused -> cartCacheService.evict(userUuid));

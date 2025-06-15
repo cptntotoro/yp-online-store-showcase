@@ -28,7 +28,9 @@ public class ProductCacheServiceImpl implements ProductCacheService {
     @Cacheable("products")
     @Override
     public Flux<Product> getAllProducts() {
-        return productRepository.findAll().map(productMapper::productDaoToProduct).cache();
+        return productRepository.findAll()
+                .map(productMapper::productDaoToProduct)
+                .cache();
     }
 
     /**

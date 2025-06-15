@@ -6,7 +6,6 @@ import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import ru.practicum.dao.order.OrderDao;
-import ru.practicum.dao.order.OrderItemDao;
 import ru.practicum.exception.cart.IllegalCartStateException;
 import ru.practicum.exception.order.IllegalOrderStateException;
 import ru.practicum.exception.order.OrderNotFoundException;
@@ -23,6 +22,7 @@ import ru.practicum.service.cart.CartService;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -64,41 +64,33 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     public Mono<Order> create(UUID userUuid) {
         return cartService.get(userUuid)
+                .filter(cart -> !cart.getItems().isEmpty())
+                .switchIfEmpty(Mono.error(new IllegalCartStateException("Нельзя создать заказ из пустой корзины")))
                 .flatMap(cart -> {
-                    List<CartItem> items = cart.getItems();
-                    if (items.isEmpty()) {
-                        return Mono.error(new IllegalCartStateException("Нельзя создать заказ из пустой корзины"));
-                    }
-
-                    UUID orderUuid = UUID.randomUUID();
-                    LocalDateTime createdAt = LocalDateTime.now();
-
-                    List<OrderItem> orderItems = items.stream()
-                            .map(cartItem -> new OrderItem(
-                                    UUID.randomUUID(),
-                                    orderUuid,
-                                    cartItem.getProduct().getUuid(),
-                                    cartItem.getQuantity(),
-                                    cartItem.getProduct().getPrice()
-                            )).toList();
-
-                    BigDecimal total = calculateOrderTotal(orderItems);
+                    BigDecimal total = calculateCartTotal(cart.getItems());
                     if (total.compareTo(BigDecimal.ZERO) <= 0) {
                         return Mono.error(new IllegalOrderStateException("Сумма заказа должна быть больше нуля"));
                     }
 
-                    Order order = new Order(orderUuid, userUuid, cart.getUuid(), OrderStatus.CREATED, total,
-                            orderItems, createdAt);
-                    OrderDao orderDao = orderMapper.orderToOrderDao(order);
+                    return orderRepository.save(orderMapper.orderToOrderDao(
+                                    new Order(null, userUuid, cart.getUuid(),
+                                            OrderStatus.CREATED, total, null, LocalDateTime.now())))
+                            .flatMap(savedOrder -> {
+                                List<OrderItem> items = cart.getItems().stream()
+                                        .map(ci -> OrderItem.builder()
+                                                .orderUuid(savedOrder.getUuid())
+                                                .productUuid(ci.getProduct().getUuid())
+                                                .quantity(ci.getQuantity())
+                                                .priceAtOrder(ci.getProduct().getPrice())
+                                                .build())
+                                        .collect(Collectors.toList());
 
-                    List<OrderItemDao> orderItemDaos = orderItems.stream()
-                            .map(orderItemMapper::orderItemToOrderItemDao)
-                            .toList();
-
-                    return orderRepository.save(orderDao)
-                            .thenMany(orderItemRepository.saveAll(orderItemDaos))
-                            .then(cartService.clear(userUuid))
-                            .thenReturn(order);
+                                return orderItemRepository.saveAll(items.stream()
+                                                .map(orderItemMapper::orderItemToOrderItemDao)
+                                                .collect(Collectors.toList()))
+                                        .then(cartService.clear(userUuid))
+                                        .thenReturn(orderMapper.orderDaoToOrderWithItems(savedOrder, items));
+                            });
                 });
     }
 
@@ -161,14 +153,14 @@ public class OrderServiceImpl implements OrderService {
     }
 
     /**
-     * Расчитать стоимость товаров в заказе
+     * Расчитать стоимость товаров в корзине / заказе
      *
-     * @param items Список товаров заказа
-     * @return Стоимость товаров в заказе
+     * @param cartItems Список товаров корзины
+     * @return Стоимость товаров в корзине / заказе
      */
-    private BigDecimal calculateOrderTotal(List<OrderItem> items) {
-        return items.stream()
-                .map(OrderItem::getTotalPrice)
+    private BigDecimal calculateCartTotal(List<CartItem> cartItems) {
+        return cartItems.stream()
+                .map(item -> item.getProduct().getPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 }
