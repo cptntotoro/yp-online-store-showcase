@@ -30,18 +30,22 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public Mono<User> add() {
+        UUID userUuid = UUID.randomUUID();
+
         User newUser = User.builder()
-                .uuid(UUID.randomUUID())
-                .username("guest")
+                .uuid(userUuid)
+                .username("guest_" + userUuid.toString().substring(0, 8))
                 .createdAt(LocalDateTime.now())
                 .build();
 
-        UserDao newUserDao = userMapper.userToUserDao(newUser);
-
-        return userRepository.save(newUserDao)
-                .flatMap(savedDao -> cartService.createGuest(savedDao.getUuid())
-                        .thenReturn(userMapper.userDaoToUser(savedDao)))
-                .onErrorResume(e -> Mono.error(new RuntimeException("Ошибка создания гостевого пользователя и его корзины.", e)));
+        return userRepository.save(userMapper.userToUserDao(newUser))
+                .flatMap(savedUser -> {
+                    return cartService.createGuest(savedUser.getUuid())
+                            .thenReturn(userMapper.userDaoToUser(savedUser));
+                })
+                .onErrorResume(e -> {
+                    return Mono.error(new RuntimeException("Failed to create guest user and cart. Please try again."));
+                });
     }
 
     @Override

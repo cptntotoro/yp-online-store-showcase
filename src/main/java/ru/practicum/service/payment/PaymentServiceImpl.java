@@ -23,19 +23,11 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     public Mono<Void> checkout(UUID userUuid, UUID orderUuid, String cardNumber) {
-        return validateCardNumber(cardNumber)
-                .then(orderService.checkout(userUuid, orderUuid));
-    }
-
-    /**
-     * Проверить номер карты
-     *
-     * @param cardNumber Номер карты
-     */
-    private Mono<Void> validateCardNumber(String cardNumber) {
-        if (cardNumber == null || !cardNumber.matches(CARD_FORMAT_REGEX)) {
-            return Mono.error(new PaymentProcessingException("Некорректный номер карты."));
-        }
-        return Mono.empty();
+        return Mono.defer(() -> {
+            if (cardNumber == null || !cardNumber.matches(CARD_FORMAT_REGEX)) {
+                return Mono.error(new PaymentProcessingException("Некорректный номер карты."));
+            }
+            return orderService.checkout(userUuid, orderUuid);
+        });
     }
 }

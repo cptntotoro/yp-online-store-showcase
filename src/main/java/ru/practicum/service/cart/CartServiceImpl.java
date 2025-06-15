@@ -60,7 +60,7 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public Mono<Cart> createGuest(UUID userUuid) {
-        Cart cart = Cart.builder()
+        Cart newCart = Cart.builder()
                 .uuid(UUID.randomUUID())
                 .userUuid(userUuid)
                 .items(new ArrayList<>())
@@ -69,8 +69,9 @@ public class CartServiceImpl implements CartService {
                 .updatedAt(LocalDateTime.now())
                 .build();
 
-        return cartRepository.save(cartMapper.cartToCartDao(cart))
-                .thenReturn(cart);
+        return cartRepository.save(cartMapper.cartToCartDao(newCart))
+                .map(cartMapper::cartDaoToCart)
+                .onErrorResume(e -> Mono.error(new IllegalCartStateException("Ошибка создания корзины.")));
     }
 
     @Override
