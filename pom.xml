@@ -17,7 +17,13 @@
 
     <name>Yandex Practicum | Онлайн Витрина Магазина</name>
     <description>Online Store Showcase for Yandex Practicum</description>
-    <packaging>jar</packaging>
+
+    <modules>
+        <module>showcase-service</module>
+        <module>payment-service</module>
+    </modules>
+
+    <packaging>pom</packaging>
 
     <properties>
         <java.version>21</java.version>
@@ -64,6 +70,10 @@
         <dependency>
             <groupId>com.github.ben-manes.caffeine</groupId>
             <artifactId>caffeine</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
         </dependency>
 
         <!-- Database -->
@@ -117,7 +127,7 @@
         <finalName>${project.artifactId}</finalName>
         <resources>
             <resource>
-                <directory>src/main/resources</directory>
+                <directory>showcase-service/src/main/resources</directory>
                 <filtering>true</filtering>
             </resource>
         </resources>
@@ -132,7 +142,7 @@
                             <artifactId>lombok</artifactId>
                         </exclude>
                     </excludes>
-                    <mainClass>ru.practicum.Application</mainClass>
+                    <mainClass>ru.practicum.ShowcaseApplication</mainClass>
                 </configuration>
                 <executions>
                     <execution>

@@ -44,6 +44,14 @@ services:
       timeout: 5s
       retries: 5
 
+  redis:
+    image: redis:7.2
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+
   test:
     build:
       context: .
@@ -88,4 +96,5 @@ services:
 
 volumes:
   postgres_data:
+  redis_data:
   test_db_data:

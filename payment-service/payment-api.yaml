@@ -1,0 +1,181 @@
+openapi: 3.0.3
+info:
+  title: Payment Service API
+  description: API для обработки платежей и возвратов интернет-магазина
+  version: 1.0.0
+servers:
+  - url: http://localhost:8081/api/payment
+    description: Локальный сервер (базовый путь /payment)
+
+paths:
+  /balance/{userId}:
+    get:
+      tags:
+        - Payment
+      summary: Получение баланса пользователя
+      operationId: getBalance
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: UUID пользователя
+      responses:
+        '200':
+          description: Успешное получение баланса
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BalanceResponse'
+        '404':
+          description: Пользователь не найден
+        '500':
+          description: Ошибка сервера
+
+  /process:
+    post:
+      tags:
+        - Payment
+      summary: Обработка платежа
+      operationId: processPayment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentRequest'
+      responses:
+        '200':
+          description: Платеж успешно обработан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentResponse'
+        '400':
+          description: Неверный запрос
+        '402':
+          description: Недостаточно средств
+        '404':
+          description: Пользователь не найден
+        '500':
+          description: Ошибка сервера
+
+  /refund:
+    post:
+      tags:
+        - Payment
+      summary: Обработка возврата средств
+      operationId: processRefund
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefundRequest'
+      responses:
+        '200':
+          description: Возврат успешно обработан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefundResponse'
+        '400':
+          description: Неверный запрос
+        '404':
+          description: Пользователь не найден
+        '500':
+          description: Ошибка сервера
+
+components:
+  schemas:
+    BalanceResponse:
+      type: object
+      properties:
+        userId:
+          type: string
+          format: uuid
+          description: ID пользователя
+        balance:
+          type: number
+          format: double
+          description: Текущий баланс
+          example: 1500.50
+
+    PaymentRequest:
+      type: object
+      required:
+        - userId
+        - amount
+      properties:
+        userId:
+          type: string
+          format: uuid
+          description: ID пользователя
+        amount:
+          type: number
+          format: double
+          description: Сумма платежа
+          example: 999.99
+        orderId:
+          type: string
+          format: uuid
+          description: ID заказа (опционально)
+
+    PaymentResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Успешность операции
+        transactionId:
+          type: string
+          format: uuid
+          description: ID транзакции
+        newBalance:
+          type: number
+          format: double
+          description: Новый баланс
+        message:
+          type: string
+          description: Сообщение о результате
+
+    RefundRequest:
+      type: object
+      required:
+        - userId
+        - amount
+        - orderId
+      properties:
+        userId:
+          type: string
+          format: uuid
+          description: ID пользователя
+        amount:
+          type: number
+          format: double
+          description: Сумма возврата
+          example: 500.00
+        orderId:
+          type: string
+          format: uuid
+          description: ID заказа для возврата
+
+    RefundResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Успешность операции
+        transactionId:
+          type: string
+          format: uuid
+          description: ID транзакции возврата
+        newBalance:
+          type: number
+          format: double
+          description: Новый баланс после возврата
+        message:
+          type: string
+          description: Сообщение о результате возврата
