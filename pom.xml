@@ -8,16 +8,21 @@
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>3.4.5</version>
-        <relativePath/>
+        <relativePath />
     </parent>
 
     <groupId>ru.practicum</groupId>
     <artifactId>yp-online-store</artifactId>
     <version>1.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
 
-    <name>Yandex Practicum | Онлайн Витрина Магазина</name>
-    <description>Online Store Showcase for Yandex Practicum</description>
-    <packaging>jar</packaging>
+    <name>Online Store Showcase</name>
+    <description>Online Store Showcase</description>
+
+    <modules>
+        <module>showcase-service</module>
+        <module>payment-service</module>
+    </modules>
 
     <properties>
         <java.version>21</java.version>
@@ -26,8 +31,8 @@
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
         <lombok.version>1.18.30</lombok.version>
-        <maven-surefire-plugin.version>3.1.2</maven-surefire-plugin.version>
-        <jacoco.version>0.8.11</jacoco.version>
+        <maven-surefire-plugin.version>3.2.2</maven-surefire-plugin.version>
+        <jacoco.version>0.8.12</jacoco.version>
         <testcontainers.version>1.21.0</testcontainers.version>
         <mapstruct.version>1.6.3</mapstruct.version>
     </properties>
@@ -45,25 +50,11 @@
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-thymeleaf</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
-        </dependency>
-
-        <!-- Cache -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-cache</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.github.ben-manes.caffeine</groupId>
-            <artifactId>caffeine</artifactId>
         </dependency>
 
         <!-- Database -->
@@ -114,14 +105,26 @@
     </dependencies>
 
     <build>
-        <finalName>${project.artifactId}</finalName>
-        <resources>
-            <resource>
-                <directory>src/main/resources</directory>
-                <filtering>true</filtering>
-            </resource>
-        </resources>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>${lombok.version}</version>
+                        </path>
+                        <path>
+                            <groupId>org.mapstruct</groupId>
+                            <artifactId>mapstruct-processor</artifactId>
+                            <version>${mapstruct.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
+
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
@@ -132,7 +135,6 @@
                             <artifactId>lombok</artifactId>
                         </exclude>
                     </excludes>
-                    <mainClass>ru.practicum.Application</mainClass>
                 </configuration>
                 <executions>
                     <execution>
@@ -145,37 +147,16 @@
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <parameters>true</parameters>
-                    <generatedSourcesDirectory>${project.build.directory}/generated-sources/</generatedSourcesDirectory>
-                    <annotationProcessorPaths>
-                        <path>
-                            <groupId>org.projectlombok</groupId>
-                            <artifactId>lombok</artifactId>
-                            <version>${lombok.version}</version>
-                        </path>
-                        <path>
-                            <groupId>org.mapstruct</groupId>
-                            <artifactId>mapstruct-processor</artifactId>
-                            <version>${mapstruct.version}</version>
-                        </path>
-                        <path>
-                            <groupId>org.projectlombok</groupId>
-                            <artifactId>lombok-mapstruct-binding</artifactId>
-                            <version>0.2.0</version>
-                        </path>
-                    </annotationProcessorPaths>
-                </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
+                <version>${maven-surefire-plugin.version}</version>
                 <configuration>
+                    <argLine>@{argLine} -Dspring.profiles.active=test</argLine>
                     <systemPropertyVariables>
                         <spring.profiles.active>test</spring.profiles.active>
                     </systemPropertyVariables>
+                    <includes>
+                        <include>**/*Test.java</include>
+                    </includes>
                 </configuration>
             </plugin>
 
@@ -196,34 +177,6 @@
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>${jacoco.version}</version>
-                <configuration>
-                    <excludes>
-                        <exclude>**/exception/**</exclude>
-                        <exclude>**/filter/**</exclude>
-                        <exclude>**/config/**</exclude>
-                        <exclude>**/dao/**</exclude>
-                        <exclude>**/dto/**</exclude>
-                        <exclude>**/model/**</exclude>
-                        <exclude>**/mapper/**</exclude>
-                    </excludes>
-                    <rules>
-                        <rule>
-                            <element>BUNDLE</element>
-                            <limits>
-                                <limit>
-                                    <counter>LINE</counter>
-                                    <value>COVEREDRATIO</value>
-                                    <minimum>0.60</minimum>
-                                </limit>
-                                <limit>
-                                    <counter>BRANCH</counter>
-                                    <value>COVEREDRATIO</value>
-                                    <minimum>0.60</minimum>
-                                </limit>
-                            </limits>
-                        </rule>
-                    </rules>
-                </configuration>
                 <executions>
                     <execution>
                         <id>prepare-agent</id>
@@ -238,20 +191,26 @@
                             <goal>report</goal>
                         </goals>
                     </execution>
-                    <execution>
-                        <id>check-coverage</id>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>check</goal>
-                        </goals>
-                    </execution>
                 </executions>
+                <configuration>
+                    <excludes>
+                        <exclude>**/exception/**</exclude>
+                        <exclude>**/config/**</exclude>
+                        <exclude>**/dto/**</exclude>
+                        <exclude>**/dao/**</exclude>
+                        <exclude>**/filter/**</exclude>
+                        <exclude>**/model/**</exclude>
+                    </excludes>
+                </configuration>
             </plugin>
         </plugins>
     </build>
     <profiles>
         <profile>
             <id>coverage</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
             <build>
                 <plugins>
                     <plugin>

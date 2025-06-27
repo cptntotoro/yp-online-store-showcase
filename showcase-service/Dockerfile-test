@@ -1,0 +1,48 @@
+FROM maven:3.9.6-eclipse-temurin-21
+
+# Установка утилит
+RUN apt-get update && apt-get install -y \
+    iputils-ping \
+    dnsutils \
+    netcat-openbsd \
+    postgresql-client \
+    curl \
+    gnupg \
+    lsb-release \
+    && rm -rf /var/lib/apt/lists/*
+
+# Установка Docker CLI
+RUN mkdir -p /etc/apt/keyrings && \
+    curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg && \
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian bullseye stable" > /etc/apt/sources.list.d/docker.list && \
+    apt-get update && \
+    apt-get install -y docker-ce-cli && \
+    rm -rf /var/lib/apt/lists/*
+
+# Настройка рабочей директории
+WORKDIR /app
+
+COPY pom.xml .
+COPY showcase-service/pom.xml ./showcase-service/
+COPY showcase-service/src ./showcase-service/src/
+
+# Настройки для TestContainers
+ENV TESTCONTAINERS_RYUK_DISABLED=true
+ENV TESTCONTAINERS_CHECKS_DISABLE=true
+ENV DOCKER_HOST=unix:///var/run/docker.sock
+
+# Сборка проекта
+RUN mvn --non-recursive install && \
+    mvn -f showcase-service/pom.xml compile test-compile
+
+# Проверка доступности сервисов и запуск тестов
+CMD ["sh", "-c", "\
+     until pg_isready -h test-db -p 5432 -U postgres -d test_db; do \
+       sleep 1; \
+       echo 'Waiting for PostgreSQL...'; \
+     done && \
+     until nc -z test-redis 6379; do \
+       sleep 1; \
+       echo 'Waiting for Redis...'; \
+     done && \
+     mvn -f showcase-service/pom.xml test"]

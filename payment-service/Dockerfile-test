@@ -1,0 +1,21 @@
+FROM maven:3.9.6-eclipse-temurin-21
+
+# Установка утилит
+RUN apt-get update && apt-get install -y \
+    iputils-ping \
+    dnsutils \
+    netcat-openbsd \
+    postgresql-client && \
+    rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+COPY pom.xml .
+COPY payment-service/pom.xml ./payment-service/
+COPY payment-service/src ./payment-service/src/
+
+RUN mvn --non-recursive install && \
+    mvn -f payment-service/pom.xml compile test-compile
+
+# Проверка доступности БД перед тестами
+CMD ["sh", "-c", "until nc -z test-db 5432; do sleep 1; echo 'Waiting for DB...'; done && mvn -f payment-service/pom.xml test"]

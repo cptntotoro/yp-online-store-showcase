@@ -6,6 +6,8 @@ on:
 
 jobs:
   build:
+    runs-on: ubuntu-latest
+
     services:
       postgres:
         image: postgres:15-alpine
@@ -21,41 +23,109 @@ jobs:
           --health-timeout 5s
           --health-retries 5
 
-    runs-on: ubuntu-latest
+      redis:
+        image: redis:7.2
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      # Docker-in-Docker for Testcontainers
+      docker:
+        image: docker:dind
+        options: --privileged
 
     steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-    
-    - name: Set up JDK 21
-      uses: actions/setup-java@v4
-      with:
-        java-version: '21'
-        distribution: 'temurin'
-        cache: maven
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-    - name: Generate sources
-      run: mvn compile
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
 
-    - name: Wait for PostgreSQL to be ready
-      run: |
-        for i in {1..10}; do
-          nc -z localhost 5432 && break
-          sleep 2
-        done
+      - name: Set up Docker
+        uses: docker/setup-docker-action@v3
 
-    - name: Run tests with coverage
-      run: mvn -B clean test jacoco:report
-      env:
-        TEST_DATASOURCE_URL: jdbc:postgresql://localhost:5432/test_db
-        POSTGRES_USER: postgres
-        POSTGRES_PASSWORD: postgres
-        SPRING_SQL_INIT_MODE: always
-        SPRING_SQL_INIT_SCHEMA_LOCATIONS: classpath:test-schema.sql
-        SPRING_PROFILES_ACTIVE: test
+      - name: Verify Docker
+        run: |
+          docker version
+          docker run hello-world
 
-    - name: Coveralls GitHub Action
-      uses: coverallsapp/github-action@v2.3.6
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Wait for services to be ready
+        run: |
+          for i in {1..10}; do
+            nc -z localhost 5432 && nc -z localhost 6379 && break
+            sleep 2
+          done
+
+      - name: Build and test with Maven
+        run: |
+          mvn -B clean verify \
+          -Dspring.test.constructor.autowire.mode=all \
+          -Dmaven.test.failure.ignore=false \
+          -Djacoco.skip=false \
+          -Dskip.failsafe.tests=false \
+          -Dskip.surefire.tests=false \
+          -Dspring.test.context.cache.max-size=32
+        env:
+          SPRING_PROFILES_ACTIVE: test
+
+          # PostgreSQL/R2DBC configuration
+          SPRING_R2DBC_URL: r2dbc:postgresql://localhost:5432/test_db
+          SPRING_R2DBC_USERNAME: postgres
+          SPRING_R2DBC_PASSWORD: postgres
+          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/test_db
+          SPRING_DATASOURCE_USERNAME: postgres
+          SPRING_DATASOURCE_PASSWORD: postgres
+
+          # Redis configuration
+          SPRING_REDIS_HOST: localhost
+          SPRING_REDIS_PORT: 6379
+
+          # Testcontainers configuration
+          TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE: /var/run/docker.sock
+          DOCKER_HOST: tcp://docker:2375
+          TESTCONTAINERS_RYUK_DISABLED: "true"
+          TESTCONTAINERS_REUSE_ENABLE: "false"
+          DOCKER_TLS_CERTDIR: ""
+
+          # Increase timeouts
+          SPRING_TEST_CONTEXT_CACHE_MAX_SIZE: 32
+          TESTCONTAINERS_CHECKS_DISABLE: "true"
+          TESTCONTAINERS_WAIT_STRATEGY_TIMEOUT: 5m
+
+      - name: Check test results
+        run: |
+          find . -name "surefire-reports" -type d -exec ls -la {} \;
+          find . -name "TEST-*.xml" -exec grep -H "testsuite" {} \;
+
+      - name: Generate JaCoCo reports
+        run: |
+          mvn -pl showcase-service jacoco:report
+          mvn -pl payment-service jacoco:report
+          
+          echo "Showcase service coverage report:"
+          cat showcase-service/target/site/jacoco/jacoco.xml
+          echo "Payment service coverage report:"
+          cat payment-service/target/site/jacoco/jacoco.xml
+
+      - name: Upload coverage to Coveralls
+        uses: coverallsapp/github-action@v2.3.6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path-to-lcov: showcase-service/target/site/jacoco/jacoco.xml
+          flag-name: showcase
+
+      - name: Upload payment coverage
+        uses: coverallsapp/github-action@v2.3.6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path-to-lcov: payment-service/target/site/jacoco/jacoco.xml
+          flag-name: payment
