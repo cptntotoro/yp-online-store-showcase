@@ -7,16 +7,7 @@ import lombok.Getter;
  */
 @Getter
 public enum TransactionType {
-    DEPOSIT("Пополнение"),
-    WITHDRAWAL("Снятие"),
-    REFUND("Возврат");
-
-    /**
-     * Название типа транзакции
-     */
-    private final String displayName;
-
-    TransactionType(String displayName) {
-        this.displayName = displayName;
-    }
+    DEPOSIT,
+    WITHDRAWAL,
+    REFUND;
 }

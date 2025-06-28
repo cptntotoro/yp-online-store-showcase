@@ -61,47 +61,51 @@ class PaymentServiceTest {
         orderId = UUID.randomUUID();
         amount = new BigDecimal("100.50");
 
-        userBalanceDao = new UserBalanceDao();
-        userBalanceDao.setUserUuid(userId);
-        userBalanceDao.setAmount(new BigDecimal("200.00"));
+        userBalanceDao = UserBalanceDao.builder()
+                .userUuid(userId)
+                .amount(new BigDecimal("200.00"))
+                .build();
 
-        userBalance = new UserBalance();
-        userBalance.setUserUuid(userId);
-        userBalance.setAmount(new BigDecimal("200.00"));
+        userBalance = UserBalance.builder()
+                .userUuid(userId)
+                .amount(new BigDecimal("200.00"))
+                .build();
 
-        // Мок для успешной транзакции
-        PaymentTransactionDao successTransactionDao = new PaymentTransactionDao();
-        successTransactionDao.setTransactionUuid(UUID.randomUUID());
-        successTransactionDao.setUserUuid(userId);
-        successTransactionDao.setOrderUuid(orderId);
-        successTransactionDao.setAmount(amount);
-        successTransactionDao.setTransactionType(TransactionType.WITHDRAWAL);
-        successTransactionDao.setStatus(TransactionStatus.COMPLETED);
+        PaymentTransactionDao successTransactionDao = PaymentTransactionDao.builder()
+                .transactionUuid(UUID.randomUUID())
+                .userUuid(userId)
+                .orderUuid(orderId)
+                .amount(amount)
+                .transactionType(TransactionType.WITHDRAWAL)
+                .status(TransactionStatus.COMPLETED)
+                .build();
 
-        PaymentTransaction successTransaction = new PaymentTransaction();
-        successTransaction.setTransactionUuid(successTransactionDao.getTransactionUuid());
-        successTransaction.setUserUuid(userId);
-        successTransaction.setOrderUuid(orderId);
-        successTransaction.setAmount(amount);
-        successTransaction.setTransactionType(TransactionType.WITHDRAWAL);
-        successTransaction.setStatus(TransactionStatus.COMPLETED);
+        PaymentTransaction successTransaction = PaymentTransaction.builder()
+                .transactionUuid(successTransactionDao.getTransactionUuid())
+                .userUuid(userId)
+                .orderUuid(orderId)
+                .amount(amount)
+                .transactionType(TransactionType.WITHDRAWAL)
+                .status(TransactionStatus.COMPLETED)
+                .build();
 
-        // Мок для неудачной транзакции
-        failedTransactionDao = new PaymentTransactionDao();
-        failedTransactionDao.setTransactionUuid(UUID.randomUUID());
-        failedTransactionDao.setUserUuid(userId);
-        failedTransactionDao.setOrderUuid(orderId);
-        failedTransactionDao.setAmount(amount);
-        failedTransactionDao.setTransactionType(TransactionType.WITHDRAWAL);
-        failedTransactionDao.setStatus(TransactionStatus.FAILED);
+        failedTransactionDao = PaymentTransactionDao.builder()
+                .transactionUuid(UUID.randomUUID())
+                .userUuid(userId)
+                .orderUuid(orderId)
+                .amount(amount)
+                .transactionType(TransactionType.WITHDRAWAL)
+                .status(TransactionStatus.FAILED)
+                .build();
 
-        failedTransaction = new PaymentTransaction();
-        failedTransaction.setTransactionUuid(failedTransactionDao.getTransactionUuid());
-        failedTransaction.setUserUuid(userId);
-        failedTransaction.setOrderUuid(orderId);
-        failedTransaction.setAmount(amount);
-        failedTransaction.setTransactionType(TransactionType.WITHDRAWAL);
-        failedTransaction.setStatus(TransactionStatus.FAILED);
+        failedTransaction = PaymentTransaction.builder()
+                .transactionUuid(failedTransactionDao.getTransactionUuid())
+                .userUuid(userId)
+                .orderUuid(orderId)
+                .amount(amount)
+                .transactionType(TransactionType.WITHDRAWAL)
+                .status(TransactionStatus.FAILED)
+                .build();
 
         when(userBalanceMapper.userBalanceDaoToUserBalance(any(UserBalanceDao.class)))
                 .thenReturn(userBalance);
@@ -170,13 +174,15 @@ class PaymentServiceTest {
         when(userBalanceRepository.findByUserUuid(userId))
                 .thenReturn(Mono.just(userBalanceDao));
 
-        UserBalanceDao updatedBalanceDao = new UserBalanceDao();
-        updatedBalanceDao.setUserUuid(userId);
-        updatedBalanceDao.setAmount(new BigDecimal("99.50"));
+        UserBalanceDao updatedBalanceDao = UserBalanceDao.builder()
+                .userUuid(userId)
+                .amount(new BigDecimal("99.50"))
+                .build();
 
-        UserBalance updatedBalance = new UserBalance();
-        updatedBalance.setUserUuid(userId);
-        updatedBalance.setAmount(new BigDecimal("99.50"));
+        UserBalance updatedBalance = UserBalance.builder()
+                .userUuid(userId)
+                .amount(new BigDecimal("99.50"))
+                .build();
 
         when(userBalanceRepository.deductBalance(userId, amount))
                 .thenReturn(Mono.just(updatedBalanceDao));
@@ -201,39 +207,40 @@ class PaymentServiceTest {
 
     @Test
     void processRefund_shouldProcessSuccessfulRefund() {
-        // Подготовка данных
-        UserBalanceDao updatedBalanceDao = new UserBalanceDao();
-        updatedBalanceDao.setUserUuid(userId);
-        updatedBalanceDao.setAmount(new BigDecimal("300.50"));
+        UserBalanceDao updatedBalanceDao = UserBalanceDao.builder()
+                .userUuid(userId)
+                .amount(new BigDecimal("300.50"))
+                .build();
 
-        UserBalance updatedBalance = new UserBalance();
-        updatedBalance.setUserUuid(userId);
-        updatedBalance.setAmount(new BigDecimal("300.50"));
+        UserBalance updatedBalance = UserBalance.builder()
+                .userUuid(userId)
+                .amount(new BigDecimal("300.50"))
+                .build();
 
-        // Создаем специфичные моки для refund транзакции
-        PaymentTransactionDao refundTransactionDao = new PaymentTransactionDao();
-        refundTransactionDao.setTransactionUuid(UUID.randomUUID());
-        refundTransactionDao.setUserUuid(userId);
-        refundTransactionDao.setOrderUuid(orderId);
-        refundTransactionDao.setAmount(amount);
-        refundTransactionDao.setTransactionType(TransactionType.REFUND);
-        refundTransactionDao.setStatus(TransactionStatus.COMPLETED);
+        UUID transactionId = UUID.randomUUID();
+        PaymentTransactionDao refundTransactionDao = PaymentTransactionDao.builder()
+                .transactionUuid(transactionId)
+                .userUuid(userId)
+                .orderUuid(orderId)
+                .amount(amount)
+                .transactionType(TransactionType.REFUND)
+                .status(TransactionStatus.COMPLETED)
+                .build();
 
-        PaymentTransaction refundTransaction = new PaymentTransaction();
-        refundTransaction.setTransactionUuid(refundTransactionDao.getTransactionUuid());
-        refundTransaction.setUserUuid(userId);
-        refundTransaction.setOrderUuid(orderId);
-        refundTransaction.setAmount(amount);
-        refundTransaction.setTransactionType(TransactionType.REFUND);
-        refundTransaction.setStatus(TransactionStatus.COMPLETED);
+        PaymentTransaction refundTransaction = PaymentTransaction.builder()
+                .transactionUuid(transactionId)
+                .userUuid(userId)
+                .orderUuid(orderId)
+                .amount(amount)
+                .transactionType(TransactionType.REFUND)
+                .status(TransactionStatus.COMPLETED)
+                .build();
 
-        // Настройка моков
         when(userBalanceRepository.addToBalance(userId, amount))
                 .thenReturn(Mono.just(updatedBalanceDao));
         when(userBalanceMapper.userBalanceDaoToUserBalance(updatedBalanceDao))
                 .thenReturn(updatedBalance);
 
-        // Переопределяем маппер для refund случая
         when(paymentTransactionMapper.paymentTransactionToPaymentTransactionDao(argThat(t ->
                 t.getTransactionType() == TransactionType.REFUND)))
                 .thenReturn(refundTransactionDao);
@@ -246,7 +253,6 @@ class PaymentServiceTest {
                 d.getTransactionType() == TransactionType.REFUND)))
                 .thenReturn(Mono.just(refundTransactionDao));
 
-        // Выполнение и проверки
         StepVerifier.create(paymentService.processRefund(userId, amount, orderId))
                 .assertNext(result -> {
                     assertNotNull(result);
@@ -268,11 +274,11 @@ class PaymentServiceTest {
     @Test
     void processRefund_shouldHandleRefundError() {
         when(userBalanceRepository.addToBalance(userId, amount))
-                .thenReturn(Mono.error(new RuntimeException("Refund error")));
+                .thenReturn(Mono.error(new RuntimeException("Ошибка возврата средств")));
 
         StepVerifier.create(paymentService.processRefund(userId, amount, orderId))
                 .expectErrorMatches(e -> e instanceof RuntimeException &&
-                        e.getMessage().equals("Refund error"))
+                        e.getMessage().equals("Ошибка возврата средств"))
                 .verify();
 
         verify(transactionRepository, never()).save(any());
@@ -284,11 +290,11 @@ class PaymentServiceTest {
                 .thenReturn(Mono.just(userBalanceDao));
 
         when(userBalanceRepository.deductBalance(userId, amount))
-                .thenReturn(Mono.error(new RuntimeException("Balance update error")));
+                .thenReturn(Mono.error(new RuntimeException("Ошибка обновления баланса средств пользователя")));
 
         StepVerifier.create(paymentService.processPayment(userId, amount, orderId))
                 .expectErrorMatches(e -> e instanceof RuntimeException &&
-                        e.getMessage().equals("Balance update error"))
+                        e.getMessage().equals("Ошибка обновления баланса средств пользователя"))
                 .verify();
 
         verify(transactionRepository, never()).save(any());

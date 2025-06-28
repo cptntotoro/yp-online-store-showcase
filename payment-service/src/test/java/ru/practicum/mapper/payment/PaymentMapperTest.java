@@ -23,16 +23,18 @@ class PaymentMapperTest {
         UUID userId = UUID.randomUUID();
         UUID transactionId = UUID.randomUUID();
 
-        PaymentTransaction transaction = new PaymentTransaction();
-        transaction.setUserUuid(userId);
-        transaction.setTransactionUuid(transactionId);
+        PaymentTransaction transaction = PaymentTransaction.builder()
+                .userUuid(userId)
+                .transactionUuid(transactionId)
+                .build();
 
         UserBalance updatedBalance = new UserBalance();
         updatedBalance.setAmount(BigDecimal.valueOf(500.75));
 
-        PaymentResult result = new PaymentResult();
-        result.setTransaction(transaction);
-        result.setUpdatedBalance(updatedBalance);
+        PaymentResult result = PaymentResult.builder()
+                .transaction(transaction)
+                .updatedBalance(updatedBalance)
+                .build();
 
         PaymentResponseDto dto = paymentMapper.paymentResultToPaymentResponse(result);
 
@@ -47,18 +49,20 @@ class PaymentMapperTest {
         UUID userId = UUID.randomUUID();
         UUID transactionId = UUID.randomUUID();
 
-        PaymentTransaction transaction = new PaymentTransaction();
-        transaction.setUserUuid(userId);
-        transaction.setTransactionUuid(transactionId);
+        PaymentTransaction transaction = PaymentTransaction.builder()
+                .userUuid(userId)
+                .transactionUuid(transactionId)
+                .build();
 
         UserBalance updatedBalance = new UserBalance();
         updatedBalance.setAmount(BigDecimal.valueOf(300.25));
 
-        PaymentResult result = new PaymentResult();
-        result.setTransaction(transaction);
-        result.setUpdatedBalance(updatedBalance);
-        result.setSuccess(true);
-        result.setMessage("Refund processed successfully");
+        PaymentResult result = PaymentResult.builder()
+                .transaction(transaction)
+                .updatedBalance(updatedBalance)
+                .isSuccess(true)
+                .message("Успешный возврат средств")
+                .build();
 
         RefundResponseDto dto = paymentMapper.paymentResultToRefundResponse(result);
 
@@ -67,7 +71,7 @@ class PaymentMapperTest {
         assertThat(dto.getTransactionId()).isEqualTo(transactionId);
         assertThat(dto.getNewBalance()).isEqualTo(BigDecimal.valueOf(300.25));
         assertTrue(dto.isSuccess());
-        assertThat(dto.getMessage()).isEqualTo("Refund processed successfully");
+        assertThat(dto.getMessage()).isEqualTo("Успешный возврат средств");
     }
 
     @Test

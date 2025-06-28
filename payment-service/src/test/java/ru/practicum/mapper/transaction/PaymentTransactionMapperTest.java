@@ -19,10 +19,11 @@ class PaymentTransactionMapperTest {
         UUID transactionId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
 
-        PaymentTransaction transaction = new PaymentTransaction();
-        transaction.setTransactionUuid(transactionId);
-        transaction.setUserUuid(userId);
-        transaction.setAmount(BigDecimal.valueOf(150.50));
+        PaymentTransaction transaction = PaymentTransaction.builder()
+                .transactionUuid(transactionId)
+                .userUuid(userId)
+                .amount(BigDecimal.valueOf(150.50))
+                .build();
 
         PaymentTransactionDao dao = paymentTransactionMapper.paymentTransactionToPaymentTransactionDao(transaction);
 
@@ -37,10 +38,11 @@ class PaymentTransactionMapperTest {
         UUID transactionId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
 
-        PaymentTransactionDao dao = new PaymentTransactionDao();
-        dao.setTransactionUuid(transactionId);
-        dao.setUserUuid(userId);
-        dao.setAmount(BigDecimal.valueOf(250.75));
+        PaymentTransactionDao dao = PaymentTransactionDao.builder()
+                .transactionUuid(transactionId)
+                .userUuid(userId)
+                .amount(BigDecimal.valueOf(250.75))
+                .build();
 
         PaymentTransaction transaction = paymentTransactionMapper.paymentTransactionDaoToPaymentTransaction(dao);
 

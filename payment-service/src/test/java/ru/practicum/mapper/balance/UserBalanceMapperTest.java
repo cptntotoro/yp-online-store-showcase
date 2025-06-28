@@ -18,9 +18,10 @@ class UserBalanceMapperTest {
     @Test
     void shouldMapUserBalanceToUserBalanceDao() {
         UUID userId = UUID.randomUUID();
-        UserBalance userBalance = new UserBalance();
-        userBalance.setUserUuid(userId);
-        userBalance.setAmount(BigDecimal.valueOf(100.50));
+        UserBalance userBalance = UserBalance.builder()
+                .userUuid(userId)
+                .amount(BigDecimal.valueOf(100.50))
+                .build();
 
         UserBalanceDao dao = userBalanceMapper.userBalanceToUserBalanceDao(userBalance);
 
@@ -32,9 +33,10 @@ class UserBalanceMapperTest {
     @Test
     void shouldMapUserBalanceDaoToUserBalance() {
         UUID userId = UUID.randomUUID();
-        UserBalanceDao dao = new UserBalanceDao();
-        dao.setUserUuid(userId);
-        dao.setAmount(BigDecimal.valueOf(200.75));
+        UserBalanceDao dao = UserBalanceDao.builder()
+                .userUuid(userId)
+                .amount(BigDecimal.valueOf(200.75))
+                .build();
 
         UserBalance userBalance = userBalanceMapper.userBalanceDaoToUserBalance(dao);
 
@@ -46,9 +48,10 @@ class UserBalanceMapperTest {
     @Test
     void shouldMapUserBalanceToUserBalanceResponseDto() {
         UUID userId = UUID.randomUUID();
-        UserBalance userBalance = new UserBalance();
-        userBalance.setUserUuid(userId);
-        userBalance.setAmount(BigDecimal.valueOf(300.25));
+        UserBalance userBalance = UserBalance.builder()
+                .userUuid(userId)
+                .amount(BigDecimal.valueOf(300.25))
+                .build();
 
         UserBalanceResponseDto dto = userBalanceMapper.userBalanceToUserBalanceResponseDto(userBalance);
 

@@ -1,9 +1,9 @@
 services:
-  app:
+  showcase-service:
     profiles: ["prod"]
     restart: on-failure
     build:
-      context: .
+      context: ./showcase-service
       dockerfile: Dockerfile
     image: yp-online-showcase
     container_name: "yp-online-showcase"
@@ -52,9 +52,9 @@ services:
       - redis_data:/data
     command: redis-server --appendonly yes
 
-  test:
+  showcase-test:
     build:
-      context: .
+      context: ./showcase-service
       dockerfile: Dockerfile-test
     image: test-image
     container_name: "test-container"
@@ -62,7 +62,6 @@ services:
       - "9090:9090"
     environment:
       SPRING_PROFILES_ACTIVE: test
-      # DB config
       SPRING_DATASOURCE_URL: r2dbc:postgresql://test-db:5432/test_db
       SPRING_R2DBC_USERNAME: postgres
       SPRING_R2DBC_PASSWORD: postgres
@@ -93,6 +92,45 @@ services:
       retries: 20
     volumes:
       - test_db_data:/var/lib/postgresql/data
+
+  payment-service:
+    build:
+      context: ./payment-service
+      dockerfile: Dockerfile
+    image: yp-payment-service
+    container_name: "yp-payment-service"
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - SERVER_PORT=8081
+      - SPRING_R2DBC_URL=r2dbc:postgresql://postgres:5432/postgres
+      - SPRING_R2DBC_USERNAME=postgres
+      - SPRING_R2DBC_PASSWORD=postgres
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8081/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  payment-test:
+    build:
+      context: ./payment-service
+      dockerfile: Dockerfile-test
+    image: payment-test-image
+    container_name: "payment-test-container"
+    environment:
+      SPRING_PROFILES_ACTIVE: test
+      SPRING_DATASOURCE_URL: r2dbc:postgresql://test-db:5432/test_db
+      SPRING_R2DBC_USERNAME: postgres
+      SPRING_R2DBC_PASSWORD: postgres
+    depends_on:
+      - test-db
 
 volumes:
   postgres_data:

@@ -91,7 +91,7 @@ public class PaymentServiceImpl implements PaymentService {
                 .defaultIfEmpty(PaymentResult.failed(
                         null,
                         null,
-                        "Ошибка при возврате средств"
+                        "Ошибка возврата средств"
                 ));
     }
 

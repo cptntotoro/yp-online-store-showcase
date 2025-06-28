@@ -31,9 +31,4 @@ public class RefundRequestDto {
      * Идентификатор заказа
      */
     private UUID orderId;
-
-    /**
-     * Сообщение о результате
-     */
-    private String message;
 }

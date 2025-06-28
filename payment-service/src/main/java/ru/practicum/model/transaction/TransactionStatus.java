@@ -7,16 +7,7 @@ import lombok.Getter;
  */
 @Getter
 public enum TransactionStatus {
-    PENDING("Обработка"),
-    COMPLETED("Завершен"),
-    FAILED("Ошибка");
-
-    /**
-     * Название статуса транзакции
-     */
-    private final String displayName;
-
-    TransactionStatus(String displayName) {
-        this.displayName = displayName;
-    }
+    PENDING,
+    COMPLETED,
+    FAILED;
 }

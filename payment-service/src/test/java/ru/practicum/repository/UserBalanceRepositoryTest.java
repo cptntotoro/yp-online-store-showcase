@@ -34,13 +34,11 @@ class UserBalanceRepositoryTest {
 
     @BeforeEach
     void setupDatabase() {
-        // Очищаем таблицы перед каждым тестом
         transactionRepository.deleteAll().block();
         userBalanceRepository.deleteAll().block();
 
         databaseClient.sql("DELETE FROM users").fetch().rowsUpdated().block();
 
-        // Создаем тестового пользователя напрямую в БД
         testUserId = UUID.randomUUID();
         databaseClient.sql("INSERT INTO users (user_uuid, username, email) VALUES (:userId, 'test_user', 'test@example.com')")
                 .bind("userId", testUserId)
@@ -56,15 +54,13 @@ class UserBalanceRepositoryTest {
                                 "RETURNING *")
                 .bind("userId", testUserId)
                 .bind("amount", amount)
-                .map((row, metadata) -> {
-                    UserBalanceDao balance = new UserBalanceDao();
-                    balance.setUuid(row.get("balance_uuid", UUID.class));
-                    balance.setUserUuid(row.get("user_uuid", UUID.class));
-                    balance.setAmount(row.get("amount", BigDecimal.class));
-                    balance.setCreatedAt(row.get("created_at", LocalDateTime.class));
-                    balance.setUpdatedAt(row.get("updated_at", LocalDateTime.class));
-                    return balance;
-                })
+                .map((row, metadata) -> UserBalanceDao.builder()
+                        .uuid(row.get("balance_uuid", UUID.class))
+                        .userUuid(row.get("user_uuid", UUID.class))
+                        .amount(row.get("amount", BigDecimal.class))
+                        .createdAt(row.get("created_at", LocalDateTime.class))
+                        .updatedAt(row.get("updated_at", LocalDateTime.class))
+                        .build())
                 .one();
     }
 
