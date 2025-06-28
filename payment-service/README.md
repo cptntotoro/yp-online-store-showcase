@@ -38,14 +38,14 @@ docker-compose down -v
 
 1. Разверните БД согласно application.properties и application-test.properties в отдельном приложении или среде разработки
 
-2. Соберите проект:
+2. Соберите сервис (компиляция + тесты):
 ```
-mvn clean package
-```
-
-3. Запустите приложение:
-```
-java -jar target/payment-service.jar --spring.profiles.active=dev
+mvn clean install -pl payment-service
 ```
 
-Приложение будет доступно по адресу: http://localhost:8080/products.
+3. Запустите сервис:
+```
+java -jar payment-service/target/payment-service.jar --spring.profiles.active=dev
+```
+
+Сервис будет доступен по адресу: http://localhost:8081.

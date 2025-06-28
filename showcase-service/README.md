@@ -16,7 +16,7 @@ docker-compose --profile test up --build --abort-on-container-exit showcase-test
 ```
 docker-compose --profile prod up -d showcase-service
 ```
-Сервис будет доступен по адресу: http://localhost:8081.
+Приложение сервиса будет доступен по адресу: http://localhost:8080/products.
 
 ### Остановка контейнеров
 
@@ -36,14 +36,14 @@ docker-compose down -v
 
 1. Разверните БД согласно application.properties и application-test.properties в отдельном приложении или среде разработки
 
-2. Соберите проект:
+2. Соберите сервис (компиляция + тесты):
 ```
-mvn clean package
-```
-
-3. Запустите приложение:
-```
-java -jar target/payment-service.jar --spring.profiles.active=dev
+mvn clean install -pl showcase-service
 ```
 
-Приложение будет доступно по адресу: http://localhost:8080/products.
+3. Запустите сервис:
+```
+java -jar showcase-service/target/showcase-service.jar --spring.profiles.active=dev
+```
+
+Приложение сервиса будет доступен по адресу: http://localhost:8080/products.

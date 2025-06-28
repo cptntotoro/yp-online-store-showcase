@@ -115,9 +115,7 @@ public class R2dbcConfiguration {
         populator.setContinueOnError(true);
 
         populator.addScript(new ClassPathResource("schema.sql"));
-        populator.addScript(new ClassPathResource("data.sql"));
         populator.setSeparator(";");
-        populator.setContinueOnError(true);
 
         initializer.setDatabasePopulator(populator);
         return initializer;

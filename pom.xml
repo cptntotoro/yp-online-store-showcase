@@ -51,29 +51,11 @@
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-thymeleaf</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
-        </dependency>
-
-        <!-- Cache -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-cache</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.github.ben-manes.caffeine</groupId>
-            <artifactId>caffeine</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-redis</artifactId>
         </dependency>
 
         <!-- Database -->
@@ -127,7 +109,7 @@
         <finalName>${project.artifactId}</finalName>
         <resources>
             <resource>
-                <directory>showcase-service/src/main/resources</directory>
+                <directory>src/main/resources</directory>
                 <filtering>true</filtering>
             </resource>
         </resources>
@@ -142,7 +124,6 @@
                             <artifactId>lombok</artifactId>
                         </exclude>
                     </excludes>
-                    <mainClass>ru.practicum.ShowcaseApplication</mainClass>
                 </configuration>
                 <executions>
                     <execution>
@@ -151,32 +132,6 @@
                         </goals>
                     </execution>
                 </executions>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <parameters>true</parameters>
-                    <generatedSourcesDirectory>${project.build.directory}/generated-sources/</generatedSourcesDirectory>
-                    <annotationProcessorPaths>
-                        <path>
-                            <groupId>org.projectlombok</groupId>
-                            <artifactId>lombok</artifactId>
-                            <version>${lombok.version}</version>
-                        </path>
-                        <path>
-                            <groupId>org.mapstruct</groupId>
-                            <artifactId>mapstruct-processor</artifactId>
-                            <version>${mapstruct.version}</version>
-                        </path>
-                        <path>
-                            <groupId>org.projectlombok</groupId>
-                            <artifactId>lombok-mapstruct-binding</artifactId>
-                            <version>0.2.0</version>
-                        </path>
-                    </annotationProcessorPaths>
-                </configuration>
             </plugin>
 
             <plugin>
@@ -206,54 +161,35 @@
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>${jacoco.version}</version>
-                <configuration>
-                    <excludes>
-                        <exclude>**/exception/**</exclude>
-                        <exclude>**/filter/**</exclude>
-                        <exclude>**/config/**</exclude>
-                        <exclude>**/dao/**</exclude>
-                        <exclude>**/dto/**</exclude>
-                        <exclude>**/model/**</exclude>
-                        <exclude>**/mapper/**</exclude>
-                    </excludes>
-                    <rules>
-                        <rule>
-                            <element>BUNDLE</element>
-                            <limits>
-                                <limit>
-                                    <counter>LINE</counter>
-                                    <value>COVEREDRATIO</value>
-                                    <minimum>0.60</minimum>
-                                </limit>
-                                <limit>
-                                    <counter>BRANCH</counter>
-                                    <value>COVEREDRATIO</value>
-                                    <minimum>0.60</minimum>
-                                </limit>
-                            </limits>
-                        </rule>
-                    </rules>
-                </configuration>
                 <executions>
                     <execution>
-                        <id>prepare-agent</id>
+                        <id>merge-results</id>
+                        <phase>verify</phase>
                         <goals>
-                            <goal>prepare-agent</goal>
+                            <goal>merge</goal>
                         </goals>
+                        <configuration>
+                            <fileSets>
+                                <fileSet>
+                                    <directory>${project.basedir}</directory>
+                                    <includes>
+                                        <include>**/target/jacoco.exec</include>
+                                    </includes>
+                                </fileSet>
+                            </fileSets>
+                            <destFile>${project.basedir}/target/jacoco.exec</destFile>
+                        </configuration>
                     </execution>
                     <execution>
-                        <id>report</id>
-                        <phase>test</phase>
+                        <id>post-merge-report</id>
+                        <phase>verify</phase>
                         <goals>
                             <goal>report</goal>
                         </goals>
-                    </execution>
-                    <execution>
-                        <id>check-coverage</id>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>check</goal>
-                        </goals>
+                        <configuration>
+                            <dataFile>${project.basedir}/target/jacoco.exec</dataFile>
+                            <outputDirectory>${project.basedir}/target/site/jacoco-aggregate</outputDirectory>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>

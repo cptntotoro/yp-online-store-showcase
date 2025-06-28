@@ -46,7 +46,9 @@ jobs:
         done
 
     - name: Run tests with coverage
-      run: mvn -B clean test jacoco:report
+      run: |
+        mvn -B clean test jacoco:report
+        mvn jacoco:merge
       env:
         TEST_DATASOURCE_URL: jdbc:postgresql://localhost:5432/test_db
         POSTGRES_USER: postgres
