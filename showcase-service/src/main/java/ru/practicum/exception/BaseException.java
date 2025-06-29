@@ -14,9 +14,9 @@ public abstract class BaseException extends RuntimeException {
         this.reason = reason;
     }
 
-    protected BaseException(String message, HttpStatus status, String reason, Throwable cause) {
-        super(message, cause);
-        this.status = status;
-        this.reason = reason;
-    }
+//    protected BaseException(String message, HttpStatus status, String reason, Throwable cause) {
+//        super(message, cause);
+//        this.status = status;
+//        this.reason = reason;
+//    }
 }

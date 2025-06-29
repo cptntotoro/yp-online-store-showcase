@@ -42,7 +42,7 @@
         </div>
       </div>
 
-      <form th:action="@{/payment/checkout/{orderUuid}(orderUuid=${order.uuid})}" method="post" class="payment-form">
+      <form th:action="@{/payment/{orderUuid}/checkout(orderUuid=${order.uuid})}" method="post" class="payment-form">
         <div class="form-group">
           <label for="cardNumber" class="form-label">Номер карты</label>
           <div class="card-input">

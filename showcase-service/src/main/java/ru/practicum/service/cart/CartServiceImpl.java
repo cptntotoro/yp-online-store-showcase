@@ -122,8 +122,7 @@ public class CartServiceImpl implements CartService {
                             .thenReturn(updatedCart);
                 })
                 .doOnSuccess(cart -> cartCacheService.evict(userUuid).subscribe())
-                .onErrorResume(e -> Mono.error(new IllegalCartStateException("Не удалось добавить товар в корзину", e)))
-                ;
+                .onErrorResume(e -> Mono.error(new IllegalCartStateException("Не удалось добавить товар в корзину")));
     }
 
     private List<CartItem> updateCartItems(Cart cart, Product product, int quantity) {

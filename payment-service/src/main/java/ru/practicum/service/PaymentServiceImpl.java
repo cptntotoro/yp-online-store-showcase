@@ -62,7 +62,7 @@ public class PaymentServiceImpl implements PaymentService {
                     if (balance.getAmount().compareTo(amount) < 0) {
                         return createAndSaveTransaction(userUuid, amount, orderId, TransactionStatus.FAILED, TransactionType.WITHDRAWAL)
                                 .map(transaction ->
-                                        PaymentResult.failed(
+                                        PaymentResult.failedPaymentResult(
                                                 transaction,
                                                 balance,
                                                 "Недостаточно средств на счете"
@@ -74,7 +74,7 @@ public class PaymentServiceImpl implements PaymentService {
                             .map(userBalanceMapper::userBalanceDaoToUserBalance)
                             .flatMap(updatedBalance ->
                                     createAndSaveTransaction(userUuid, amount, orderId, TransactionStatus.COMPLETED, TransactionType.WITHDRAWAL)
-                                            .map(transaction -> PaymentResult.success(transaction, updatedBalance))
+                                            .map(transaction -> PaymentResult.successfulPaymentResult(transaction, updatedBalance))
                             );
                 });
     }
@@ -86,9 +86,9 @@ public class PaymentServiceImpl implements PaymentService {
                 .map(userBalanceMapper::userBalanceDaoToUserBalance)
                 .flatMap(updatedBalance ->
                         createAndSaveTransaction(userUuid, amount, orderId, TransactionStatus.COMPLETED, TransactionType.REFUND)
-                                .map(transaction -> PaymentResult.success(transaction, updatedBalance))
+                                .map(transaction -> PaymentResult.successfulPaymentResult(transaction, updatedBalance))
                 )
-                .defaultIfEmpty(PaymentResult.failed(
+                .defaultIfEmpty(PaymentResult.failedPaymentResult(
                         null,
                         null,
                         "Ошибка возврата средств"
@@ -107,7 +107,6 @@ public class PaymentServiceImpl implements PaymentService {
     private Mono<PaymentTransaction> createAndSaveTransaction(UUID userId, BigDecimal amount, UUID orderId,
             TransactionStatus status, TransactionType type) {
         PaymentTransaction transaction = PaymentTransaction.builder()
-                .transactionUuid(UUID.randomUUID())
                 .userUuid(userId)
                 .orderUuid(orderId)
                 .amount(amount)

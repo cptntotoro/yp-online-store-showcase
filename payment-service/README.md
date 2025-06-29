@@ -45,7 +45,7 @@ mvn clean install -pl payment-service
 
 3. Запустите сервис:
 ```
-java -jar payment-service/target/payment-service.jar --spring.profiles.active=dev
+java -jar payment-service/target/payment-service.jar --spring.profiles.active=prod
 ```
 
 Сервис будет доступен по адресу: http://localhost:8081.

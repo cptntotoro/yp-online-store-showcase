@@ -30,7 +30,7 @@ public class PaymentResult {
      */
     private boolean isSuccess;
 
-    public static PaymentResult success(PaymentTransaction transaction, UserBalance updatedBalance) {
+    public static PaymentResult successfulPaymentResult(PaymentTransaction transaction, UserBalance updatedBalance) {
         return PaymentResult.builder()
                 .transaction(transaction)
                 .updatedBalance(updatedBalance)
@@ -39,7 +39,7 @@ public class PaymentResult {
                 .build();
     }
 
-    public static PaymentResult failed(PaymentTransaction transaction, UserBalance balance, String message) {
+    public static PaymentResult failedPaymentResult(PaymentTransaction transaction, UserBalance balance, String message) {
         return PaymentResult.builder()
                 .transaction(transaction)
                 .updatedBalance(balance)

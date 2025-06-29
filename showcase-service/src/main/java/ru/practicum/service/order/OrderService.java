@@ -22,6 +22,14 @@ public interface OrderService {
     Mono<Order> create(UUID userUuid);
 
     /**
+     * Сохранить заказ
+     *
+     * @param order Заказ
+     * @return Заказ
+     */
+    Mono<Order> save(Order order);
+
+    /**
      * Получить заказы пользователя
      *
      * @param userUuid Идентификатор пользователя
@@ -37,22 +45,6 @@ public interface OrderService {
      * @return Заказ
      */
     Mono<Order> getByUuid(UUID userUuid, UUID orderUuid);
-
-    /**
-     * Оплатить заказ
-     *
-     * @param userUuid  Идентификатор пользователя
-     * @param orderUuid Идентификатор заказа
-     */
-    Mono<Void> checkout(UUID userUuid, UUID orderUuid);
-
-    /**
-     * Отменить заказ
-     *
-     * @param userUuid  Идентификатор пользователя
-     * @param orderUuid Идентификатор заказа
-     */
-    Mono<Void> cancel(UUID userUuid, UUID orderUuid);
 
     /**
      * Получить стоимость всех заказов пользователя

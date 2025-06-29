@@ -15,8 +15,8 @@
     <artifactId>yp-online-store</artifactId>
     <version>1.0-SNAPSHOT</version>
 
-    <name>Yandex Practicum | Онлайн Витрина Магазина</name>
-    <description>Online Store Showcase for Yandex Practicum</description>
+    <name>Online Store Showcase</name>
+    <description>Online Store Showcase</description>
 
     <modules>
         <module>showcase-service</module>
@@ -162,6 +162,7 @@
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>${jacoco.version}</version>
                 <executions>
+                    <!-- Объединение результатов -->
                     <execution>
                         <id>merge-results</id>
                         <phase>verify</phase>
@@ -177,18 +178,19 @@
                                     </includes>
                                 </fileSet>
                             </fileSets>
-                            <destFile>${project.basedir}/target/jacoco.exec</destFile>
+                            <destFile>${project.build.directory}/jacoco-aggregate.exec</destFile>
                         </configuration>
                     </execution>
+
+                    <!-- Генерация агрегированного отчета -->
                     <execution>
                         <id>post-merge-report</id>
                         <phase>verify</phase>
                         <goals>
-                            <goal>report</goal>
+                            <goal>report-aggregate</goal>
                         </goals>
                         <configuration>
-                            <dataFile>${project.basedir}/target/jacoco.exec</dataFile>
-                            <outputDirectory>${project.basedir}/target/site/jacoco-aggregate</outputDirectory>
+                            <outputDirectory>${project.reporting.outputDirectory}/jacoco-aggregate</outputDirectory>
                         </configuration>
                     </execution>
                 </executions>

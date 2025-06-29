@@ -82,12 +82,12 @@ class PaymentControllerTest {
                 .status(TransactionStatus.COMPLETED)
                 .build();
 
-        PaymentResult paymentResult = PaymentResult.success(transaction,
+        PaymentResult paymentResult = PaymentResult.successfulPaymentResult(transaction,
                 UserBalance.builder().userUuid(userId).amount(new BigDecimal("200.00")).build());
 
         PaymentResponseDto responseDto = PaymentResponseDto.builder()
                 .userId(userId)
-                .transactionId(transaction.getTransactionUuid())
+                .transactionUuid(transaction.getTransactionUuid())
                 .newBalance(new BigDecimal("200.00"))
                 .build();
 
@@ -100,7 +100,7 @@ class PaymentControllerTest {
                 .assertNext(dto -> {
                     assertNotNull(dto);
                     assertEquals(userId, dto.getUserId());
-                    assertEquals(transaction.getTransactionUuid(), dto.getTransactionId());
+                    assertEquals(transaction.getTransactionUuid(), dto.getTransactionUuid());
                     assertEquals(0, new BigDecimal("200.00").compareTo(dto.getNewBalance()));
                 })
                 .verifyComplete();
@@ -118,12 +118,12 @@ class PaymentControllerTest {
                 .status(TransactionStatus.COMPLETED)
                 .build();
 
-        PaymentResult paymentResult = PaymentResult.success(transaction,
+        PaymentResult paymentResult = PaymentResult.successfulPaymentResult(transaction,
                 UserBalance.builder().userUuid(userId).amount(new BigDecimal("300.50")).build());
 
         RefundResponseDto responseDto = RefundResponseDto.builder()
                 .userUuid(userId)
-                .transactionId(transaction.getTransactionUuid())
+                .transactionUuid(transaction.getTransactionUuid())
                 .newBalance(new BigDecimal("300.50"))
                 .isSuccess(true)
                 .message("Успешный возврат средств")
@@ -138,7 +138,7 @@ class PaymentControllerTest {
                 .assertNext(dto -> {
                     assertNotNull(dto);
                     assertEquals(userId, dto.getUserUuid());
-                    assertEquals(transaction.getTransactionUuid(), dto.getTransactionId());
+                    assertEquals(transaction.getTransactionUuid(), dto.getTransactionUuid());
                     assertEquals(0, new BigDecimal("300.50").compareTo(dto.getNewBalance()));
                     assertTrue(dto.isSuccess());
                     assertEquals("Успешный возврат средств", dto.getMessage());

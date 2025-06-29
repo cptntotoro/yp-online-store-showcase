@@ -43,7 +43,7 @@ mvn clean install -pl showcase-service
 
 3. Запустите сервис:
 ```
-java -jar showcase-service/target/showcase-service.jar --spring.profiles.active=dev
+java -jar showcase-service/target/showcase-service.jar --spring.profiles.active=prod
 ```
 
 Приложение сервиса будет доступен по адресу: http://localhost:8080/products.

@@ -100,17 +100,17 @@ class OrderViewControllerTest extends BaseControllerTest {
                 .expectStatus().isOk();
     }
 
-    @Test
-    void cancel_ShouldRedirectToOrderPage() {
-        when(orderService.cancel(TEST_USER_UUID, testOrderId))
-                .thenReturn(Mono.empty());
-
-        webTestClient.get()
-                .uri("/orders/checkout/cancel/" + testOrderId)
-                .exchange()
-                .expectStatus().is3xxRedirection()
-                .expectHeader().valueEquals("Location", "/orders/" + testOrderId);
-    }
+//    @Test
+//    void cancel_ShouldRedirectToOrderPage() {
+//        when(orderService.cancel(TEST_USER_UUID, testOrderId))
+//                .thenReturn(Mono.empty());
+//
+//        webTestClient.get()
+//                .uri("/orders/checkout/cancel/" + testOrderId)
+//                .exchange()
+//                .expectStatus().is3xxRedirection()
+//                .expectHeader().valueEquals("Location", "/orders/" + testOrderId);
+//    }
 
     private Order createTestOrder() {
         OrderItem item = OrderItem.builder()

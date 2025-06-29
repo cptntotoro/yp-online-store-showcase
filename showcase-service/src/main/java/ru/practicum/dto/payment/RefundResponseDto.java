@@ -1,4 +1,4 @@
-package ru.practicum.dto.refund;
+package ru.practicum.dto.payment;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

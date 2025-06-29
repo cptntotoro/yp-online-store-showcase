@@ -9,31 +9,25 @@ import java.math.BigDecimal;
 import java.util.UUID;
 
 /**
- * DTO ответа оплаты заказа
+ * DTO запроса на оплату заказа
  */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class PaymentResponseDto {
-
+public class PaymentRequestDto {
     /**
      * Идентификатор пользователя
      */
     private UUID userId;
 
     /**
-     * Флаг успеха
+     * Сумма к оплате
      */
-    private boolean isSuccess;
+    private BigDecimal amount;
 
     /**
-     * Идентификатор транзакции
+     * Идентификатор заказа
      */
-    private UUID transactionUuid;
-
-    /**
-     * Новое значение баланса счета пользователя
-     */
-    private BigDecimal newBalance;
+    private UUID orderId;
 }

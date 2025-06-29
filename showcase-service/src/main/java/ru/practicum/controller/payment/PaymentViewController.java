@@ -9,8 +9,8 @@ import ru.practicum.config.WebAttributes;
 import ru.practicum.dto.payment.PaymentCheckoutDto;
 import ru.practicum.mapper.order.OrderMapper;
 import ru.practicum.service.cart.CartService;
+import ru.practicum.service.order.OrderPaymentService;
 import ru.practicum.service.order.OrderService;
-import ru.practicum.service.payment.PaymentService;
 
 import java.util.UUID;
 
@@ -23,10 +23,8 @@ public class PaymentViewController {
      */
     private final OrderService orderService;
 
-    /**
-     * Сервис оплаты заказа
-     */
-    private final PaymentService paymentService;
+
+    private final OrderPaymentService orderPaymentService;
 
     /**
      * Сервис управления корзиной товаров
@@ -58,10 +56,11 @@ public class PaymentViewController {
                 });
     }
 
-    @PostMapping("/checkout/{orderUuid}")
-    public Mono<String> checkout(@RequestAttribute(WebAttributes.USER_UUID) UUID userUuid, @PathVariable UUID orderUuid,
-                                 @ModelAttribute PaymentCheckoutDto paymentCheckoutDto) {
-        return paymentService.checkout(userUuid, orderUuid, paymentCheckoutDto.getCardNumber())
+    @PostMapping("/{orderUuid}/checkout")
+    public Mono<String> checkout(@RequestAttribute(WebAttributes.USER_UUID) UUID userUuid,
+                               @PathVariable UUID orderUuid,
+                               @ModelAttribute PaymentCheckoutDto paymentCheckoutDto) {
+        return orderPaymentService.processPayment(userUuid, orderUuid, paymentCheckoutDto.getCardNumber())
                 .thenReturn("redirect:/orders/" + orderUuid);
     }
 }

@@ -9,6 +9,7 @@ import ru.practicum.config.WebAttributes;
 import ru.practicum.dto.order.OrderDto;
 import ru.practicum.mapper.order.OrderDtoMapper;
 import ru.practicum.model.order.OrderItem;
+import ru.practicum.service.order.OrderPaymentService;
 import ru.practicum.service.order.OrderService;
 import ru.practicum.service.product.ProductService;
 
@@ -25,6 +26,11 @@ public class OrderViewController {
      * Сервис управления заказами
      */
     private final OrderService orderService;
+
+    /**
+     * Сервис обработки заказов
+     */
+    private final OrderPaymentService orderPaymentService;
 
     /**
      * Сервис управления товарами
@@ -72,9 +78,10 @@ public class OrderViewController {
                 });
     }
 
+    // TODO: Пофиксить путь
     @GetMapping("/checkout/cancel/{orderUuid}")
     public Mono<String> cancel(@RequestAttribute(WebAttributes.USER_UUID) UUID userUuid, @PathVariable UUID orderUuid) {
-        return orderService.cancel(userUuid, orderUuid)
+        return orderPaymentService.cancel(userUuid, orderUuid)
                 .thenReturn("redirect:/orders/" + orderUuid);
     }
 }

@@ -59,14 +59,6 @@ public class OrderServiceImpl implements OrderService {
      */
     private final OrderItemMapper orderItemMapper;
 
-    /**
-     * Валидные переключения статусов
-     */
-    private static final Map<OrderStatus, Set<OrderStatus>> ALLOWED_STATUS_TRANSITIONS = Map.of(
-            OrderStatus.CREATED, EnumSet.of(OrderStatus.PAID, OrderStatus.CANCELLED),
-            OrderStatus.PAID, EnumSet.of(OrderStatus.DELIVERED, OrderStatus.CANCELLED)
-    );
-
     @Override
     @Transactional
     public Mono<Order> create(UUID userUuid) {
@@ -84,11 +76,11 @@ public class OrderServiceImpl implements OrderService {
                                             OrderStatus.CREATED, total, null, LocalDateTime.now())))
                             .flatMap(savedOrder -> {
                                 List<OrderItem> items = cart.getItems().stream()
-                                        .map(ci -> OrderItem.builder()
+                                        .map(cartItem -> OrderItem.builder()
                                                 .orderUuid(savedOrder.getUuid())
-                                                .productUuid(ci.getProduct().getUuid())
-                                                .quantity(ci.getQuantity())
-                                                .priceAtOrder(ci.getProduct().getPrice())
+                                                .productUuid(cartItem.getProduct().getUuid())
+                                                .quantity(cartItem.getQuantity())
+                                                .priceAtOrder(cartItem.getProduct().getPrice())
                                                 .build())
                                         .collect(Collectors.toList());
 
@@ -102,6 +94,12 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    public Mono<Order> save(Order order) {
+        return orderRepository.save(orderMapper.orderToOrderDao(order))
+                .map(orderMapper::orderDaoToOrder);
+    }
+
+    @Override
     public Flux<Order> getUserOrders(UUID userUuid) {
         return orderRepository.findByUserUuid(userUuid)
                 .flatMap(this::enrichOrderWithItems);
@@ -112,16 +110,6 @@ public class OrderServiceImpl implements OrderService {
         return orderRepository.findByUuidAndUserUuid(uuid, userUuid)
                 .switchIfEmpty(Mono.error(new OrderNotFoundException("Заказ не найден")))
                 .flatMap(this::enrichOrderWithItems);
-    }
-
-    @Override
-    public Mono<Void> checkout(UUID userUuid, UUID orderUuid) {
-        return updateStatus(userUuid, orderUuid, OrderStatus.PAID);
-    }
-
-    @Override
-    public Mono<Void> cancel(UUID userUuid, UUID orderUuid) {
-        return updateStatus(userUuid, orderUuid, OrderStatus.CANCELLED);
     }
 
     @Override
@@ -159,23 +147,6 @@ public class OrderServiceImpl implements OrderService {
     }
 
     /**
-     * Обновить статус заказа
-     *
-     * @param userUuid  Идентификатор пользователя
-     * @param orderUuid Идентификатор заказа
-     * @param newStatus Новый статус
-     */
-    private Mono<Void> updateStatus(UUID userUuid, UUID orderUuid, OrderStatus newStatus) {
-        return orderRepository.findByUuidAndUserUuid(orderUuid, userUuid)
-                .switchIfEmpty(Mono.error(new OrderNotFoundException("Заказ не найден и не был обновлен.")))
-                .flatMap(orderDao -> {
-                    validateStatusTransition(orderDao.getStatus(), newStatus);
-                    orderDao.setStatus(newStatus);
-                    return orderRepository.save(orderDao).then();
-                });
-    }
-
-    /**
      * Наполнить заказы товарами
      *
      * @param orderDao DAO заказа
@@ -198,20 +169,6 @@ public class OrderServiceImpl implements OrderService {
                     order.setItems(items);
                     return order;
                 });
-    }
-
-    /**
-     * Проверить валидность смены статуса заказа
-     *
-     * @param current   Текущий статус
-     * @param newStatus Новый статус
-     */
-    private void validateStatusTransition(OrderStatus current, OrderStatus newStatus) {
-        if (!ALLOWED_STATUS_TRANSITIONS.getOrDefault(current, EnumSet.noneOf(OrderStatus.class)).contains(newStatus)) {
-            throw new IllegalOrderStateException(
-                    String.format("Недопустимый переход статуса заказа из %s в %s", current, newStatus)
-            );
-        }
     }
 
     /**

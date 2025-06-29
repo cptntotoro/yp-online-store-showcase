@@ -40,7 +40,7 @@ class PaymentMapperTest {
 
         assertThat(dto).isNotNull();
         assertThat(dto.getUserId()).isEqualTo(userId);
-        assertThat(dto.getTransactionId()).isEqualTo(transactionId);
+        assertThat(dto.getTransactionUuid()).isEqualTo(transactionId);
         assertThat(dto.getNewBalance()).isEqualTo(BigDecimal.valueOf(500.75));
     }
 
@@ -68,7 +68,7 @@ class PaymentMapperTest {
 
         assertThat(dto).isNotNull();
         assertThat(dto.getUserUuid()).isEqualTo(userId);
-        assertThat(dto.getTransactionId()).isEqualTo(transactionId);
+        assertThat(dto.getTransactionUuid()).isEqualTo(transactionId);
         assertThat(dto.getNewBalance()).isEqualTo(BigDecimal.valueOf(300.25));
         assertTrue(dto.isSuccess());
         assertThat(dto.getMessage()).isEqualTo("Успешный возврат средств");

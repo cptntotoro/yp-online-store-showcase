@@ -1,6 +1,6 @@
 package ru.practicum.exception;
 
-import org.springframework.http.ResponseEntity;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import reactor.core.publisher.Mono;
@@ -11,12 +11,15 @@ import java.time.LocalDateTime;
 public class ControllerExceptionHandler {
 
     @ExceptionHandler(BaseException.class)
-    public Mono<ResponseEntity<ApiError>> handleBaseException(BaseException e) {
+    public Mono<String> handleBaseException(BaseException e, Model model) {
         ApiError error = new ApiError(
                 e.getStatus().toString(),
-                e.getMessage() + ". " + e.getReason(),
+                e.getReason(),
+                e.getMessage(),
                 LocalDateTime.now()
         );
-        return Mono.just(ResponseEntity.status(e.getStatus()).body(error));
+
+        model.addAttribute("error", error);
+        return Mono.just("error");
     }
 }

@@ -47,11 +47,13 @@ public class PaymentTransactionDao {
     /**
      * Тип транзакции
      */
+    @Column("transaction_type")
     private TransactionType transactionType;
 
     /**
      * Статус транзакции
      */
+    @Column("transaction_status")
     private TransactionStatus status;
 
     /**
