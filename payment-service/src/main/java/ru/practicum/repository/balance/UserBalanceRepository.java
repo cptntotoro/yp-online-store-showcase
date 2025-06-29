@@ -16,6 +16,16 @@ import java.util.UUID;
 public interface UserBalanceRepository extends ReactiveCrudRepository<UserBalanceDao, UUID> {
 
     /**
+     * Создать баланс счета пользователя
+     *
+     * @param userUuid Идендтификатор пользователя
+     * @param amount   Сумма
+     * @return Баланс пользователя
+     */
+    @Query("INSERT INTO user_balances (user_uuid, amount) VALUES (:userUuid, :amount) RETURNING *")
+    Mono<UserBalanceDao> create(UUID userUuid, BigDecimal amount);
+
+    /**
      * Получить баланс пользователя по идентификатору
      *
      * @param userUuid Идендтификатор пользователя

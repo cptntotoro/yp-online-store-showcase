@@ -50,14 +50,14 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     public Mono<UserBalance> getUserBalance(UUID userUuid) {
         return userBalanceRepository.findByUserUuid(userUuid)
-                .map(userBalanceMapper::userBalanceDaoToUserBalance)
-                .defaultIfEmpty(createDefaultBalance(userUuid));
+                .switchIfEmpty(Mono.defer(() -> userBalanceRepository.create(userUuid, defaultBalance)))
+                .map(userBalanceMapper::userBalanceDaoToUserBalance);
     }
 
     @Transactional
     @Override
     public Mono<PaymentResult> processPayment(UUID userUuid, BigDecimal amount, UUID orderId) {
-        return getUserBalance(userUuid)
+        return ensureBalanceExists(userUuid)
                 .flatMap(balance -> {
                     if (balance.getAmount().compareTo(amount) < 0) {
                         return createAndSaveTransaction(userUuid, amount, orderId, TransactionStatus.FAILED, TransactionType.WITHDRAWAL)
@@ -82,26 +82,19 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     @Transactional
     public Mono<PaymentResult> processRefund(UUID userUuid, BigDecimal amount, UUID orderId) {
-        return userBalanceRepository.addToBalance(userUuid, amount)
+        return ensureBalanceExists(userUuid)
+                .flatMap(__ -> userBalanceRepository.addToBalance(userUuid, amount))
                 .map(userBalanceMapper::userBalanceDaoToUserBalance)
                 .flatMap(updatedBalance ->
                         createAndSaveTransaction(userUuid, amount, orderId, TransactionStatus.COMPLETED, TransactionType.REFUND)
                                 .map(transaction -> PaymentResult.successfulPaymentResult(transaction, updatedBalance))
-                )
-                .defaultIfEmpty(PaymentResult.failedPaymentResult(
-                        null,
-                        null,
-                        "Ошибка возврата средств"
-                ));
+                );
     }
 
-    private UserBalance createDefaultBalance(UUID userId) {
-        return UserBalance.builder()
-                .userUuid(userId)
-                .amount(defaultBalance)
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
-                .build();
+    private Mono<UserBalance> ensureBalanceExists(UUID userUuid) {
+        return userBalanceRepository.findByUserUuid(userUuid)
+                .switchIfEmpty(Mono.defer(() -> userBalanceRepository.create(userUuid, defaultBalance)))
+                .map(userBalanceMapper::userBalanceDaoToUserBalance);
     }
 
     private Mono<PaymentTransaction> createAndSaveTransaction(UUID userId, BigDecimal amount, UUID orderId,

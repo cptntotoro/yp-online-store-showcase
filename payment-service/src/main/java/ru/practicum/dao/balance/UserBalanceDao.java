@@ -39,11 +39,6 @@ public class UserBalanceDao {
     private BigDecimal amount;
 
     /**
-     * Дата последней транзакции
-     */
-    private LocalDateTime lastTransactionAt;
-
-    /**
      * Дата создания
      */
     private LocalDateTime createdAt;
