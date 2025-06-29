@@ -62,7 +62,19 @@
 
         <div class="payment-actions">
           <a href="/products" class="btn btn-outline">Вернуться в магазин</a>
-          <button type="submit" class="btn btn-primary">Оплатить</button>
+          <button type="submit"
+                  class="btn btn-primary"
+                  th:disabled="${!paymentServiceActive}"
+                  th:classappend="${!paymentServiceActive} ? 'btn-disabled'">
+            <span>Оплатить</span>
+          </button>
+        </div>
+
+        <div class="service-status" th:if="${!paymentServiceActive}">
+          <div class="alert alert-warning">
+            <span>⚠️</span>
+            <p>Сервис оплаты временно недоступен. Пожалуйста, попробуйте позже.</p>
+          </div>
         </div>
       </form>
 

@@ -15,6 +15,7 @@ import ru.practicum.exception.payment.PaymentServiceUnavailableException;
 import ru.practicum.model.balance.UserBalance;
 
 import java.time.Duration;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -22,6 +23,7 @@ import java.util.UUID;
  */
 @Component
 @RequiredArgsConstructor
+// TODO: нужен ли сюда интерфейс или абстрактный класс?
 public class PaymentServiceClient {
     private final WebClient webClient;
     private static final Duration TIMEOUT = Duration.ofSeconds(3);
@@ -85,5 +87,18 @@ public class PaymentServiceClient {
                 .timeout(TIMEOUT)
                 .onErrorMap(WebClientRequestException.class, e ->
                         new PaymentServiceUnavailableException("Сервис платежей недоступен"));
+    }
+
+    public Mono<Boolean> checkHealth() {
+        return webClient.get()
+                .uri("/actuator/health")
+                .retrieve()
+                .bodyToMono(Map.class)
+                .map(healthResponse -> {
+                    String status = (String) healthResponse.get("status");
+                    return "UP".equals(status);
+                })
+                .timeout(TIMEOUT)
+                .onErrorReturn(false);
     }
 }

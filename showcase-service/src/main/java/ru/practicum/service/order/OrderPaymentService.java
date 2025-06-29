@@ -34,4 +34,11 @@ public interface OrderPaymentService {
      * @return Да / Нет
      */
     Mono<Boolean> isBalanceSufficient(UUID userId, UUID orderId);
+
+    /**
+     * Проверить, активен ли сервис оплаты
+     *
+     * @return Да/ Нет
+     */
+    Mono<Boolean> checkHealth();
 }

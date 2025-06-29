@@ -69,6 +69,11 @@ public class OrderPaymentServiceImpl implements OrderPaymentService {
                         .map(balance -> balance.getBalance().compareTo(order.getTotalPrice()) >= 0));
     }
 
+    @Override
+    public Mono<Boolean> checkHealth() {
+        return paymentWebClient.checkHealth();
+    }
+
     /**
      * Обновить статус заказа
      *

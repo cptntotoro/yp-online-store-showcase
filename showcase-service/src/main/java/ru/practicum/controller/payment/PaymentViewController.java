@@ -5,6 +5,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
+import ru.practicum.client.PaymentServiceClient;
 import ru.practicum.config.WebAttributes;
 import ru.practicum.dto.payment.PaymentCheckoutDto;
 import ru.practicum.mapper.order.OrderMapper;
@@ -23,7 +24,9 @@ public class PaymentViewController {
      */
     private final OrderService orderService;
 
-
+    /**
+     * Сервис оплаты заказов
+     */
     private final OrderPaymentService orderPaymentService;
 
     /**
@@ -40,20 +43,27 @@ public class PaymentViewController {
     public Mono<String> previewOrder(@RequestAttribute(WebAttributes.USER_UUID) UUID userUuid, Model model) {
         return orderService.create(userUuid)
                 .flatMap(order -> cartService.clear(userUuid)
-                        .thenReturn(order))
-                .map(order -> {
-                    model.addAttribute("order", orderMapper.orderToOrderDto(order));
-                    return "payment/payment";
-                });
+                        .then(orderPaymentService.checkHealth()
+                                .doOnNext(isActive -> {
+                                    model.addAttribute("order", orderMapper.orderToOrderDto(order));
+                                    model.addAttribute("paymentServiceActive", isActive);
+                                })
+                                .thenReturn(order)))
+                .map(order -> "payment/payment");
     }
 
     @GetMapping("/checkout/created/{orderUuid}")
-    public Mono<String> previewExistingOrder(@RequestAttribute(WebAttributes.USER_UUID) UUID userUuid, @PathVariable UUID orderUuid, Model model) {
+    public Mono<String> previewExistingOrder(@RequestAttribute(WebAttributes.USER_UUID) UUID userUuid,
+                                             @PathVariable UUID orderUuid,
+                                             Model model) {
         return orderService.getByUuid(userUuid, orderUuid)
-                .map(order -> {
-                    model.addAttribute("order", orderMapper.orderToOrderDto(order));
-                    return "payment/payment";
-                });
+                .flatMap(order -> orderPaymentService.checkHealth()
+                        .doOnNext(isActive -> {
+                            model.addAttribute("order", orderMapper.orderToOrderDto(order));
+                            model.addAttribute("paymentServiceActive", isActive);
+                        })
+                        .thenReturn(order))
+                .map(order -> "payment/payment");
     }
 
     @PostMapping("/{orderUuid}/checkout")
