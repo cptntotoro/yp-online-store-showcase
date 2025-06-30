@@ -3,10 +3,10 @@ package ru.practicum.service.product;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import ru.practicum.dto.product.ProductCacheDto;
 import ru.practicum.exception.product.ProductNotFoundException;
 import ru.practicum.mapper.product.ProductMapper;
 import ru.practicum.model.product.Product;
@@ -49,54 +49,72 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public Mono<Page<Product>> getSorted(String sort, Pageable pageable) {
-        Comparator<Product> comparator = getComparator(sort);
-        return getPagedProducts(flux -> flux.sort(comparator), pageable);
+        return getComparator(sort)
+                .map(comparator -> getPagedProducts(flux -> flux.sort(comparator), pageable))
+                .orElse(getPagedProducts(flux -> flux, pageable));
     }
 
     @Override
     public Mono<Page<Product>> getProducts(String search, String sort, Pageable pageable) {
-        Comparator<Product> comparator = getComparator(sort);
-        Flux<Product> productStream = productCacheService.getAllProducts();
+        Flux<ProductCacheDto> productStream = productCacheService.getAllProducts();
 
         if (search != null && !search.isEmpty()) {
             String searchQuery = search.toLowerCase();
             productStream = productStream.filter(p -> p.getName().toLowerCase().contains(searchQuery));
         }
 
-        return productStream
-                .sort(comparator)
+        Flux<ProductCacheDto> sortedStream = getComparator(sort)
+                .map(productStream::sort)
+                .orElse(productStream);
+
+        return sortedStream
                 .collectList()
-                .map(filteredProducts -> {
+                .flatMap(filteredProducts -> {
                     long totalCount = filteredProducts.size();
                     int totalPages = (int) Math.ceil((double) totalCount / pageable.getPageSize());
-                    int pageNumber = pageable.getPageNumber();
+                    int pageNumber = Math.min(pageable.getPageNumber(), totalPages - 1);
 
-                    if (pageNumber >= totalPages && totalPages > 0) {
-                        pageNumber = totalPages - 1;
-                    }
+                    Pageable correctedPageable = PageRequest.of(
+                            Math.max(pageNumber, 0),
+                            pageable.getPageSize(),
+                            pageable.getSort()
+                    );
 
-                    Pageable correctedPageable = PageRequest.of(pageNumber, pageable.getPageSize());
-                    List<Product> pagedProducts = applyPagination(filteredProducts, correctedPageable);
+                    List<Product> pagedProducts = filteredProducts.stream()
+                            .skip(correctedPageable.getOffset())
+                            .limit(correctedPageable.getPageSize())
+                            .map(productMapper::fromCacheDto)
+                            .collect(Collectors.toList());
 
-                    return new PageImpl<>(pagedProducts, correctedPageable, totalCount);
+                    return Mono.just(new PageImpl<>(pagedProducts, correctedPageable, totalCount));
                 });
     }
 
     @Override
-    @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
+    @Transactional(readOnly = true)
     public Mono<Product> getByUuid(UUID uuid) {
-        return productCacheService.getAllProducts()
-                .filter(product -> product.getUuid().equals(uuid))
-                .next()
+        return productCacheService.getProductById(uuid)
+                .map(productMapper::fromCacheDto)
                 .switchIfEmpty(Mono.error(new ProductNotFoundException("Товар не найден")));
     }
 
     @Override
+    @Transactional
     public Mono<Void> batchAdd(Flux<Product> products) {
-        return productRepository
-                .saveAll(products.map(productMapper::productToProductDao))
-                .then()
-                .doOnSuccess(unused -> productCacheService.evictAll().subscribe());
+        return products
+                .collectList()
+                .flatMap(productList -> productRepository.saveAll(
+                                productList.stream()
+                                        .map(productMapper::productToProductDao)
+                                        .collect(Collectors.toList()))
+                        .collectList()
+                        .flatMap(savedProducts -> {
+                            List<Product> productsToCache = savedProducts.stream()
+                                    .map(productMapper::productDaoToProduct)
+                                    .collect(Collectors.toList());
+                            return productCacheService.cacheProducts(productsToCache)
+                                    .then(productCacheService.evictListCache());
+                        }));
     }
 
     @Override
@@ -106,84 +124,62 @@ public class ProductServiceImpl implements ProductService {
         }
 
         return productCacheService.getAllProducts()
-                .filter(product -> productIds.contains(product.getUuid()))
-                .collectMap(Product::getUuid)
+                .filter(dto -> productIds.contains(dto.getUuid()))
+                .collectMap(ProductCacheDto::getUuid)
                 .flatMap(cachedProducts -> {
                     Set<UUID> missingIds = productIds.stream()
                             .filter(id -> !cachedProducts.containsKey(id))
                             .collect(Collectors.toSet());
 
                     if (missingIds.isEmpty()) {
-                        return Mono.just(cachedProducts);
+                        return Mono.just(cachedProducts.entrySet().stream()
+                                .collect(Collectors.toMap(
+                                        Map.Entry::getKey,
+                                        e -> productMapper.fromCacheDto(e.getValue()))
+                                ));
                     }
 
                     return productRepository.findAllById(missingIds)
                             .map(productMapper::productDaoToProduct)
                             .collectMap(Product::getUuid)
                             .map(dbProducts -> {
-                                Map<UUID, Product> result = new HashMap<>(cachedProducts);
+                                Map<UUID, Product> result = cachedProducts.entrySet().stream()
+                                        .collect(Collectors.toMap(
+                                                Map.Entry::getKey,
+                                                e -> productMapper.fromCacheDto(e.getValue())));
                                 result.putAll(dbProducts);
                                 return result;
                             });
                 });
     }
 
-    /**
-     * Применить пагинацию к списку товаров
-     *
-     * @param products Список товаров
-     * @param pageable Пагинация
-     * @return Список товаров
-     */
-    private List<Product> applyPagination(List<Product> products, Pageable pageable) {
-        int start = (int) pageable.getOffset();
-        int end = Math.min(start + pageable.getPageSize(), products.size());
-        return start > end ? Collections.emptyList() : products.subList(start, end);
-    }
-
-    /**
-     * Получить страницу товаров
-     *
-     * @param processor Список товаров
-     * @param pageable  Пагинация
-     * @return Страница товаров
-     */
     private Mono<Page<Product>> getPagedProducts(
-            Function<Flux<Product>, Flux<Product>> processor,
+            Function<Flux<ProductCacheDto>, Flux<ProductCacheDto>> processor,
             Pageable pageable) {
         return processor.apply(productCacheService.getAllProducts())
                 .collectList()
                 .zipWith(productRepository.count())
-                .map(tuple -> createPage(tuple.getT1(), pageable, tuple.getT2()));
+                .map(tuple -> {
+                    List<Product> products = tuple.getT1().stream()
+                            .map(productMapper::fromCacheDto)
+                            .collect(Collectors.toList());
+
+                    return new PageImpl<>(
+                            applyPagination(products, pageable),
+                            pageable,
+                            tuple.getT2()
+                    );
+                });
     }
 
-    /**
-     * Получить компаратор товаров
-     *
-     * @param sort Сортировка
-     * @return Компаратор товаров
-     */
-    private Comparator<Product> getComparator(String sort) {
+    private Optional<Comparator<ProductCacheDto>> getComparator(String sort) {
         return ProductSort.fromString(sort)
-                .map(ProductSort::getComparator)
-                .orElse(Comparator.comparing(Product::getCreatedAt).reversed());
+                .map(ProductSort::getCacheDtoComparator);
     }
 
-    /**
-     * Создать страницу товаров
-     *
-     * @param products Список товаров
-     * @param pageable Пагинация
-     * @param total    Количество товаров
-     * @return Страница товаров
-     */
-    private Page<Product> createPage(List<Product> products, Pageable pageable, long total) {
+    private List<Product> applyPagination(List<Product> products, Pageable pageable) {
         int start = (int) pageable.getOffset();
         int end = Math.min(start + pageable.getPageSize(), products.size());
-        return new PageImpl<>(
-                start > end ? Collections.emptyList() : products.subList(start, end),
-                pageable,
-                total
-        );
+        return start > end ? Collections.emptyList() : products.subList(start, end);
     }
 }

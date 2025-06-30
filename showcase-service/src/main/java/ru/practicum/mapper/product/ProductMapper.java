@@ -3,6 +3,7 @@ package ru.practicum.mapper.product;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import ru.practicum.dao.product.ProductDao;
+import ru.practicum.dto.product.ProductCacheDto;
 import ru.practicum.dto.product.ProductInDto;
 import ru.practicum.dto.product.ProductOutDto;
 import ru.practicum.model.product.Product;
@@ -47,4 +48,10 @@ public interface ProductMapper {
      * @return DAO товара
      */
     ProductDao productToProductDao(Product product);
+
+    ProductCacheDto toCacheDto(Product product);
+
+    ProductCacheDto toCacheDto(ProductDao dao);
+
+    Product fromCacheDto(ProductCacheDto dto);
 }

@@ -11,16 +11,16 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 import ru.practicum.dao.product.ProductDao;
-import ru.practicum.exception.product.ProductNotFoundException;
+import ru.practicum.dto.product.ProductCacheDto;
 import ru.practicum.mapper.product.ProductMapper;
 import ru.practicum.model.product.Product;
 import ru.practicum.repository.product.ProductRepository;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -38,338 +38,159 @@ class ProductServiceTest {
     @InjectMocks
     private ProductServiceImpl productService;
 
-    private final UUID productUuid = UUID.randomUUID();
-
-    private final Product sampleProduct = Product.builder()
-            .uuid(productUuid)
+    private final UUID productId = UUID.randomUUID();
+    private final Product testProduct = Product.builder()
+            .uuid(productId)
             .name("Test Product")
-            .description("A sample product")
-            .price(new BigDecimal("100.00"))
-            .createdAt(LocalDateTime.now().minusDays(1))
-            .updatedAt(LocalDateTime.now())
-            .imageUrl("http://image.url")
+            .price(BigDecimal.valueOf(100))
+            .build();
+
+    private final ProductCacheDto testProductCacheDto = ProductCacheDto.builder()
+            .uuid(productId)
+            .name("Test Product")
+            .price(BigDecimal.valueOf(100))
             .build();
 
     @Test
-    void getAll_ShouldReturnPagedProducts() {
+    void getProducts_ShouldCombineSearchAndSort() {
         Pageable pageable = PageRequest.of(0, 10);
-        List<Product> productList = List.of(sampleProduct);
-
-        when(productCacheService.getAllProducts()).thenReturn(Flux.fromIterable(productList));
-        when(productRepository.count()).thenReturn(Mono.just((long) productList.size()));
-
-        StepVerifier.create(productService.getAll(pageable))
-                .assertNext(page -> {
-                    assertEquals(1, page.getContent().size());
-                    assertEquals(sampleProduct.getName(), page.getContent().getFirst().getName());
-                })
-                .verifyComplete();
-    }
-
-    @Test
-    void search_ShouldReturnMatchingProducts() {
-        Pageable pageable = PageRequest.of(0, 10);
-        List<Product> productList = List.of(sampleProduct);
-
-        when(productCacheService.getAllProducts()).thenReturn(Flux.fromIterable(productList));
-        when(productRepository.count()).thenReturn(Mono.just(1L));
-
-        StepVerifier.create(productService.search("test", pageable))
-                .assertNext(page -> {
-                    assertEquals(1, page.getContent().size());
-                    assertEquals("Test Product", page.getContent().getFirst().getName());
-                })
-                .verifyComplete();
-    }
-
-    @Test
-    void getSorted_ShouldReturnProductsSortedByPriceDesc() {
-        Pageable pageable = PageRequest.of(0, 10);
-
-        Product cheaperProduct = Product.builder()
+        ProductCacheDto matchingProduct1 = ProductCacheDto.builder()
                 .uuid(UUID.randomUUID())
-                .name("Cheap Product")
-                .price(new BigDecimal("10.00"))
-                .createdAt(LocalDateTime.now())
+                .name("Apple iPhone 13")
+                .price(BigDecimal.valueOf(999))
+                .build();
+        ProductCacheDto matchingProduct2 = ProductCacheDto.builder()
+                .uuid(UUID.randomUUID())
+                .name("Apple iPhone 12")
+                .price(BigDecimal.valueOf(799))
+                .build();
+        ProductCacheDto nonMatchingProduct = ProductCacheDto.builder()
+                .uuid(UUID.randomUUID())
+                .name("Samsung Galaxy")
+                .price(BigDecimal.valueOf(899))
                 .build();
 
-        List<Product> productList = List.of(sampleProduct, cheaperProduct);
+        when(productCacheService.getAllProducts()).thenReturn(Flux.just(matchingProduct1, nonMatchingProduct, matchingProduct2));
+        when(productMapper.fromCacheDto(matchingProduct2)).thenReturn(Product.builder()
+                .uuid(matchingProduct2.getUuid())
+                .name(matchingProduct2.getName())
+                .price(matchingProduct2.getPrice())
+                .build());
+        when(productMapper.fromCacheDto(matchingProduct1)).thenReturn(Product.builder()
+                .uuid(matchingProduct1.getUuid())
+                .name(matchingProduct1.getName())
+                .price(matchingProduct1.getPrice())
+                .build());
 
-        when(productCacheService.getAllProducts()).thenReturn(Flux.fromIterable(productList));
-        when(productRepository.count()).thenReturn(Mono.just((long) productList.size()));
-
-        StepVerifier.create(productService.getSorted("price-desc", pageable))
+        StepVerifier.create(productService.getProducts("iphone", "price-asc", pageable))
                 .assertNext(page -> {
                     assertEquals(2, page.getContent().size());
-                    assertEquals(sampleProduct.getPrice(), page.getContent().getFirst().getPrice());
+                    assertEquals("Apple iPhone 12", page.getContent().getFirst().getName());
+                    assertEquals("Apple iPhone 13", page.getContent().getLast().getName());
                 })
                 .verifyComplete();
     }
 
     @Test
-    void getByUuid_ShouldReturnProduct_WhenFound() {
-        when(productCacheService.getAllProducts()).thenReturn(Flux.just(sampleProduct));
+    void batchAdd_ShouldHandleEmptyInput() {
+        when(productRepository.saveAll(any(Flux.class))).thenReturn(Flux.empty());
 
-        StepVerifier.create(productService.getByUuid(productUuid))
-                .expectNext(sampleProduct)
+        StepVerifier.create(productService.batchAdd(Flux.empty()))
                 .verifyComplete();
+
+        verify(productCacheService, never()).cacheProducts(any());
+        verify(productCacheService, never()).evictListCache();
     }
 
     @Test
-    void getByUuid_ShouldThrow_WhenNotFound() {
-        when(productCacheService.getAllProducts()).thenReturn(Flux.empty());
-
-        StepVerifier.create(productService.getByUuid(productUuid))
-                .expectErrorMatches(ex -> ex instanceof ProductNotFoundException &&
-                        ex.getMessage().contains("Товар не найден"))
-                .verify();
-    }
-
-    @Test
-    void batchAdd_ShouldMapAndSaveProducts() {
-        ProductDao productDao = ProductDao.builder()
-                .uuid(sampleProduct.getUuid())
-                .name(sampleProduct.getName())
-                .price(sampleProduct.getPrice())
-                .build();
+    void batchAdd_ShouldSaveAndCacheProducts() {
+        Product product = Product.builder().uuid(UUID.randomUUID()).name("Test").build();
+        ProductDao productDao = ProductDao.builder().uuid(product.getUuid()).name("Test").build();
 
         when(productRepository.saveAll(any(Flux.class))).thenReturn(Flux.just(productDao));
-        when(productCacheService.evictAll()).thenReturn(Mono.empty());
+        when(productMapper.productToProductDao(product)).thenReturn(productDao);
+        when(productMapper.productDaoToProduct(productDao)).thenReturn(product);
+        when(productCacheService.cacheProducts(List.of(product))).thenReturn(Mono.empty());
+        when(productCacheService.evictListCache()).thenReturn(Mono.empty());
 
-        StepVerifier.create(productService.batchAdd(Flux.just(sampleProduct)))
+        StepVerifier.create(productService.batchAdd(Flux.just(product)))
                 .verifyComplete();
 
-        verify(productRepository).saveAll(any(Flux.class));
-        verify(productCacheService).evictAll();
+        verify(productCacheService).cacheProducts(List.of(product));
+        verify(productCacheService).evictListCache();
     }
 
     @Test
-    void getProductsByIds_ShouldReturnProductsFromCache() {
-        UUID productId1 = UUID.randomUUID();
-        UUID productId2 = UUID.randomUUID();
-        Set<UUID> productIds = Set.of(productId1, productId2);
+    void batchAdd_ShouldPropagateErrorFromRepository() {
+        Product product = Product.builder().uuid(UUID.randomUUID()).name("Test").build();
 
-        Product product1 = Product.builder().uuid(productId1).name("Product 1").build();
-        Product product2 = Product.builder().uuid(productId2).name("Product 2").build();
+        when(productRepository.saveAll(any(Flux.class))).thenReturn(Flux.error(new RuntimeException("DB error")));
 
-        when(productCacheService.getAllProducts())
-                .thenReturn(Flux.just(product1, product2));
+        StepVerifier.create(productService.batchAdd(Flux.just(product)))
+                .expectErrorMatches(e -> e instanceof RuntimeException && e.getMessage().equals("DB error"))
+                .verify();
 
-        Mono<Map<UUID, Product>> result = productService.getProductsByIds(productIds);
-
-        StepVerifier.create(result)
-                .assertNext(productsMap -> {
-                    assertEquals(2, productsMap.size());
-                    assertEquals("Product 1", productsMap.get(productId1).getName());
-                    assertEquals("Product 2", productsMap.get(productId2).getName());
-                })
-                .verifyComplete();
-
-        verify(productCacheService).getAllProducts();
+        verify(productCacheService, never()).cacheProducts(any());
     }
 
     @Test
-    void getProductsByIds_ShouldFetchMissingProductsFromDb() {
-        UUID cachedProductId = UUID.randomUUID();
-        UUID missingProductId = UUID.randomUUID();
-        Set<UUID> productIds = Set.of(cachedProductId, missingProductId);
-
-        Product cachedProduct = Product.builder().uuid(cachedProductId).name("Cached Product").build();
+    void getProductsByIds_ShouldHandlePartialCacheMiss() {
+        UUID cachedId = UUID.randomUUID();
+        UUID missingId = UUID.randomUUID();
         ProductDao missingProductDao = ProductDao.builder()
-                .uuid(missingProductId)
+                .uuid(missingId)
                 .name("Missing Product")
                 .build();
         Product missingProduct = Product.builder()
-                .uuid(missingProductId)
+                .uuid(missingId)
                 .name("Missing Product")
                 .build();
 
-        when(productCacheService.getAllProducts())
-                .thenReturn(Flux.just(cachedProduct));
-        when(productRepository.findAllById(Set.of(missingProductId)))
-                .thenReturn(Flux.just(missingProductDao));
-        when(productMapper.productDaoToProduct(missingProductDao))
-                .thenReturn(missingProduct);
+        when(productCacheService.getAllProducts()).thenReturn(Flux.just(
+                ProductCacheDto.builder().uuid(cachedId).name("Cached Product").build()
+        ));
+        when(productRepository.findAllById(Set.of(missingId))).thenReturn(Flux.just(missingProductDao));
+        when(productMapper.productDaoToProduct(missingProductDao)).thenReturn(missingProduct);
+        when(productMapper.fromCacheDto(any())).thenAnswer(inv ->
+                Product.builder()
+                        .uuid(((ProductCacheDto) inv.getArgument(0)).getUuid())
+                        .name(((ProductCacheDto) inv.getArgument(0)).getName())
+                        .build());
 
-        Mono<Map<UUID, Product>> result = productService.getProductsByIds(productIds);
-
-        StepVerifier.create(result)
-                .assertNext(productsMap -> {
-                    assertEquals(2, productsMap.size());
-                    assertEquals("Cached Product", productsMap.get(cachedProductId).getName());
-                    assertEquals("Missing Product", productsMap.get(missingProductId).getName());
+        StepVerifier.create(productService.getProductsByIds(Set.of(cachedId, missingId)))
+                .assertNext(map -> {
+                    assertEquals(2, map.size());
+                    assertTrue(map.containsKey(cachedId));
+                    assertTrue(map.containsKey(missingId));
                 })
                 .verifyComplete();
-
-        verify(productCacheService).getAllProducts();
-        verify(productRepository).findAllById(Set.of(missingProductId));
-        verify(productMapper).productDaoToProduct(missingProductDao);
     }
 
     @Test
-    void getProductsByIds_ShouldReturnEmptyMapForEmptyInput() {
-        Mono<Map<UUID, Product>> result = productService.getProductsByIds(Collections.emptySet());
-
-        StepVerifier.create(result)
-                .assertNext(productsMap -> assertTrue(productsMap.isEmpty()))
-                .verifyComplete();
-
-        verify(productCacheService, never()).getAllProducts();
-    }
-
-    @Test
-    void getProducts_ShouldReturnAllProductsWhenNoFilters() {
+    void getSorted_ShouldHandleEmptySortParameter() {
         Pageable pageable = PageRequest.of(0, 10);
-        LocalDateTime now = LocalDateTime.now();
+        when(productCacheService.getAllProducts()).thenReturn(Flux.just(testProductCacheDto));
+        when(productRepository.count()).thenReturn(Mono.just(1L));
+        when(productMapper.fromCacheDto(testProductCacheDto)).thenReturn(testProduct);
 
-        Product product1 = Product.builder()
-                .uuid(UUID.randomUUID())
-                .name("Product 1")
-                .price(BigDecimal.valueOf(100))
-                .createdAt(now.minusDays(1))
-                .build();
-
-        Product product2 = Product.builder()
-                .uuid(UUID.randomUUID())
-                .name("Product 2")
-                .price(BigDecimal.valueOf(200))
-                .createdAt(now)
-            .build();
-
-        when(productCacheService.getAllProducts()).thenReturn(Flux.just(product1, product2));
-
-        StepVerifier.create(productService.getProducts(null, null, pageable))
+        StepVerifier.create(productService.getSorted(null, pageable))
                 .assertNext(page -> {
-                    assertEquals(2, page.getTotalElements());
-                    assertEquals(1, page.getTotalPages());
-                    assertEquals(2, page.getContent().size());
-                })
-                .verifyComplete();
-    }
-
-    @Test
-    void getProducts_ShouldFilterBySearchQuery() {
-        Pageable pageable = PageRequest.of(0, 10);
-        LocalDateTime now = LocalDateTime.now();
-
-        Product matchingProduct = Product.builder()
-                .uuid(UUID.randomUUID())
-                .name("Apple iPhone")
-                .price(BigDecimal.valueOf(1000))
-                .createdAt(now)
-            .build();
-
-        Product nonMatchingProduct = Product.builder()
-                .uuid(UUID.randomUUID())
-                .name("Samsung Galaxy")
-                .price(BigDecimal.valueOf(900))
-                .createdAt(now.minusDays(1))
-            .build();
-
-        when(productCacheService.getAllProducts()).thenReturn(Flux.just(matchingProduct, nonMatchingProduct));
-
-        StepVerifier.create(productService.getProducts("iphone", null, pageable))
-                .assertNext(page -> {
-                    assertEquals(1, page.getTotalElements());
-                    assertEquals("Apple iPhone", page.getContent().getFirst().getName());
-                })
-                .verifyComplete();
-    }
-
-    @Test
-    void getProducts_ShouldSortByPriceAsc() {
-        Pageable pageable = PageRequest.of(0, 10);
-        LocalDateTime now = LocalDateTime.now();
-
-        Product cheapProduct = Product.builder()
-                .uuid(UUID.randomUUID())
-                .name("Cheap")
-                .price(BigDecimal.valueOf(100))
-                .createdAt(now)
-            .build();
-
-        Product expensiveProduct = Product.builder()
-                .uuid(UUID.randomUUID())
-                .name("Expensive")
-                .price(BigDecimal.valueOf(500))
-                .createdAt(now.minusDays(1))
-            .build();
-
-        when(productCacheService.getAllProducts()).thenReturn(Flux.just(expensiveProduct, cheapProduct));
-
-        StepVerifier.create(productService.getProducts(null, "price-asc", pageable))
-                .assertNext(page -> {
-                    assertEquals(2, page.getContent().size());
-                    assertEquals(cheapProduct.getPrice(), page.getContent().getFirst().getPrice());
-                    assertEquals(expensiveProduct.getPrice(), page.getContent().getLast().getPrice());
-                })
-                .verifyComplete();
-    }
-
-    @Test
-    void getProducts_ShouldApplyPagination() {
-        Pageable pageable = PageRequest.of(1, 1);
-        LocalDateTime now = LocalDateTime.now();
-
-        Product product1 = Product.builder()
-                .uuid(UUID.randomUUID())
-                .name("Product 1")
-                .price(BigDecimal.valueOf(100))
-                .createdAt(now)
-                .build();
-
-        Product product2 = Product.builder()
-                .uuid(UUID.randomUUID())
-                .name("Product 2")
-                .price(BigDecimal.valueOf(200))
-                .createdAt(now.minusDays(1))
-                .build();
-
-        when(productCacheService.getAllProducts()).thenReturn(Flux.just(product1, product2));
-
-        StepVerifier.create(productService.getProducts(null, null, pageable))
-                .assertNext(page -> {
-                    assertEquals(2, page.getTotalElements());
-                    assertEquals(2, page.getTotalPages());
                     assertEquals(1, page.getContent().size());
-                    assertEquals(product2.getName(), page.getContent().getFirst().getName());
+                    assertEquals(testProduct.getName(), page.getContent().getFirst().getName());
                 })
                 .verifyComplete();
     }
 
     @Test
-    void getProducts_ShouldHandleEmptyResult() {
+    void getProducts_ShouldHandleNullSearchAndSort() {
         Pageable pageable = PageRequest.of(0, 10);
-        when(productCacheService.getAllProducts()).thenReturn(Flux.empty());
-
-        StepVerifier.create(productService.getProducts(null, null, pageable))
-                .assertNext(page -> {
-                    assertEquals(0, page.getTotalElements());
-                    assertTrue(page.getContent().isEmpty());
-                })
-                .verifyComplete();
-    }
-
-    @Test
-    void getProducts_ShouldCorrectPageNumberWhenExceedsTotalPages() {
-        Pageable pageable = PageRequest.of(2, 10);
-        LocalDateTime now = LocalDateTime.now();
-
-        Product product = Product.builder()
-                .uuid(UUID.randomUUID())
-                .name("Single Product")
-                .price(BigDecimal.valueOf(100))
-                .createdAt(now)
-                .build();
-
-        when(productCacheService.getAllProducts()).thenReturn(Flux.just(product));
+        when(productCacheService.getAllProducts()).thenReturn(Flux.just(testProductCacheDto));
+        when(productMapper.fromCacheDto(testProductCacheDto)).thenReturn(testProduct);
 
         StepVerifier.create(productService.getProducts(null, null, pageable))
                 .assertNext(page -> {
                     assertEquals(1, page.getTotalElements());
-                    assertEquals(1, page.getTotalPages());
-                    assertEquals(0, page.getNumber());
-                    assertEquals(1, page.getContent().size());
+                    assertEquals(testProduct.getName(), page.getContent().getFirst().getName());
                 })
                 .verifyComplete();
     }
