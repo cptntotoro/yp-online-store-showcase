@@ -1,4 +1,4 @@
-package ru.practicum.dto.payment;
+package ru.practicum.client.dto.payment;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

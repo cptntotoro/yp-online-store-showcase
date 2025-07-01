@@ -27,7 +27,7 @@ public class CartItemDao {
     private UUID uuid;
 
     /**
-     * Корзина товаров
+     * Идентификатор корзины
      */
     @Column("cart_uuid")
     private UUID cartUuid;

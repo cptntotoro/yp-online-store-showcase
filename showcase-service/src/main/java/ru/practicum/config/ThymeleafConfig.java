@@ -12,7 +12,7 @@ import org.thymeleaf.templatemode.TemplateMode;
 
 @Configuration
 @Profile("prod")
-public class WebConfig implements WebFluxConfigurer {
+public class ThymeleafConfig implements WebFluxConfigurer {
 
     @Bean
     public ViewResolver viewResolver() {

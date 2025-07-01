@@ -28,7 +28,7 @@ public class Order {
     private UUID userUuid;
 
     /**
-     * дентификатор корзины
+     * Идентификатор корзины
      */
     private UUID cartUuid;
 

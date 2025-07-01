@@ -5,7 +5,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
 import ru.practicum.client.PaymentServiceClient;
-import ru.practicum.dto.payment.PaymentRequestDto;
 import ru.practicum.exception.order.IllegalOrderStateException;
 import ru.practicum.exception.order.OrderNotFoundException;
 import ru.practicum.model.order.OrderStatus;
@@ -36,13 +35,7 @@ public class OrderPaymentServiceImpl implements OrderPaymentService {
                         return Mono.error(new IllegalOrderStateException("Заказ уже обработан или отменен"));
                     }
 
-                    PaymentRequestDto request = PaymentRequestDto.builder()
-                            .userId(userUuid)
-                            .orderId(orderUuid)
-                            .amount(order.getTotalPrice())
-                            .build();
-
-                    return paymentWebClient.processPayment(request)
+                    return paymentWebClient.processPayment(userUuid, orderUuid, order.getTotalPrice())
                             .then(updateOrderStatus(userUuid, orderUuid, OrderStatus.PAID));
                 });
     }
@@ -54,14 +47,16 @@ public class OrderPaymentServiceImpl implements OrderPaymentService {
                 .switchIfEmpty(Mono.error(new OrderNotFoundException("Заказ не найден")))
                 .flatMap(order -> {
                     if (order.getStatus() == OrderStatus.PAID) {
-                        PaymentRequestDto request = new PaymentRequestDto(userUuid, order.getTotalPrice(), orderUuid);
-                        return paymentWebClient.processRefund(request)
+                        return paymentWebClient.processRefund(userUuid, orderUuid, order.getTotalPrice())
                                 .then(updateOrderStatus(userUuid, orderUuid, OrderStatus.CANCELLED));
                     }
                     return updateOrderStatus(userUuid, orderUuid, OrderStatus.CANCELLED);
                 });
     }
 
+
+    // TODO: Если баланс меньше суммы цены товаров в корзине,
+    //  то кнопка оформления заказа основного приложения недоступна;
     @Override
     public Mono<Boolean> isBalanceSufficient(UUID userUuid, UUID orderUuid) {
         return orderService.getByUuid(userUuid, orderUuid)

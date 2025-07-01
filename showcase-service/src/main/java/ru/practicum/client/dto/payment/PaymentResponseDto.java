@@ -1,4 +1,4 @@
-package ru.practicum.dto.payment;
+package ru.practicum.client.dto.payment;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,18 +9,18 @@ import java.math.BigDecimal;
 import java.util.UUID;
 
 /**
- * DTO ответа на возврат средств
+ * DTO ответа оплаты заказа
  */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class RefundResponseDto {
+public class PaymentResponseDto {
 
     /**
      * Идентификатор пользователя
      */
-    private UUID userUuid;
+    private UUID userId;
 
     /**
      * Флаг успеха
@@ -36,9 +36,4 @@ public class RefundResponseDto {
      * Новое значение баланса счета пользователя
      */
     private BigDecimal newBalance;
-
-    /**
-     * Сообщение о результате
-     */
-    private String message;
 }

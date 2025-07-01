@@ -24,4 +24,11 @@ public interface CartCacheService {
      * @param userUuid Идентификатор пользователя
      */
     Mono<Void> evict(UUID userUuid);
+
+    /**
+     * Добавить корзину в кеш
+     *
+     * @param cart Корзина
+     */
+    Mono<Void> cacheCart(Cart cart);
 }

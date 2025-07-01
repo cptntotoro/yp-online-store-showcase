@@ -10,7 +10,7 @@ import java.util.UUID;
  */
 public interface UserService {
     /**
-     * Добавить нового пользователя
+     * Добавить гостя
      *
      * @return Пользователь
      */

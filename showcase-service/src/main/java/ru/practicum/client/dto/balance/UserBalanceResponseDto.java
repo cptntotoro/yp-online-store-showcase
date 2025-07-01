@@ -1,4 +1,4 @@
-package ru.practicum.dto.balance;
+package ru.practicum.client.dto.balance;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

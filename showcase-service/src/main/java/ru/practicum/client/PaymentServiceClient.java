@@ -7,13 +7,14 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientRequestException;
 import reactor.core.publisher.Mono;
-import ru.practicum.dto.payment.PaymentRequestDto;
-import ru.practicum.dto.payment.PaymentResponseDto;
-import ru.practicum.dto.payment.RefundResponseDto;
+import ru.practicum.client.dto.payment.PaymentRequestDto;
+import ru.practicum.client.dto.payment.PaymentResponseDto;
+import ru.practicum.client.dto.payment.RefundResponseDto;
 import ru.practicum.exception.payment.PaymentProcessingException;
 import ru.practicum.exception.payment.PaymentServiceUnavailableException;
 import ru.practicum.model.balance.UserBalance;
 
+import java.math.BigDecimal;
 import java.time.Duration;
 import java.util.Map;
 import java.util.UUID;
@@ -23,12 +24,17 @@ import java.util.UUID;
  */
 @Component
 @RequiredArgsConstructor
-// TODO: нужен ли сюда интерфейс или абстрактный класс?
 public class PaymentServiceClient {
     private final WebClient webClient;
     private static final Duration TIMEOUT = Duration.ofSeconds(3);
 
-    public Mono<Void> processPayment(PaymentRequestDto request) {
+    public Mono<Void> processPayment(UUID userUuid, UUID orderUuid, BigDecimal total) {
+        PaymentRequestDto request = PaymentRequestDto.builder()
+                .userId(userUuid)
+                .orderId(orderUuid)
+                .amount(total)
+                .build();
+
         return webClient.post()
                 .uri("/payment")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -43,7 +49,7 @@ public class PaymentServiceClient {
                     if (!response.isSuccess()) {
                         return Mono.error(new PaymentProcessingException(
                                 "Недостаточно средств на счете. TransactionUuid: " +
-                                response.getTransactionUuid()));
+                                        response.getTransactionUuid()));
                     }
                     return Mono.<Void>empty();
                 })
@@ -52,7 +58,13 @@ public class PaymentServiceClient {
                         new PaymentServiceUnavailableException("Сервис платежей недоступен"));
     }
 
-    public Mono<Void> processRefund(PaymentRequestDto request) {
+    public Mono<Void> processRefund(UUID userUuid, UUID orderUuid, BigDecimal total) {
+        PaymentRequestDto request = PaymentRequestDto.builder()
+                .userId(userUuid)
+                .orderId(orderUuid)
+                .amount(total)
+                .build();
+
         return webClient.post()
                 .uri("/payment/refund")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -61,12 +73,15 @@ public class PaymentServiceClient {
                 .onStatus(HttpStatusCode::isError, response ->
                         response.bodyToMono(String.class)
                                 .flatMap(error -> Mono.error(new PaymentProcessingException(
-                                        "Ошибка при возврате средств: " + error))))
+                                        "Ошибка при возврате средств: " + error))
+                                )
+                )
                 .bodyToMono(RefundResponseDto.class)
                 .flatMap(response -> {
                     if (!response.isSuccess()) {
                         return Mono.error(new PaymentProcessingException(
-                                response.getMessage() != null ? response.getMessage() : "Ошибка при возврате средств. TransactionUuid: " + response.getTransactionUuid()));
+                                response.getMessage() != null ? response.getMessage() :
+                                        "Ошибка при возврате средств. TransactionUuid: " + response.getTransactionUuid()));
                     }
                     return Mono.<Void>empty();
                 })

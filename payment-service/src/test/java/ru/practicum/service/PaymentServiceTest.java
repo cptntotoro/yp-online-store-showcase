@@ -26,6 +26,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+// TODO: должны быть написаны юнит- и интеграционные тесты на сервис платежей.
 @SpringBootTest
 @TestPropertySource(properties = {
         "payment.default-balance=15000.00"
@@ -262,7 +263,7 @@ class PaymentServiceTest {
                     assertEquals(0, new BigDecimal("300.50").compareTo(result.getUpdatedBalance().getAmount()));
                     assertNotNull(result.getTransaction());
                     assertEquals(TransactionStatus.COMPLETED, result.getTransaction().getStatus());
-                    assertEquals(TransactionType.REFUND, result.getTransaction().getTransactionType()); // Проверяем тип транзакции
+                    assertEquals(TransactionType.REFUND, result.getTransaction().getTransactionType());
                 })
                 .verifyComplete();
 

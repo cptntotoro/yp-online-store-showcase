@@ -3,6 +3,7 @@ package ru.practicum.mapper.cart;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import ru.practicum.dao.cart.CartDao;
+import ru.practicum.dto.cart.cache.CartCacheDto;
 import ru.practicum.dto.cart.CartDto;
 import ru.practicum.model.cart.Cart;
 
@@ -36,4 +37,8 @@ public interface CartMapper {
      */
     @Mapping(target = "items", ignore = true)
     Cart cartDaoToCart(CartDao cartDao);
+
+    CartCacheDto toCacheDto(Cart cart);
+
+    Cart fromCacheDto(CartCacheDto dto);
 }

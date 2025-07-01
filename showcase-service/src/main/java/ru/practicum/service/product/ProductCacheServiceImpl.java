@@ -1,19 +1,20 @@
 package ru.practicum.service.product;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 import ru.practicum.dto.product.ProductCacheDto;
+import ru.practicum.exception.product.ProductNotFoundException;
 import ru.practicum.mapper.product.ProductMapper;
 import ru.practicum.model.product.Product;
 import ru.practicum.repository.product.ProductRepository;
 
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -22,10 +23,24 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ProductCacheServiceImpl implements ProductCacheService {
 
+    /**
+     * Репозиторий товаров
+     */
     private final ProductRepository productRepository;
+
+    /**
+     * Маппер товаров
+     */
     private final ProductMapper productMapper;
+
+    /**
+     * Кеш товаров
+     */
     private final ReactiveRedisTemplate<String, ProductCacheDto> productCacheTemplate;
 
+    /**
+     * Кеш всех товаров
+     */
     private final ReactiveRedisTemplate<String, List<ProductCacheDto>> listCacheTemplate;
 
     private static final String ALL_PRODUCTS_KEY = "all_products";
@@ -33,16 +48,20 @@ public class ProductCacheServiceImpl implements ProductCacheService {
     private static final Duration CACHE_TTL = Duration.ofMinutes(2);
 
     @Override
-    public Flux<ProductCacheDto> getAllProducts() {
+    public Flux<Product> getAllProducts() {
         return listCacheTemplate.opsForValue().get(ALL_PRODUCTS_KEY)
-                .flatMapMany(Flux::fromIterable)
-                .switchIfEmpty(fetchAndCacheAllProducts());
+                .defaultIfEmpty(Collections.emptyList())
+                .flatMapMany(list -> list.isEmpty()
+                        ? fetchAndCacheAllProducts()
+                        : Flux.fromIterable(list).map(productMapper::fromCacheDto));
     }
 
     @Override
-    public Mono<ProductCacheDto> getProductById(UUID id) {
-        return productCacheTemplate.opsForValue().get(PRODUCT_KEY_PREFIX + id)
-                .switchIfEmpty(fetchAndCacheProduct(id));
+    public Mono<Product> getProductById(UUID uuid) {
+        return productCacheTemplate.opsForValue().get(PRODUCT_KEY_PREFIX + uuid)
+                .flatMap(dto -> Mono.justOrEmpty(productMapper.fromCacheDto(dto)))
+                .switchIfEmpty(fetchAndCacheProduct(uuid))
+                .onErrorResume(e -> fetchAndCacheProduct(uuid));
     }
 
     @Override
@@ -55,7 +74,6 @@ public class ProductCacheServiceImpl implements ProductCacheService {
                 .map(productMapper::toCacheDto)
                 .collect(Collectors.toList());
 
-        // Кэшируем каждый продукт индивидуально
         Mono<Void> cacheIndividualProducts = Flux.fromIterable(dtos)
                 .parallel()
                 .runOn(Schedulers.boundedElastic())
@@ -64,7 +82,6 @@ public class ProductCacheServiceImpl implements ProductCacheService {
                 .sequential()
                 .then();
 
-        // Обновляем список всех продуктов
         Mono<Void> updateProductList = listCacheTemplate.opsForValue()
                 .set(ALL_PRODUCTS_KEY, dtos, CACHE_TTL)
                 .then();
@@ -73,57 +90,47 @@ public class ProductCacheServiceImpl implements ProductCacheService {
     }
 
     @Override
-    public Mono<Void> evictAll() {
-        return listCacheTemplate.delete(ALL_PRODUCTS_KEY)
-                .then(productCacheTemplate.keys(PRODUCT_KEY_PREFIX + "*")
-                        .flatMap(productCacheTemplate::delete)
-                        .then()
-                );
-    }
-
-    @Override
     public Mono<Void> evictListCache() {
         return listCacheTemplate.delete(ALL_PRODUCTS_KEY).then();
     }
 
-    @Override
-    public Mono<Void> evictProductCache(UUID productId) {
-        return productCacheTemplate.delete(PRODUCT_KEY_PREFIX + productId)
-                .then(listCacheTemplate.opsForValue().get(ALL_PRODUCTS_KEY)
-                        .defaultIfEmpty(new ArrayList<>())
-                        .flatMap(list -> {
-                            list.removeIf(dto -> dto.getUuid().equals(productId));
-                            return listCacheTemplate.opsForValue()
-                                    .set(ALL_PRODUCTS_KEY, list, CACHE_TTL);
-                        })
-                )
-                .then();
-    }
-
-    private Flux<ProductCacheDto> fetchAndCacheAllProducts() {
+    private Flux<Product> fetchAndCacheAllProducts() {
         return productRepository.findAll()
-                .map(productMapper::toCacheDto)
+                .map(productMapper::productDaoToProduct)
                 .collectList()
-                .flatMapMany(dtos -> listCacheTemplate.opsForValue()
-                        .set(ALL_PRODUCTS_KEY, dtos, CACHE_TTL)
-                        .thenMany(Flux.fromIterable(dtos))
-                );
+                .flatMapMany(products -> {
+                    List<ProductCacheDto> dtos = products.stream()
+                            .map(productMapper::toCacheDto)
+                            .collect(Collectors.toList());
+
+                    return listCacheTemplate.opsForValue()
+                            .set(ALL_PRODUCTS_KEY, dtos, CACHE_TTL)
+                            .thenMany(Flux.fromIterable(products));
+                });
     }
 
-    private Mono<ProductCacheDto> fetchAndCacheProduct(UUID id) {
-        return productRepository.findById(id)
-                .map(productMapper::toCacheDto)
-                .flatMap(dto -> Mono.zip(
-                        productCacheTemplate.opsForValue()
-                                .set(PRODUCT_KEY_PREFIX + id, dto, CACHE_TTL),
-                        listCacheTemplate.opsForValue().get(ALL_PRODUCTS_KEY)
-                                .defaultIfEmpty(new ArrayList<>())
-                                .flatMap(list -> {
-                                    list.removeIf(item -> item.getUuid().equals(id));
-                                    list.add(dto);
-                                    return listCacheTemplate.opsForValue()
-                                            .set(ALL_PRODUCTS_KEY, list, CACHE_TTL);
-                                })
-                ).thenReturn(dto));
+    private Mono<Product> fetchAndCacheProduct(UUID id) {
+        return Mono.defer(() -> productRepository.findById(id)
+                .switchIfEmpty(Mono.error(new ProductNotFoundException("Product not found")))
+                .flatMap(dao -> {
+                    Product product = productMapper.productDaoToProduct(dao);
+                    ProductCacheDto dto = productMapper.toCacheDto(product);
+
+                    return Mono.zip(
+                            productCacheTemplate.opsForValue()
+                                    .set(PRODUCT_KEY_PREFIX + id, dto, CACHE_TTL)
+                                    .onErrorResume(e -> Mono.empty()),
+                            listCacheTemplate.opsForValue().get(ALL_PRODUCTS_KEY)
+                                    .defaultIfEmpty(new ArrayList<>())
+                                    .flatMap(list -> {
+                                        list.removeIf(item -> item.getUuid().equals(id));
+                                        list.add(dto);
+                                        return listCacheTemplate.opsForValue()
+                                                .set(ALL_PRODUCTS_KEY, list, CACHE_TTL)
+                                                .doOnError(e -> System.out.println("ERROR: " + e.getMessage()))
+                                                .onErrorResume(e -> Mono.empty());
+                                    })
+                    ).thenReturn(product);
+                }));
     }
 }

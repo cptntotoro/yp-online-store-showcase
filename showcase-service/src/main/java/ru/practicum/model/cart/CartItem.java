@@ -24,7 +24,7 @@ public class CartItem {
     private UUID uuid;
 
     /**
-     * Корзина товаров
+     * Идентификатор корзины
      */
     private UUID cartUuid;
 
