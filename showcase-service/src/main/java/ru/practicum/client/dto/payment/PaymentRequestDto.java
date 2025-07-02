@@ -19,7 +19,7 @@ public class PaymentRequestDto {
     /**
      * Идентификатор пользователя
      */
-    private UUID userId;
+    private UUID userUuid;
 
     /**
      * Сумма к оплате
@@ -29,5 +29,5 @@ public class PaymentRequestDto {
     /**
      * Идентификатор заказа
      */
-    private UUID orderId;
+    private UUID orderUuid;
 }

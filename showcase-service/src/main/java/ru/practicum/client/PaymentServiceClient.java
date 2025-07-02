@@ -30,8 +30,8 @@ public class PaymentServiceClient {
 
     public Mono<Void> processPayment(UUID userUuid, UUID orderUuid, BigDecimal total) {
         PaymentRequestDto request = PaymentRequestDto.builder()
-                .userId(userUuid)
-                .orderId(orderUuid)
+                .userUuid(userUuid)
+                .orderUuid(orderUuid)
                 .amount(total)
                 .build();
 
@@ -60,8 +60,8 @@ public class PaymentServiceClient {
 
     public Mono<Void> processRefund(UUID userUuid, UUID orderUuid, BigDecimal total) {
         PaymentRequestDto request = PaymentRequestDto.builder()
-                .userId(userUuid)
-                .orderId(orderUuid)
+                .userUuid(userUuid)
+                .orderUuid(orderUuid)
                 .amount(total)
                 .build();
 

@@ -20,7 +20,7 @@ public class PaymentResponseDto {
     /**
      * Идентификатор пользователя
      */
-    private UUID userId;
+    private UUID userUuid;
 
     /**
      * Флаг успеха
