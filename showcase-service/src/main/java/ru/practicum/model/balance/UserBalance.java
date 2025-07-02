@@ -17,7 +17,7 @@ public class UserBalance {
     /**
      * Идентификатор пользователя
      */
-    private UUID userId;
+    private UUID userUuid;
 
     /**
      * Баланс счета пользователя

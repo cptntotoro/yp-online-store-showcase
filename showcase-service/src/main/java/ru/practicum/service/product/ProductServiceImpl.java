@@ -112,7 +112,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public Mono<Map<UUID, Product>> getProductsByIds(Set<UUID> productIds) {
+    public Mono<Map<UUID, Product>> getProductsByUuids(Set<UUID> productIds) {
         if (productIds.isEmpty()) {
             return Mono.just(Map.of());
         }

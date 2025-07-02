@@ -169,7 +169,7 @@ class ProductServiceTest {
         Set<UUID> ids = Collections.singleton(testUuid);
         when(productCacheService.getAllProducts()).thenReturn(Flux.just(testProduct));
 
-        Mono<Map<UUID, Product>> result = productService.getProductsByIds(ids);
+        Mono<Map<UUID, Product>> result = productService.getProductsByUuids(ids);
 
         StepVerifier.create(result)
                 .expectNextMatches(map ->
@@ -194,7 +194,7 @@ class ProductServiceTest {
         when(productRepository.findAllById(Set.of(missingUuid))).thenReturn(Flux.just(missingProductDao));
         when(productMapper.productDaoToProduct(missingProductDao)).thenReturn(missingProduct);
 
-        Mono<Map<UUID, Product>> result = productService.getProductsByIds(ids);
+        Mono<Map<UUID, Product>> result = productService.getProductsByUuids(ids);
 
         StepVerifier.create(result)
                 .expectNextMatches(map -> {
@@ -221,8 +221,8 @@ class ProductServiceTest {
     }
 
     @Test
-    void getProductsByIds_shouldReturnEmptyMapForEmptyInput() {
-        Mono<Map<UUID, Product>> result = productService.getProductsByIds(Collections.emptySet());
+    void getProductsByUuids_shouldReturnEmptyMapForEmptyInput() {
+        Mono<Map<UUID, Product>> result = productService.getProductsByUuids(Collections.emptySet());
 
         StepVerifier.create(result)
                 .expectNextMatches(Map::isEmpty)

@@ -38,7 +38,21 @@ public interface CartMapper {
     @Mapping(target = "items", ignore = true)
     Cart cartDaoToCart(CartDao cartDao);
 
+    /**
+     * Смаппить корзину в DTO корзины для кеша
+     *
+     * @param cart Корзина
+     * @return DTO корзины для кеша
+     */
     CartCacheDto toCacheDto(Cart cart);
 
-    Cart fromCacheDto(CartCacheDto dto);
+    /**
+     * Смаппить DTO корзины для кеша в корзину
+     *
+     * @param cartCacheDto DTO корзины для кеша
+     * @return Корзина
+     */
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
+    Cart fromCacheDto(CartCacheDto cartCacheDto);
 }

@@ -60,5 +60,6 @@ public interface CartItemMapper {
      * @return Товар корзины
      */
     @Mapping(target = "product", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
     CartItem cartItemCacheDtoToCartItem(CartItemCacheDto cartItemCacheDto);
 }

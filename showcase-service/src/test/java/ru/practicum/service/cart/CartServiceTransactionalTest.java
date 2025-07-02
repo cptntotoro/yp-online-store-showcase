@@ -96,6 +96,7 @@ class CartServiceTransactionalTest {
                 .price(BigDecimal.valueOf(100))
                 .build();
 
+        when(cartCacheService.evict(any())).thenReturn(Mono.empty());
         when(cartCacheService.getCart(userId)).thenReturn(Mono.just(
                 Cart.builder()
                         .uuid(cartId)

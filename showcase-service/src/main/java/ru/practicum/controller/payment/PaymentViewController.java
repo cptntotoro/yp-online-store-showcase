@@ -5,7 +5,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
-import ru.practicum.client.PaymentServiceClient;
 import ru.practicum.config.WebAttributes;
 import ru.practicum.dto.payment.PaymentCheckoutDto;
 import ru.practicum.mapper.order.OrderMapper;
@@ -43,12 +42,8 @@ public class PaymentViewController {
     public Mono<String> previewOrder(@RequestAttribute(WebAttributes.USER_UUID) UUID userUuid, Model model) {
         return orderService.create(userUuid)
                 .flatMap(order -> cartService.clear(userUuid)
-                        .then(orderPaymentService.checkHealth()
-                                .doOnNext(isActive -> {
-                                    model.addAttribute("order", orderMapper.orderToOrderDto(order));
-                                    model.addAttribute("paymentServiceActive", isActive);
-                                })
-                                .thenReturn(order)))
+                        .thenReturn(order))
+                .doOnNext(order -> model.addAttribute("order", orderMapper.orderToOrderDto(order)))
                 .map(order -> "payment/payment");
     }
 
@@ -57,20 +52,35 @@ public class PaymentViewController {
                                              @PathVariable UUID orderUuid,
                                              Model model) {
         return orderService.getByUuid(userUuid, orderUuid)
-                .flatMap(order -> orderPaymentService.checkHealth()
-                        .doOnNext(isActive -> {
-                            model.addAttribute("order", orderMapper.orderToOrderDto(order));
-                            model.addAttribute("paymentServiceActive", isActive);
-                        })
-                        .thenReturn(order))
+                .doOnNext(order -> model.addAttribute("order", orderMapper.orderToOrderDto(order)))
                 .map(order -> "payment/payment");
     }
 
     @PostMapping("/{orderUuid}/checkout")
     public Mono<String> checkout(@RequestAttribute(WebAttributes.USER_UUID) UUID userUuid,
-                               @PathVariable UUID orderUuid,
-                               @ModelAttribute PaymentCheckoutDto paymentCheckoutDto) {
-        return orderPaymentService.processPayment(userUuid, orderUuid, paymentCheckoutDto.getCardNumber())
-                .thenReturn("redirect:/orders/" + orderUuid);
+                                 @PathVariable UUID orderUuid,
+                                 @ModelAttribute PaymentCheckoutDto paymentCheckoutDto,
+                                 Model model) {
+        return orderService.getByUuid(userUuid, orderUuid)
+                .flatMap(order -> {
+                    model.addAttribute("order", orderMapper.orderToOrderDto(order));
+
+                    return orderPaymentService.isBalanceSufficient(userUuid, order.getUuid())
+                            .defaultIfEmpty(false)
+                            .flatMap(isBalanceSufficient -> {
+                                model.addAttribute("balanceSufficient", isBalanceSufficient);
+
+                                if (!isBalanceSufficient) {
+                                    return Mono.just("payment/payment");
+                                }
+
+                                return orderPaymentService.processPayment(userUuid, orderUuid, paymentCheckoutDto.getCardNumber())
+                                        .thenReturn("redirect:/orders/" + orderUuid);
+                            });
+                })
+                .onErrorResume(e -> {
+                    model.addAttribute("balanceSufficient", false);
+                    return Mono.just("payment/payment");
+                });
     }
 }

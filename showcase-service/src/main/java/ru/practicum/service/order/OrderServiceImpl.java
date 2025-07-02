@@ -136,7 +136,7 @@ public class OrderServiceImpl implements OrderService {
                                     .map(OrderItem::getProductUuid))
                             .collect(Collectors.toSet());
 
-                    return productService.getProductsByIds(allProductIds)
+                    return productService.getProductsByUuids(allProductIds)
                             .zipWith(this.getUserTotalAmount(userUuid))
                             .map(tuple -> OrdersWithTotal.builder()
                                     .orders(orders)

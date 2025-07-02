@@ -121,7 +121,7 @@ public class CartServiceImpl implements CartService {
                             .then(saveCartItems(updatedCart.getItems()))
                             .thenReturn(updatedCart);
                 })
-                .doOnSuccess(cart -> cartCacheService.evict(userUuid))
+                .flatMap(updatedCart -> cartCacheService.evict(userUuid).thenReturn(updatedCart))
                 .onErrorResume(e -> Mono.error(new IllegalCartStateException("Не удалось добавить товар в корзину")));
     }
 
@@ -163,7 +163,7 @@ public class CartServiceImpl implements CartService {
                                         .thenReturn(updatedCart);
                             });
                 })
-                .doOnSuccess(saved -> cartCacheService.evict(userUuid))
+                .flatMap(updatedCart -> cartCacheService.evict(userUuid).thenReturn(updatedCart))
                 .onErrorResume(e -> Mono.error(new IllegalCartStateException("Не удалось удалить товар из корзины")));
     }
 
@@ -182,8 +182,8 @@ public class CartServiceImpl implements CartService {
                                                 .build()
                                 ))
                 )
+                .flatMap(cart -> cartCacheService.evict(userUuid))
                 .then()
-                .doOnSuccess(unused -> cartCacheService.evict(userUuid))
                 .onErrorResume(e -> Mono.error(new IllegalCartStateException("Не удалось очистить корзину")));
     }
 
@@ -214,7 +214,7 @@ public class CartServiceImpl implements CartService {
                                         .thenReturn(updatedCart);
                             });
                 })
-                .doOnSuccess(unused -> cartCacheService.evict(userUuid))
+                .flatMap(updatedCart -> cartCacheService.evict(userUuid).thenReturn(updatedCart))
                 .onErrorResume(e -> Mono.error(new IllegalCartStateException("Не удалось обновить товар в корзине")));
     }
 

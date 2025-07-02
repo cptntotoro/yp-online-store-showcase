@@ -326,7 +326,7 @@ class OrderServiceTest {
         when(orderRepository.findByUserUuid(userUuid)).thenReturn(Flux.just(orderDao));
         when(orderMapper.orderDaoToOrder(any())).thenReturn(order);
         when(orderItemRepository.findByOrderUuid(orderUuid)).thenReturn(Flux.empty());
-        when(productService.getProductsByIds(any())).thenReturn(Mono.just(Map.of(productUuid, product)));
+        when(productService.getProductsByUuids(any())).thenReturn(Mono.just(Map.of(productUuid, product)));
         when(orderRepository.getTotalOrdersAmountByUser(userUuid)).thenReturn(Mono.just(totalAmount));
 
         StepVerifier.create(orderService.getUserOrdersWithProducts(userUuid))
@@ -339,6 +339,6 @@ class OrderServiceTest {
 
         verify(orderRepository).findByUserUuid(userUuid);
         verify(orderRepository).getTotalOrdersAmountByUser(userUuid);
-        verify(productService).getProductsByIds(any());
+        verify(productService).getProductsByUuids(any());
     }
 }

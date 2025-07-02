@@ -65,11 +65,11 @@ public class OrderViewController {
 
         return orderService.getByUuid(userUuid, orderUuid)
                 .flatMap(order -> {
-                    Set<UUID> productIds = order.getItems().stream()
+                    Set<UUID> productUuids = order.getItems().stream()
                             .map(OrderItem::getProductUuid)
                             .collect(Collectors.toSet());
 
-                    return productService.getProductsByIds(productIds)
+                    return productService.getProductsByUuids(productUuids)
                             .map(productsMap -> {
                                 OrderDto dto = orderDtoMapper.orderAssignProductsToOrderDto(order, productsMap);
                                 model.addAttribute("order", dto);
@@ -78,8 +78,7 @@ public class OrderViewController {
                 });
     }
 
-    // TODO: Пофиксить путь
-    @GetMapping("/checkout/cancel/{orderUuid}")
+    @GetMapping("/{orderUuid}/checkout/cancel")
     public Mono<String> cancel(@RequestAttribute(WebAttributes.USER_UUID) UUID userUuid, @PathVariable UUID orderUuid) {
         return orderPaymentService.cancel(userUuid, orderUuid)
                 .thenReturn("redirect:/orders/" + orderUuid);

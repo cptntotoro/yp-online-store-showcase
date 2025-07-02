@@ -62,7 +62,7 @@ public interface ProductService {
      * @param productIds набор идентификаторов товаров
      * @return Map с товарами (UUID -> Product)
      */
-    Mono<Map<UUID, Product>> getProductsByIds(Set<UUID> productIds);
+    Mono<Map<UUID, Product>> getProductsByUuids(Set<UUID> productIds);
 
     /**
      * Получить товары по поисковому запросу и фильтрам

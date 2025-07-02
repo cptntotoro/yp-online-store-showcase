@@ -88,7 +88,7 @@ class OrderViewControllerTest extends BaseControllerTest {
         when(orderService.getByUuid(TEST_USER_UUID, testOrderId))
                 .thenReturn(Mono.just(order));
 
-        when(productService.getProductsByIds(any()))
+        when(productService.getProductsByUuids(any()))
                 .thenReturn(Mono.just(products));
 
         when(orderDtoMapper.orderAssignProductsToOrderDto(any(), anyMap()))
@@ -106,7 +106,7 @@ class OrderViewControllerTest extends BaseControllerTest {
 //                .thenReturn(Mono.empty());
 //
 //        webTestClient.get()
-//                .uri("/orders/checkout/cancel/" + testOrderId)
+//                .uri("/orders/" + testOrderId + "/checkout/cancel")
 //                .exchange()
 //                .expectStatus().is3xxRedirection()
 //                .expectHeader().valueEquals("Location", "/orders/" + testOrderId);

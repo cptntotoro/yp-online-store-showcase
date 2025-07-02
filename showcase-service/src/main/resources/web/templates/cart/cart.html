@@ -70,7 +70,19 @@
 
                 <div class="flex justify-between mt-6">
                     <a href="/products" class="btn btn-outline">Продолжить покупки</a>
-                    <a th:href="@{/payment/checkout}" class="btn btn-primary">Оплата</a>
+                    <a th:href="@{/payment/checkout}"
+                       class="btn btn-primary"
+                       th:classappend="${!paymentServiceActive} ? 'btn-disabled'"
+                       th:disabled="${!paymentServiceActive}">
+                        Оплата
+                    </a>
+                </div>
+
+                <div class="service-status mt-4" th:if="${!paymentServiceActive}">
+                    <div class="alert alert-warning">
+                        <span>⚠️</span>
+                        <p>Сервис оплаты временно недоступен. Пожалуйста, попробуйте позже.</p>
+                    </div>
                 </div>
             </div>
         </div>

@@ -36,10 +36,10 @@ public class CartItemCacheDto {
     @JsonProperty("quantity")
     private int quantity;
 
-    /**
-     * Дата создания
-     */
-    // TODO
-    @JsonProperty("createdAt")
-    private LocalDateTime createdAt;
+//    /**
+//     * Дата создания
+//     */
+//    // TODO
+//    @JsonProperty("createdAt")
+//    private LocalDateTime createdAt;
 }

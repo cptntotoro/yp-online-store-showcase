@@ -10,6 +10,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * DTO корзины для кеша
+ */
 @Data
 @Builder
 @NoArgsConstructor
@@ -42,15 +45,15 @@ public class CartCacheDto {
     private BigDecimal totalPrice;
 
     // TODO:
-    /**
-     * Дата создания
-     */
-    @JsonProperty("createdAt")
-    private LocalDateTime createdAt;
-
-    /**
-     * Дата обновления
-     */
-    @JsonProperty("updatedAt")
-    private LocalDateTime updatedAt;
+//    /**
+//     * Дата создания
+//     */
+//    @JsonProperty("createdAt")
+//    private LocalDateTime createdAt;
+//
+//    /**
+//     * Дата обновления
+//     */
+//    @JsonProperty("updatedAt")
+//    private LocalDateTime updatedAt;
 }

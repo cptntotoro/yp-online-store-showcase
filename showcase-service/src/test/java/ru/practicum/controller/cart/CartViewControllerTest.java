@@ -4,11 +4,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
 import ru.practicum.controller.BaseControllerTest;
 import ru.practicum.dto.cart.CartDto;
 import ru.practicum.model.cart.Cart;
+import ru.practicum.service.order.OrderPaymentService;
 
 import java.math.BigDecimal;
 import java.util.UUID;
@@ -21,6 +23,9 @@ class CartViewControllerTest extends BaseControllerTest {
 
     @InjectMocks
     private CartViewController cartViewController;
+
+    @Mock
+    OrderPaymentService orderPaymentService;
 
     private final UUID TEST_PRODUCT_UUID = UUID.randomUUID();
     private final BigDecimal TEST_TOTAL_PRICE = new BigDecimal("99.99");
@@ -43,6 +48,7 @@ class CartViewControllerTest extends BaseControllerTest {
 
         when(cartService.get(TEST_USER_UUID)).thenReturn(Mono.just(cart));
         when(cartMapper.cartToCartDto(cart)).thenReturn(cartDto);
+        when(orderPaymentService.checkHealth()).thenReturn(Mono.just(true));
 
         webTestClient.get()
                 .uri("/cart")
