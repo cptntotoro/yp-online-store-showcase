@@ -20,7 +20,7 @@ public class RefundRequestDto {
     /**
      * Идентификатор пользователя
      */
-    private UUID userId;
+    private UUID userUuid;
 
     /**
      * Сумма возврата
@@ -30,5 +30,5 @@ public class RefundRequestDto {
     /**
      * Идентификатор заказа
      */
-    private UUID orderId;
+    private UUID orderUuid;
 }

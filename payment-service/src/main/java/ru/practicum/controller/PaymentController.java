@@ -1,5 +1,6 @@
 package ru.practicum.controller;
 
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
@@ -43,14 +44,14 @@ public class PaymentController {
     }
 
     @PostMapping
-    public Mono<PaymentResponseDto> processPayment(@RequestBody PaymentRequestDto request) {
-        return paymentService.processPayment(request.getUserId(), request.getAmount(), request.getOrderId())
+    public Mono<PaymentResponseDto> processPayment(@Valid @RequestBody PaymentRequestDto request) {
+        return paymentService.processPayment(request.getUserUuid(), request.getAmount(), request.getOrderUuid())
                 .map(paymentMapper::paymentResultToPaymentResponse);
     }
 
     @PostMapping("/refund")
     public Mono<RefundResponseDto> processRefund(@RequestBody RefundRequestDto request) {
-        return paymentService.processRefund(request.getUserId(), request.getAmount(), request.getOrderId())
+        return paymentService.processRefund(request.getUserUuid(), request.getAmount(), request.getOrderUuid())
                 .map(paymentMapper::paymentResultToRefundResponse);
     }
 }

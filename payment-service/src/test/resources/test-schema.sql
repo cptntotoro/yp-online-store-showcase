@@ -1,13 +1,5 @@
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
--- Таблица пользователей
-CREATE TABLE IF NOT EXISTS users (
-    user_uuid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    username VARCHAR(255) NOT NULL,
-    email VARCHAR(255) UNIQUE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
 -- Таблица балансов пользователей
 CREATE TABLE IF NOT EXISTS user_balances (
     balance_uuid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -27,8 +19,8 @@ CREATE TABLE IF NOT EXISTS payment_transactions (
     user_uuid UUID NOT NULL,
     order_uuid UUID,
     amount DECIMAL(15, 2) NOT NULL,
-    transaction_type VARCHAR(20) NOT NULL CHECK (transaction_type IN ('DEPOSIT', 'WITHDRAWAL', 'REFUND')),
-    transaction_status VARCHAR(20) NOT NULL CHECK (transaction_status IN ('PENDING', 'COMPLETED', 'FAILED')),
+    transaction_type VARCHAR(20) NOT NULL,
+    transaction_status VARCHAR(20) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_uuid) REFERENCES users(user_uuid) ON DELETE CASCADE,
     FOREIGN KEY (order_uuid) REFERENCES orders(order_uuid) ON DELETE SET NULL

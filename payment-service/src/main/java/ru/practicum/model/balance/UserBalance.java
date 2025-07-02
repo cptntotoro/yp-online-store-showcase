@@ -32,11 +32,6 @@ public class UserBalance {
     private BigDecimal amount;
 
     /**
-     * Дата последней транзакции
-     */
-    private LocalDateTime lastTransactionAt;
-
-    /**
      * Дата создания
      */
     private LocalDateTime createdAt;

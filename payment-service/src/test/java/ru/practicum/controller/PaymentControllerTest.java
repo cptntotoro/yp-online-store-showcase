@@ -86,7 +86,7 @@ class PaymentControllerTest {
                 UserBalance.builder().userUuid(userId).amount(new BigDecimal("200.00")).build());
 
         PaymentResponseDto responseDto = PaymentResponseDto.builder()
-                .userId(userId)
+                .userUuid(userId)
                 .transactionUuid(transaction.getTransactionUuid())
                 .newBalance(new BigDecimal("200.00"))
                 .build();
@@ -99,7 +99,7 @@ class PaymentControllerTest {
         StepVerifier.create(paymentController.processPayment(request))
                 .assertNext(dto -> {
                     assertNotNull(dto);
-                    assertEquals(userId, dto.getUserId());
+                    assertEquals(userId, dto.getUserUuid());
                     assertEquals(transaction.getTransactionUuid(), dto.getTransactionUuid());
                     assertEquals(0, new BigDecimal("200.00").compareTo(dto.getNewBalance()));
                 })

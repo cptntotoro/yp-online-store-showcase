@@ -54,27 +54,28 @@ public class PaymentServiceImpl implements PaymentService {
                 .map(userBalanceMapper::userBalanceDaoToUserBalance);
     }
 
-    @Transactional
     @Override
+    @Transactional
     public Mono<PaymentResult> processPayment(UUID userUuid, BigDecimal amount, UUID orderId) {
+        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+            return createFailedTransaction(userUuid, amount, orderId,
+                    "Сумма платежа должна быть положительной");
+        }
+
         return ensureBalanceExists(userUuid)
                 .flatMap(balance -> {
                     if (balance.getAmount().compareTo(amount) < 0) {
-                        return createAndSaveTransaction(userUuid, amount, orderId, TransactionStatus.FAILED, TransactionType.WITHDRAWAL)
-                                .map(transaction ->
-                                        PaymentResult.failedPaymentResult(
-                                                transaction,
-                                                balance,
-                                                "Недостаточно средств на счете"
-                                        )
-                                );
+                        return createFailedTransaction(userUuid, amount, orderId,
+                                "Недостаточно средств на счете");
                     }
 
                     return userBalanceRepository.deductBalance(userUuid, amount)
                             .map(userBalanceMapper::userBalanceDaoToUserBalance)
                             .flatMap(updatedBalance ->
-                                    createAndSaveTransaction(userUuid, amount, orderId, TransactionStatus.COMPLETED, TransactionType.WITHDRAWAL)
-                                            .map(transaction -> PaymentResult.successfulPaymentResult(transaction, updatedBalance))
+                                    createAndSaveTransaction(userUuid, amount, orderId,
+                                            TransactionStatus.COMPLETED, TransactionType.WITHDRAWAL)
+                                            .map(transaction ->
+                                                    PaymentResult.successfulPaymentResult(transaction, updatedBalance))
                             );
                 });
     }
@@ -82,13 +83,32 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     @Transactional
     public Mono<PaymentResult> processRefund(UUID userUuid, BigDecimal amount, UUID orderId) {
+        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+            return createFailedTransaction(userUuid, amount, orderId,
+                    "Сумма возврата должна быть положительной");
+        }
+
         return ensureBalanceExists(userUuid)
                 .flatMap(__ -> userBalanceRepository.addToBalance(userUuid, amount))
                 .map(userBalanceMapper::userBalanceDaoToUserBalance)
                 .flatMap(updatedBalance ->
-                        createAndSaveTransaction(userUuid, amount, orderId, TransactionStatus.COMPLETED, TransactionType.REFUND)
-                                .map(transaction -> PaymentResult.successfulPaymentResult(transaction, updatedBalance))
+                        createAndSaveTransaction(userUuid, amount, orderId,
+                                TransactionStatus.COMPLETED, TransactionType.REFUND)
+                                .map(transaction ->
+                                        PaymentResult.successfulPaymentResult(transaction, updatedBalance))
                 );
+    }
+
+    private Mono<PaymentResult> createFailedTransaction(UUID userUuid, BigDecimal amount, UUID orderId,
+                                                        String errorMessage) {
+        return createAndSaveTransaction(userUuid, amount, orderId,
+                TransactionStatus.FAILED, TransactionType.WITHDRAWAL)
+                .flatMap(transaction ->
+                        userBalanceRepository.findByUserUuid(userUuid)
+                                .switchIfEmpty(Mono.defer(() -> userBalanceRepository.create(userUuid, defaultBalance)))
+                                .map(userBalanceMapper::userBalanceDaoToUserBalance)
+                                .map(balance ->
+                                        PaymentResult.failedPaymentResult(transaction, balance, errorMessage)));
     }
 
     private Mono<UserBalance> ensureBalanceExists(UUID userUuid) {

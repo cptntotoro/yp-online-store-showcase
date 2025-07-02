@@ -1,19 +1,25 @@
-openapi: 3.0.3
+openapi: 3.0.0
 info:
   title: Payment Service API
-  description: API для обработки платежей и возвратов интернет-магазина
+  description: API для управления балансами пользователей и обработки платежей/возвратов
   version: 1.0.0
 servers:
-  - url: http://localhost:8081/api/payment
-    description: Локальный сервер (базовый путь /payment)
+  - url: http://localhost:8080
+
+tags:
+  - name: Balance
+    description: Операции с балансом пользователя
+  - name: Payment
+    description: Операции оплаты заказов
+  - name: Refund
+    description: Операции возврата средств
 
 paths:
-  /balance/{userId}:
+  /payment/{userId}/balance:
     get:
-      tags:
-        - Payment
-      summary: Получение баланса пользователя
-      operationId: getBalance
+      tags: [Balance]
+      summary: Получить баланс пользователя
+      description: Возвращает текущий баланс пользователя. Если баланс не существует - создает новый с дефолтным значением.
       parameters:
         - name: userId
           in: path
@@ -24,158 +30,188 @@ paths:
           description: UUID пользователя
       responses:
         '200':
-          description: Успешное получение баланса
+          description: Успешный запрос баланса
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BalanceResponse'
-        '404':
-          description: Пользователь не найден
+                $ref: '#/components/schemas/UserBalanceResponseDto'
+        '400':
+          description: Невалидный UUID пользователя
         '500':
-          description: Ошибка сервера
+          description: Внутренняя ошибка сервера
 
-  /process:
+  /payment:
     post:
-      tags:
-        - Payment
-      summary: Обработка платежа
-      operationId: processPayment
+      tags: [Payment]
+      summary: Обработать платеж
+      description: Выполняет списание средств с баланса пользователя для оплаты заказа
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PaymentRequest'
+              $ref: '#/components/schemas/PaymentRequestDto'
       responses:
         '200':
-          description: Платеж успешно обработан
+          description: Результат обработки платежа
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PaymentResponse'
+                $ref: '#/components/schemas/PaymentResponseDto'
         '400':
-          description: Неверный запрос
-        '402':
-          description: Недостаточно средств
+          description: Невалидные входные данные
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
         '404':
           description: Пользователь не найден
         '500':
-          description: Ошибка сервера
+          description: Внутренняя ошибка сервера
 
-  /refund:
+  /payment/refund:
     post:
-      tags:
-        - Payment
-      summary: Обработка возврата средств
-      operationId: processRefund
+      tags: [Refund]
+      summary: Обработать возврат средств
+      description: Выполняет возврат средств на баланс пользователя
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/RefundRequest'
+              $ref: '#/components/schemas/RefundRequestDto'
       responses:
         '200':
-          description: Возврат успешно обработан
+          description: Результат обработки возврата
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RefundResponse'
+                $ref: '#/components/schemas/RefundResponseDto'
         '400':
-          description: Неверный запрос
+          description: Невалидные входные данные
         '404':
           description: Пользователь не найден
         '500':
-          description: Ошибка сервера
+          description: Внутренняя ошибка сервера
 
 components:
   schemas:
-    BalanceResponse:
+    UserBalanceResponseDto:
       type: object
       properties:
-        userId:
+        userUuid:
           type: string
           format: uuid
-          description: ID пользователя
+          description: Идентификатор пользователя
         balance:
           type: number
           format: double
-          description: Текущий баланс
-          example: 1500.50
+          description: Текущий баланс пользователя
+      required: [userUuid, balance]
 
-    PaymentRequest:
+    PaymentRequestDto:
       type: object
-      required:
-        - userId
-        - amount
       properties:
-        userId:
+        userUuid:
           type: string
           format: uuid
-          description: ID пользователя
+          description: Идентификатор пользователя
         amount:
           type: number
           format: double
-          description: Сумма платежа
-          example: 999.99
-        orderId:
+          minimum: 0
+          exclusiveMinimum: true
+          description: Сумма к оплате (должна быть положительной)
+        orderUuid:
           type: string
           format: uuid
-          description: ID заказа (опционально)
+          description: Идентификатор заказа
+      required: [userUuid, amount, orderUuid]
 
-    PaymentResponse:
+    PaymentResponseDto:
       type: object
       properties:
-        success:
-          type: boolean
-          description: Успешность операции
-        transactionId:
+        userUuid:
           type: string
           format: uuid
-          description: ID транзакции
+          description: Идентификатор пользователя
+        isSuccess:
+          type: boolean
+          description: Флаг успешности операции
+        transactionUuid:
+          type: string
+          format: uuid
+          description: Идентификатор транзакции
         newBalance:
           type: number
           format: double
-          description: Новый баланс
-        message:
-          type: string
-          description: Сообщение о результате
+          description: Новый баланс пользователя
+      required: [userUuid, isSuccess, transactionUuid, newBalance]
 
-    RefundRequest:
+    RefundRequestDto:
       type: object
-      required:
-        - userId
-        - amount
-        - orderId
       properties:
-        userId:
+        userUuid:
           type: string
           format: uuid
-          description: ID пользователя
+          description: Идентификатор пользователя
         amount:
           type: number
           format: double
-          description: Сумма возврата
-          example: 500.00
-        orderId:
+          minimum: 0
+          exclusiveMinimum: true
+          description: Сумма возврата (должна быть положительной)
+        orderUuid:
           type: string
           format: uuid
-          description: ID заказа для возврата
+          description: Идентификатор заказа
+      required: [userUuid, amount, orderUuid]
 
-    RefundResponse:
+    RefundResponseDto:
       type: object
       properties:
-        success:
-          type: boolean
-          description: Успешность операции
-        transactionId:
+        userUuid:
           type: string
           format: uuid
-          description: ID транзакции возврата
+          description: Идентификатор пользователя
+        isSuccess:
+          type: boolean
+          description: Флаг успешности операции
+        transactionUuid:
+          type: string
+          format: uuid
+          description: Идентификатор транзакции
         newBalance:
           type: number
           format: double
-          description: Новый баланс после возврата
+          description: Новый баланс пользователя
         message:
           type: string
-          description: Сообщение о результате возврата
+          description: Сообщение о результате операции
+      required: [userUuid, isSuccess, transactionUuid, newBalance, message]
+
+    ValidationErrorResponse:
+      type: object
+      properties:
+        status:
+          type: integer
+          description: HTTP статус код
+        message:
+          type: string
+          description: Общее сообщение об ошибке
+        fieldErrors:
+          type: array
+          items:
+            type: object
+            properties:
+              objectName:
+                type: string
+                description: Имя объекта с ошибкой
+              field:
+                type: string
+                description: Поле с ошибкой
+              message:
+                type: string
+                description: Сообщение об ошибке
+            required: [objectName, field, message]
+      required: [status, message, fieldErrors]

@@ -39,7 +39,7 @@ class PaymentMapperTest {
         PaymentResponseDto dto = paymentMapper.paymentResultToPaymentResponse(result);
 
         assertThat(dto).isNotNull();
-        assertThat(dto.getUserId()).isEqualTo(userId);
+        assertThat(dto.getUserUuid()).isEqualTo(userId);
         assertThat(dto.getTransactionUuid()).isEqualTo(transactionId);
         assertThat(dto.getNewBalance()).isEqualTo(BigDecimal.valueOf(500.75));
     }

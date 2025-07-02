@@ -18,10 +18,9 @@ public interface PaymentMapper {
      * @param result Результат оплаты
      * @return DTO ответа оплаты заказа
      */
-    @Mapping(target = "userId", source = "transaction.userUuid")
+    @Mapping(target = "userUuid", source = "transaction.userUuid")
     @Mapping(target = "transactionUuid", source = "transaction.transactionUuid")
     @Mapping(target = "newBalance", source = "updatedBalance.amount")
-    // TODO: фигли оно не работает???
     @Mapping(target = "isSuccess", source = "success")
     PaymentResponseDto paymentResultToPaymentResponse(PaymentResult result);
 
