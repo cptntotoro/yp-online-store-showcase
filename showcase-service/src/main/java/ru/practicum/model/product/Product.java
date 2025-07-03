@@ -1,8 +1,6 @@
 package ru.practicum.model.product;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Positive;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -27,19 +25,16 @@ public class Product {
     /**
      * Название
      */
-    @NotBlank
     private String name;
 
     /**
      * Описание
      */
-    @NotBlank
     private String description;
 
     /**
      * Цена
      */
-    @Positive
     private BigDecimal price;
 
     /**

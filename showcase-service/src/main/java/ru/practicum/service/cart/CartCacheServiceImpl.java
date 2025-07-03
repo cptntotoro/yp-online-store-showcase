@@ -3,7 +3,6 @@ package ru.practicum.service.cart;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.stereotype.Service;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import ru.practicum.dto.cart.cache.CartCacheDto;
 import ru.practicum.exception.cart.CartNotFoundException;
@@ -14,7 +13,6 @@ import ru.practicum.repository.cart.CartRepository;
 import ru.practicum.repository.cart.CartItemRepository;
 
 import java.time.Duration;
-import java.util.Collections;
 import java.util.UUID;
 import java.util.stream.Collectors;
 

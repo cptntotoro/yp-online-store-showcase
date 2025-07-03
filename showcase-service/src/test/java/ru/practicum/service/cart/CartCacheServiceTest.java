@@ -129,6 +129,7 @@ class CartCacheServiceTest {
         Cart cart = new Cart();
         cart.setUserUuid(userId);
         CartCacheDto dto = new CartCacheDto();
+        dto.setUserUuid(userId);
 
         when(cartCacheTemplate.opsForValue()).thenReturn(valueOperations);
         when(cartMapper.toCacheDto(cart)).thenReturn(dto);

@@ -78,24 +78,18 @@ public class CartServiceImpl implements CartService {
     @Override
     public Mono<Cart> get(UUID userUuid) {
         return cartCacheService.getCart(userUuid)
-                .map(cartMapper::cartToCartDao)
-                .flatMap(this::loadCartItems);
+                .flatMap(this::fillProductsInCartItems);
     }
 
-    private Mono<Cart> loadCartItems(CartDao cartDao) {
-        return cartItemRepository.findByCartUuid(cartDao.getUuid())
-                .flatMap(itemDao -> productService.getByUuid(itemDao.getProductUuid())
+    private Mono<Cart> fillProductsInCartItems(Cart cart) {
+        return Flux.fromIterable(cart.getItems())
+                .flatMap(item -> productService.getByUuid(item.getProduct().getUuid())
                         .map(product -> {
-                            CartItem item = cartItemMapper.cartItemDaoToCartItem(itemDao);
                             item.setProduct(product);
                             return item;
                         }))
-                .collectList()
-                .map(items -> {
-                    Cart cart = cartMapper.cartDaoToCart(cartDao);
-                    cart.setItems(items);
-                    return cart;
-                });
+                .then()
+                .thenReturn(cart);
     }
 
     @Override

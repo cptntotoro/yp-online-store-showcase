@@ -6,7 +6,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 import ru.practicum.dao.cart.CartDao;
@@ -112,9 +111,6 @@ class CartServiceTest {
     @Test
     void get_ShouldReturnCartWithItems() {
         when(cartCacheService.getCart(userId)).thenReturn(Mono.just(cart));
-        when(cartMapper.cartToCartDao(cart)).thenReturn(cartDao);
-        when(cartItemRepository.findByCartUuid(cart.getUuid())).thenReturn(Flux.empty());
-        when(cartMapper.cartDaoToCart(cartDao)).thenReturn(cart);
 
         StepVerifier.create(cartService.get(userId))
                 .expectNextMatches(retrievedCart ->
@@ -124,7 +120,6 @@ class CartServiceTest {
                 .verifyComplete();
 
         verify(cartCacheService).getCart(userId);
-        verify(cartItemRepository).findByCartUuid(cart.getUuid());
     }
 
     @Test

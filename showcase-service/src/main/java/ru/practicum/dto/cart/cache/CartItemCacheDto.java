@@ -36,10 +36,9 @@ public class CartItemCacheDto {
     @JsonProperty("quantity")
     private int quantity;
 
-//    /**
-//     * Дата создания
-//     */
-//    // TODO
-//    @JsonProperty("createdAt")
-//    private LocalDateTime createdAt;
+    /**
+     * Идентификатор товара
+     */
+    @JsonProperty("productUuid")
+    private UUID productUuid;
 }

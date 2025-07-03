@@ -24,7 +24,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-// TODO: интеграционные тесты на проверку логики кеширования
 @ExtendWith(MockitoExtension.class)
 class ProductCacheServiceTest {
 

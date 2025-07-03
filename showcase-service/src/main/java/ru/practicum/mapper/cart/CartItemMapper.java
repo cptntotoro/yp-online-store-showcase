@@ -42,7 +42,7 @@ public interface CartItemMapper {
     @Mapping(target = "cartUuid", source = "cartItemDao.cartUuid")
     @Mapping(target = "quantity", source = "cartItemDao.quantity")
     @Mapping(target = "createdAt", source = "cartItemDao.createdAt")
-    @Mapping(target = "product", ignore = true)
+    @Mapping(target = "product", expression = "java(cartItemDao.getProductUuid() != null ? Product.builder().uuid(cartItemDao.getProductUuid()).build() : null)")
     CartItem cartItemDaoToCartItem(CartItemDao cartItemDao);
 
     /**
@@ -51,6 +51,7 @@ public interface CartItemMapper {
      * @param cartItem Товар корзины
      * @return DTO товара корзины для кеша
      */
+    @Mapping(target = "productUuid", expression = "java(cartItem.getProduct() != null ? cartItem.getProduct().getUuid() : null)")
     CartItemCacheDto cartItemToCartItemCacheDto(CartItem cartItem);
 
     /**
@@ -59,7 +60,7 @@ public interface CartItemMapper {
      * @param cartItemCacheDto DTO товара корзины для кеша
      * @return Товар корзины
      */
-    @Mapping(target = "product", ignore = true)
+    @Mapping(target = "product", expression = "java(cartItemCacheDto.getProductUuid() != null ? Product.builder().uuid(cartItemCacheDto.getProductUuid()).build() : null)")
     @Mapping(target = "createdAt", ignore = true)
     CartItem cartItemCacheDtoToCartItem(CartItemCacheDto cartItemCacheDto);
 }

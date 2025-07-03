@@ -14,6 +14,7 @@ import ru.practicum.dao.product.ProductDao;
 import ru.practicum.dao.user.UserDao;
 import ru.practicum.exception.cart.IllegalCartStateException;
 import ru.practicum.model.cart.Cart;
+import ru.practicum.model.cart.CartItem;
 import ru.practicum.model.product.Product;
 import ru.practicum.repository.cart.CartItemRepository;
 import ru.practicum.repository.cart.CartRepository;
@@ -133,7 +134,22 @@ class CartServiceTransactionalTest {
     @Test
     void addToCart_shouldUpdateQuantityForExistingProduct() {
         when(productService.getByUuid(productId)).thenReturn(Mono.just(testProduct));
-        cartService.addToCart(userId, productId, 1).block();
+        Cart cart1 = cartService.addToCart(userId, productId, 1).block();
+        List<CartItemDao> items1 = cartItemRepository.findByCartUuid(Objects.requireNonNull(cart1).getUuid()).collectList().block();
+
+        when(cartCacheService.getCart(userId)).thenReturn(Mono.just(
+                Cart.builder()
+                        .uuid(cartId)
+                        .userUuid(userId)
+                        .totalPrice(BigDecimal.ZERO)
+                        .items(List.of(CartItem.builder()
+                                .uuid(Objects.requireNonNull(items1).getFirst().getUuid())
+                                .cartUuid(cart1.getUuid())
+                                .quantity(items1.getFirst().getQuantity())
+                                .product(Product.builder().uuid(items1.getFirst().getProductUuid()).build())
+                                .build()))
+                        .build()
+        ));
 
         StepVerifier.create(cartService.addToCart(userId, productId, 2))
                 .assertNext(cart -> {
@@ -196,7 +212,22 @@ class CartServiceTransactionalTest {
     @Test
     void updateQuantity_shouldChangeProductQuantity() {
         when(productService.getByUuid(productId)).thenReturn(Mono.just(testProduct));
-        cartService.addToCart(userId, productId, 1).block();
+        Cart cart1 = cartService.addToCart(userId, productId, 1).block();
+        List<CartItemDao> items1 = cartItemRepository.findByCartUuid(Objects.requireNonNull(cart1).getUuid()).collectList().block();
+
+        when(cartCacheService.getCart(userId)).thenReturn(Mono.just(
+                Cart.builder()
+                        .uuid(cartId)
+                        .userUuid(userId)
+                        .totalPrice(BigDecimal.ZERO)
+                        .items(List.of(CartItem.builder()
+                                .uuid(Objects.requireNonNull(items1).getFirst().getUuid())
+                                .cartUuid(cart1.getUuid())
+                                .quantity(items1.getFirst().getQuantity())
+                                .product(Product.builder().uuid(items1.getFirst().getProductUuid()).build())
+                                .build()))
+                        .build()
+        ));
 
         StepVerifier.create(cartService.updateQuantity(userId, productId, 5))
                 .assertNext(cart -> {
@@ -207,7 +238,7 @@ class CartServiceTransactionalTest {
                 .verifyComplete();
 
         List<CartItemDao> items = cartItemRepository.findByCartUuid(cartId).collectList().block();
-        assertEquals(5, Objects.requireNonNull(items).get(0).getQuantity());
+        assertEquals(5, Objects.requireNonNull(items).getFirst().getQuantity());
     }
 
     @Test
@@ -227,7 +258,7 @@ class CartServiceTransactionalTest {
                         .uuid(cartId)
                         .userUuid(userId)
                         .totalPrice(BigDecimal.valueOf(100))
-                        .items(List.of())
+                        .items(List.of(CartItem.builder().product(Product.builder().uuid(productId).build()).build()))
                         .build()
         ));
 
