@@ -73,10 +73,8 @@ class PaymentServiceTest {
         when(userBalanceRepository.findByUserUuid(testUserId)).thenReturn(Mono.just(balanceDao));
         when(userBalanceMapper.userBalanceDaoToUserBalance(balanceDao)).thenReturn(expectedBalance);
 
-        // Act
         Mono<UserBalance> result = paymentService.getUserBalance(testUserId);
 
-        // Assert
         StepVerifier.create(result)
                 .expectNext(expectedBalance)
                 .verifyComplete();
@@ -86,7 +84,6 @@ class PaymentServiceTest {
 
     @Test
     void getUserBalance_shouldCreateNewBalanceIfNotExists() {
-        // Arrange
         UserBalanceDao newBalanceDao = new UserBalanceDao(
                 UUID.randomUUID(), testUserId, defaultBalance, now, now
         );
@@ -98,10 +95,8 @@ class PaymentServiceTest {
         when(userBalanceRepository.create(testUserId, defaultBalance)).thenReturn(Mono.just(newBalanceDao));
         when(userBalanceMapper.userBalanceDaoToUserBalance(newBalanceDao)).thenReturn(expectedBalance);
 
-        // Act
         Mono<UserBalance> result = paymentService.getUserBalance(testUserId);
 
-        // Assert
         StepVerifier.create(result)
                 .expectNext(expectedBalance)
                 .verifyComplete();
@@ -109,7 +104,6 @@ class PaymentServiceTest {
 
     @Test
     void processPayment_shouldSuccessfullyProcessPayment() {
-        // Arrange
         BigDecimal initialBalance = BigDecimal.valueOf(500.00);
         BigDecimal updatedBalance = initialBalance.subtract(testAmount);
         UUID balanceUuid = UUID.randomUUID();
@@ -145,10 +139,8 @@ class PaymentServiceTest {
         when(transactionRepository.save(transactionDao)).thenReturn(Mono.just(transactionDao));
         when(paymentTransactionMapper.paymentTransactionDaoToPaymentTransaction(transactionDao)).thenReturn(transaction);
 
-        // Act
         Mono<PaymentResult> result = paymentService.processPayment(testUserId, testAmount, testOrderId);
 
-        // Assert
         StepVerifier.create(result)
                 .assertNext(paymentResult -> {
                     assertTrue(paymentResult.isSuccess());
@@ -161,7 +153,6 @@ class PaymentServiceTest {
 
     @Test
     void processPayment_shouldFailWhenInsufficientFunds() {
-        // Arrange
         BigDecimal insufficientAmount = BigDecimal.valueOf(1000.00);
         UUID balanceUuid = UUID.randomUUID();
 
@@ -188,10 +179,8 @@ class PaymentServiceTest {
         when(transactionRepository.save(transactionDao)).thenReturn(Mono.just(transactionDao));
         when(paymentTransactionMapper.paymentTransactionDaoToPaymentTransaction(transactionDao)).thenReturn(transaction);
 
-        // Act
         Mono<PaymentResult> result = paymentService.processPayment(testUserId, insufficientAmount, testOrderId);
 
-        // Assert
         StepVerifier.create(result)
                 .assertNext(paymentResult -> {
                     assertFalse(paymentResult.isSuccess());
@@ -206,7 +195,6 @@ class PaymentServiceTest {
 
     @Test
     void processPayment_shouldFailWhenNegativeAmount() {
-        // Arrange
         BigDecimal negativeAmount = BigDecimal.valueOf(-100.00);
         UUID transactionUuid = UUID.randomUUID();
 

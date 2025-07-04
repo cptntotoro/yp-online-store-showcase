@@ -7,7 +7,9 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 import ru.practicum.config.WebAttributes;
 import ru.practicum.dto.order.OrderDto;
-import ru.practicum.mapper.order.OrderDtoMapper;
+import ru.practicum.mapper.order.OrderMapper;
+import ru.practicum.mapper.product.ProductMapper;
+import ru.practicum.model.order.Order;
 import ru.practicum.model.order.OrderItem;
 import ru.practicum.service.order.OrderPaymentService;
 import ru.practicum.service.order.OrderService;
@@ -38,16 +40,21 @@ public class OrderViewController {
     private final ProductService productService;
 
     /**
-     * Маппер DTO заказов
+     * Маппер заказов
      */
-    private final OrderDtoMapper orderDtoMapper;
+    private final OrderMapper orderMapper;
+
+    /**
+     * Маппер товаров
+     */
+    private final ProductMapper productMapper;
 
     @GetMapping
     public Mono<String> showOrderList(@RequestAttribute(WebAttributes.USER_UUID) UUID userUuid, Model model) {
         return orderService.getUserOrdersWithProducts(userUuid)
                 .map(data -> {
                     List<OrderDto> orderDtos = data.getOrders().stream()
-                            .map(order -> orderDtoMapper.orderAssignProductsToOrderDto(order, data.getProducts()))
+                            .map(order -> orderMapper.orderToOrderDtoWithProducts(order, data.getProducts(), productMapper))
                             .collect(Collectors.toList());
 
                     model.addAttribute("orders", orderDtos);
@@ -62,20 +69,25 @@ public class OrderViewController {
     public Mono<String> showOrderDetails(@RequestAttribute(WebAttributes.USER_UUID) UUID userUuid,
                                          @PathVariable UUID orderUuid,
                                          Model model) {
+        return Mono.zip(
+                orderService.getByUuid(userUuid, orderUuid),
+                orderPaymentService.checkHealth().defaultIfEmpty(false)
+        ).flatMap(tuple -> {
+            Order order = tuple.getT1();
+            Boolean isServiceActive = tuple.getT2();
 
-        return orderService.getByUuid(userUuid, orderUuid)
-                .flatMap(order -> {
-                    Set<UUID> productUuids = order.getItems().stream()
-                            .map(OrderItem::getProductUuid)
-                            .collect(Collectors.toSet());
+            Set<UUID> productUuids = order.getItems().stream()
+                    .map(OrderItem::getProductUuid)
+                    .collect(Collectors.toSet());
 
-                    return productService.getProductsByUuids(productUuids)
-                            .map(productsMap -> {
-                                OrderDto dto = orderDtoMapper.orderAssignProductsToOrderDto(order, productsMap);
-                                model.addAttribute("order", dto);
-                                return "order/order";
-                            });
-                });
+            return productService.getProductsByUuids(productUuids)
+                    .map(productsMap -> {
+                        OrderDto dto = orderMapper.orderToOrderDtoWithProducts(order, productsMap, productMapper);
+                        model.addAttribute("order", dto);
+                        model.addAttribute("paymentServiceActive", isServiceActive);
+                        return "order/order";
+                    });
+        });
     }
 
     @GetMapping("/{orderUuid}/checkout/cancel")

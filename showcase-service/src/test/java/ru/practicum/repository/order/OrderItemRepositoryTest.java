@@ -14,7 +14,6 @@ import ru.practicum.dao.order.OrderItemDao;
 import java.math.BigDecimal;
 import java.util.UUID;
 
-
 @DataR2dbcTest
 @Import(TestR2dbcConfiguration.class)
 @ActiveProfiles("test")

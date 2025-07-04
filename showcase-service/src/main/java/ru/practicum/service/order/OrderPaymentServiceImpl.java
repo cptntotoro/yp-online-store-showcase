@@ -54,9 +54,6 @@ public class OrderPaymentServiceImpl implements OrderPaymentService {
                 });
     }
 
-
-    // TODO: Если баланс меньше суммы цены товаров в корзине,
-    //  то кнопка оформления заказа основного приложения недоступна;
     @Override
     public Mono<Boolean> isBalanceSufficient(UUID userUuid, UUID orderUuid) {
         return orderService.getByUuid(userUuid, orderUuid)

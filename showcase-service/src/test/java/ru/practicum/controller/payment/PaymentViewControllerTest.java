@@ -1,152 +1,196 @@
-//package ru.practicum.controller.payment;
-//
-//import org.junit.jupiter.api.BeforeEach;
-//import org.junit.jupiter.api.Test;
-//import org.junit.jupiter.api.extension.ExtendWith;
-//import org.mockito.InjectMocks;
-//import org.mockito.Mock;
-//import org.mockito.junit.jupiter.MockitoExtension;
-//import reactor.core.publisher.Mono;
-//import ru.practicum.controller.BaseControllerTest;
-//import ru.practicum.dto.order.OrderDto;
-//import ru.practicum.exception.cart.IllegalCartStateException;
-//import ru.practicum.mapper.order.OrderMapper;
-//import ru.practicum.model.order.Order;
-//import ru.practicum.service.order.OrderService;
-//
-//import java.util.UUID;
-//
-//import static org.junit.jupiter.api.Assertions.assertNotNull;
-//import static org.mockito.Mockito.*;
-//
-//@ExtendWith(MockitoExtension.class)
-//class PaymentViewControllerTest extends BaseControllerTest {
-//
-//    @Mock
-//    private OrderService orderService;
-//
-//    @Mock
-//    private PaymentService paymentService;
-//
-//    @Mock
-//    private OrderMapper orderMapper;
-//
-//    @InjectMocks
-//    private PaymentViewController paymentViewController;
-//
-//    private final UUID TEST_ORDER_UUID = UUID.randomUUID();
-//    private final String TEST_CARD_NUMBER = "4111111111111111";
-//
-//    @Override
-//    protected Object getController() {
-//        return paymentViewController;
-//    }
-//
-//    @BeforeEach
-//    void setUp() {
-//        super.baseSetUp();
-//    }
-//
-//    @Test
-//    void previewOrder_ShouldReturnPaymentView_WhenOrderCreated() {
-//        Order order = new Order();
-//        order.setUuid(TEST_ORDER_UUID);
-//        OrderDto orderDto = new OrderDto();
-//        orderDto.setUuid(TEST_ORDER_UUID);
-//
-//        when(orderService.create(TEST_USER_UUID)).thenReturn(Mono.just(order));
-//        when(cartService.clear(TEST_USER_UUID)).thenReturn(Mono.empty());
-//        when(orderMapper.orderToOrderDto(order)).thenReturn(orderDto);
-//
-//        webTestClient.get()
-//                .uri("/payment/checkout")
-//                .exchange()
-//                .expectStatus().isOk();
-//
-//        verify(orderService).create(TEST_USER_UUID);
-//        verify(cartService).clear(TEST_USER_UUID);
-//        verify(orderMapper).orderToOrderDto(order);
-//    }
-//
-//    @Test
-//    void previewOrder_ShouldReturnError_WhenOrderCreationFails() {
-//        when(orderService.create(TEST_USER_UUID)).thenReturn(Mono.error(new IllegalCartStateException("Нельзя создать заказ из пустой корзины")));
-//
-//        webTestClient.get()
-//                .uri("/payment/checkout")
-//                .exchange()
-//                .expectStatus().is4xxClientError();
-//
-//        verify(orderService).create(TEST_USER_UUID);
-//    }
-//
-////    @Test
-////    void checkout_ShouldRedirectToOrder_WhenPaymentSuccessful() {
-////        when(paymentService.checkout(TEST_USER_UUID, TEST_ORDER_UUID, TEST_CARD_NUMBER))
-////                .thenReturn(Mono.empty());
-////
-////        webTestClient.post()
-////                .uri(uriBuilder -> uriBuilder.path("/payment/checkout/{orderUuid}")
-////                        .queryParam("cardNumber", TEST_CARD_NUMBER)
-////                        .build(TEST_ORDER_UUID))
-////                .exchange()
-////                .expectStatus().is3xxRedirection()
-////                .expectHeader().valueEquals("Location", "/orders/" + TEST_ORDER_UUID);
-////
-////        verify(paymentService).checkout(TEST_USER_UUID, TEST_ORDER_UUID, TEST_CARD_NUMBER);
-////    }
-////
-////    @Test
-////    void checkout_ShouldReturnError_WhenPaymentFails() {
-////        when(paymentService.checkout(TEST_USER_UUID, TEST_ORDER_UUID, TEST_CARD_NUMBER))
-////                .thenReturn(Mono.error(new PaymentProcessingException("Некорректный номер карты.")));
-////
-////        webTestClient.post()
-////                .uri(uriBuilder -> uriBuilder.path("/payment/checkout/{orderUuid}")
-////                        .queryParam("cardNumber", TEST_CARD_NUMBER)
-////                        .build(TEST_ORDER_UUID))
-////                .exchange()
-////                .expectStatus().is4xxClientError();
-////
-////        verify(paymentService).checkout(TEST_USER_UUID, TEST_ORDER_UUID, TEST_CARD_NUMBER);
-////    }
-//
-//    @Test
-//    void previewExistingOrder_ShouldReturnPaymentPageWithOrderDetails() {
-//        Order order = new Order();
-//        order.setUuid(TEST_ORDER_UUID);
-//        OrderDto orderDto = new OrderDto();
-//        orderDto.setUuid(TEST_ORDER_UUID);
-//
-//        when(orderService.getByUuid(TEST_USER_UUID, TEST_ORDER_UUID))
-//                .thenReturn(Mono.just(order));
-//        when(orderMapper.orderToOrderDto(order))
-//                .thenReturn(orderDto);
-//
-//        webTestClient.get()
-//                .uri("/payment/checkout/created/{orderUuid}", TEST_ORDER_UUID)
-//                .exchange()
-//                .expectStatus().isOk()
-//                .expectBody()
-//                .consumeWith(result -> {
-//                    assertNotNull(result.getResponseBody());
-//                });
-//
-//        verify(orderService).getByUuid(TEST_USER_UUID, TEST_ORDER_UUID);
-//        verify(orderMapper).orderToOrderDto(order);
-//    }
-//
-//    @Test
-//    void previewExistingOrder_ShouldReturnError_WhenOrderNotFound() {
-//        when(orderService.getByUuid(TEST_USER_UUID, TEST_ORDER_UUID))
-//                .thenReturn(Mono.error(new RuntimeException("Order not found")));
-//
-//        webTestClient.get()
-//                .uri("/payment/checkout/created/{orderUuid}", TEST_ORDER_UUID)
-//                .exchange()
-//                .expectStatus().is5xxServerError();
-//
-//        verify(orderService).getByUuid(TEST_USER_UUID, TEST_ORDER_UUID);
-//        verifyNoInteractions(orderMapper);
-//    }
-//}
+package ru.practicum.controller.payment;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.annotation.DirtiesContext;
+import reactor.core.publisher.Mono;
+import ru.practicum.controller.BaseControllerTest;
+import ru.practicum.dto.order.OrderDto;
+import ru.practicum.dto.payment.PaymentCheckoutDto;
+import ru.practicum.mapper.order.OrderMapper;
+import ru.practicum.model.order.Order;
+import ru.practicum.model.order.OrderStatus;
+import ru.practicum.service.cart.CartService;
+import ru.practicum.service.order.OrderPaymentService;
+import ru.practicum.service.order.OrderService;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
+
+@ExtendWith(MockitoExtension.class)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
+class PaymentViewControllerTest extends BaseControllerTest {
+
+    @Mock
+    private OrderService orderService;
+
+    @Mock
+    private OrderPaymentService orderPaymentService;
+
+    @Mock
+    private CartService cartService;
+
+    @Mock
+    private OrderMapper orderMapper;
+
+    @InjectMocks
+    private PaymentViewController paymentViewController;
+
+    private UUID testOrderId;
+    private Order testOrder;
+    private OrderDto testOrderDto;
+
+    @Override
+    protected Object getController() {
+        return paymentViewController;
+    }
+
+    @BeforeEach
+    void setUp() {
+        super.baseSetUp();
+        testOrderId = UUID.randomUUID();
+        testOrder = createTestOrder();
+        testOrderDto = createTestOrderDto();
+
+        Mockito.reset(orderService, orderPaymentService, cartService, orderMapper);
+
+        when(orderPaymentService.checkHealth()).thenReturn(Mono.just(true));
+        when(orderMapper.orderToOrderDto(any())).thenReturn(testOrderDto);
+    }
+
+    @Test
+    void previewOrder_ShouldReturnPaymentView() {
+        when(orderService.create(TEST_USER_UUID))
+                .thenReturn(Mono.just(testOrder));
+
+        when(cartService.clear(TEST_USER_UUID))
+                .thenReturn(Mono.empty());
+
+        when(orderPaymentService.checkHealth())
+                .thenReturn(Mono.just(true));
+
+        when(orderMapper.orderToOrderDto(any(Order.class)))
+                .thenReturn(testOrderDto);
+
+        webTestClient.get()
+                .uri("/payment/checkout")
+                .exchange()
+                .expectStatus().isOk();
+    }
+
+    @Test
+    void previewExistingOrder_ShouldReturnPaymentView() {
+        when(orderService.getByUuid(TEST_USER_UUID, testOrderId))
+                .thenReturn(Mono.just(testOrder));
+
+        when(orderPaymentService.checkHealth())
+                .thenReturn(Mono.just(true));
+
+        when(orderMapper.orderToOrderDto(any()))
+                .thenReturn(testOrderDto);
+
+        webTestClient.get()
+                .uri("/payment/checkout/created/{orderUuid}", testOrderId)
+                .exchange()
+                .expectStatus().isOk();
+    }
+
+    @Test
+    void checkout_ShouldProcessPayment_WhenServiceActiveAndBalanceSufficient() {
+        PaymentCheckoutDto checkoutDto = new PaymentCheckoutDto("1234567890123456");
+
+        when(orderService.getByUuid(eq(TEST_USER_UUID), eq(testOrderId)))
+                .thenReturn(Mono.just(testOrder));
+
+        when(orderPaymentService.checkHealth())
+                .thenReturn(Mono.just(true));
+
+        when(orderPaymentService.isBalanceSufficient(eq(TEST_USER_UUID), eq(testOrderId)))
+                .thenReturn(Mono.just(true));
+
+        when(orderPaymentService.processPayment(eq(TEST_USER_UUID), eq(testOrderId), any()))
+                .thenReturn(Mono.empty());
+
+        when(orderMapper.orderToOrderDto(any()))
+                .thenReturn(testOrderDto);
+
+        webTestClient.post()
+                .uri("/payment/{orderUuid}/checkout", testOrderId)
+                .bodyValue(checkoutDto)
+                .exchange()
+                .expectStatus().is3xxRedirection()
+                .expectHeader().valueEquals("Location", "/orders/" + testOrderId);
+    }
+
+    @Test
+    void checkout_ShouldReturnPaymentView_WhenServiceInactive() {
+        PaymentCheckoutDto checkoutDto = new PaymentCheckoutDto("1234567890123456");
+
+        when(orderService.getByUuid(TEST_USER_UUID, testOrderId))
+                .thenReturn(Mono.just(testOrder));
+
+        when(orderPaymentService.checkHealth())
+                .thenReturn(Mono.just(false));
+
+        when(orderMapper.orderToOrderDto(any()))
+                .thenReturn(testOrderDto);
+
+        webTestClient.post()
+                .uri("/payment/{orderUuid}/checkout", testOrderId)
+                .bodyValue(checkoutDto)
+                .exchange()
+                .expectStatus().isOk();
+    }
+
+    @Test
+    void checkout_ShouldReturnPaymentView_WhenBalanceInsufficient() {
+        PaymentCheckoutDto checkoutDto = new PaymentCheckoutDto("1234567890123456");
+
+        when(orderService.getByUuid(TEST_USER_UUID, testOrderId))
+                .thenReturn(Mono.just(testOrder));
+
+        when(orderPaymentService.checkHealth())
+                .thenReturn(Mono.just(true));
+
+        when(orderPaymentService.isBalanceSufficient(TEST_USER_UUID, testOrderId))
+                .thenReturn(Mono.just(false));
+
+        when(orderMapper.orderToOrderDto(any()))
+                .thenReturn(testOrderDto);
+
+        webTestClient.post()
+                .uri("/payment/{orderUuid}/checkout", testOrderId)
+                .bodyValue(checkoutDto)
+                .exchange()
+                .expectStatus().isOk();
+    }
+
+    private Order createTestOrder() {
+        return Order.builder()
+                .uuid(testOrderId)
+                .userUuid(TEST_USER_UUID)
+                .status(OrderStatus.CREATED)
+                .totalPrice(BigDecimal.valueOf(100))
+                .createdAt(LocalDateTime.now())
+                .build();
+    }
+
+    private OrderDto createTestOrderDto() {
+        OrderDto dto = new OrderDto();
+        dto.setUuid(testOrderId);
+        dto.setStatus(OrderStatus.CREATED);
+        dto.setTotalPrice(BigDecimal.valueOf(100));
+        dto.setCreatedAt(LocalDateTime.now());
+        return dto;
+    }
+}

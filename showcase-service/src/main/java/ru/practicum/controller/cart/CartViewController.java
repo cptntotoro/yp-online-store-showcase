@@ -9,7 +9,6 @@ import reactor.core.publisher.Mono;
 import ru.practicum.config.WebAttributes;
 import ru.practicum.mapper.cart.CartMapper;
 import ru.practicum.service.cart.CartService;
-import ru.practicum.service.order.OrderPaymentService;
 
 import java.util.UUID;
 
@@ -27,20 +26,12 @@ public class CartViewController {
      */
     private final CartMapper cartMapper;
 
-    /**
-     * Сервис оплаты заказов
-     */
-    private final OrderPaymentService orderPaymentService;
-
     @GetMapping
     public Mono<Rendering> showCart(@RequestAttribute(WebAttributes.USER_UUID) UUID userUuid) {
         return cartService.get(userUuid)
-                .flatMap(cart -> orderPaymentService.checkHealth()
-                        .defaultIfEmpty(false)
-                        .map(isServiceActive -> Rendering.view("cart/cart")
-                                .modelAttribute("cart", cartMapper.cartToCartDto(cart))
-                                .modelAttribute("paymentServiceActive", isServiceActive)
-                                .build()));
+                .map(cart -> Rendering.view("cart/cart")
+                        .modelAttribute("cart", cartMapper.cartToCartDto(cart))
+                        .build());
     }
 
     @PostMapping("/remove/{productUuid}")

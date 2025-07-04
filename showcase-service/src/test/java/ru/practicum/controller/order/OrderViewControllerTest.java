@@ -11,12 +11,14 @@ import ru.practicum.controller.BaseControllerTest;
 import ru.practicum.dto.order.OrderDto;
 import ru.practicum.dto.order.OrderItemDto;
 import ru.practicum.dto.product.ProductOutDto;
-import ru.practicum.mapper.order.OrderDtoMapper;
+import ru.practicum.mapper.order.OrderMapper;
+import ru.practicum.mapper.product.ProductMapper;
 import ru.practicum.model.order.Order;
 import ru.practicum.model.order.OrderItem;
 import ru.practicum.model.order.OrderStatus;
 import ru.practicum.model.order.OrdersWithTotal;
 import ru.practicum.model.product.Product;
+import ru.practicum.service.order.OrderPaymentService;
 import ru.practicum.service.order.OrderService;
 import ru.practicum.service.product.ProductService;
 
@@ -24,8 +26,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -35,10 +36,16 @@ class OrderViewControllerTest extends BaseControllerTest {
     private OrderService orderService;
 
     @Mock
+    private OrderPaymentService orderPaymentService;
+
+    @Mock
     private ProductService productService;
 
     @Mock
-    private OrderDtoMapper orderDtoMapper;
+    private OrderMapper orderMapper;
+
+    @Mock
+    private ProductMapper productMapper;
 
     @InjectMocks
     private OrderViewController orderViewController;
@@ -71,7 +78,7 @@ class OrderViewControllerTest extends BaseControllerTest {
         when(orderService.getUserOrdersWithProducts(TEST_USER_UUID))
                 .thenReturn(Mono.just(ordersWithTotal));
 
-        when(orderDtoMapper.orderAssignProductsToOrderDto(any(), anyMap()))
+        when(orderMapper.orderToOrderDtoWithProducts(any(Order.class), anyMap(), eq(productMapper)))
                 .thenReturn(createTestOrderDto());
 
         webTestClient.get()
@@ -84,33 +91,38 @@ class OrderViewControllerTest extends BaseControllerTest {
     void showOrderDetails_ShouldReturnOrderPage() {
         Order order = createTestOrder();
         Map<UUID, Product> products = createTestProducts();
+        OrderDto orderDto = createTestOrderDto();
 
         when(orderService.getByUuid(TEST_USER_UUID, testOrderId))
                 .thenReturn(Mono.just(order));
 
-        when(productService.getProductsByUuids(any()))
+        when(orderPaymentService.checkHealth())
+                .thenReturn(Mono.just(true));
+
+        when(productService.getProductsByUuids(anySet()))
                 .thenReturn(Mono.just(products));
 
-        when(orderDtoMapper.orderAssignProductsToOrderDto(any(), anyMap()))
-                .thenReturn(createTestOrderDto());
+        when(orderMapper.orderToOrderDtoWithProducts(any(Order.class), anyMap(), eq(productMapper)))
+                .thenReturn(orderDto);
 
         webTestClient.get()
                 .uri("/orders/" + testOrderId)
                 .exchange()
-                .expectStatus().isOk();
+                .expectStatus().isOk()
+                .expectBody();
     }
 
-//    @Test
-//    void cancel_ShouldRedirectToOrderPage() {
-//        when(orderService.cancel(TEST_USER_UUID, testOrderId))
-//                .thenReturn(Mono.empty());
-//
-//        webTestClient.get()
-//                .uri("/orders/" + testOrderId + "/checkout/cancel")
-//                .exchange()
-//                .expectStatus().is3xxRedirection()
-//                .expectHeader().valueEquals("Location", "/orders/" + testOrderId);
-//    }
+    @Test
+    void cancel_ShouldRedirectToOrderPage() {
+        when(orderPaymentService.cancel(TEST_USER_UUID, testOrderId))
+                .thenReturn(Mono.empty());
+
+        webTestClient.get()
+                .uri("/orders/" + testOrderId + "/checkout/cancel")
+                .exchange()
+                .expectStatus().is3xxRedirection()
+                .expectHeader().valueEquals("Location", "/orders/" + testOrderId);
+    }
 
     private Order createTestOrder() {
         OrderItem item = OrderItem.builder()

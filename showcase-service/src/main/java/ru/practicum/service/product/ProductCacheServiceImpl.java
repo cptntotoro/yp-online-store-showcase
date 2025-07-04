@@ -53,13 +53,13 @@ public class ProductCacheServiceImpl implements ProductCacheService {
                 .defaultIfEmpty(Collections.emptyList())
                 .flatMapMany(list -> list.isEmpty()
                         ? fetchAndCacheAllProducts()
-                        : Flux.fromIterable(list).map(productMapper::fromCacheDto));
+                        : Flux.fromIterable(list).map(productMapper::productCacheDtoToProduct));
     }
 
     @Override
     public Mono<Product> getProductById(UUID uuid) {
         return productCacheTemplate.opsForValue().get(PRODUCT_KEY_PREFIX + uuid)
-                .flatMap(dto -> Mono.justOrEmpty(productMapper.fromCacheDto(dto)))
+                .flatMap(dto -> Mono.justOrEmpty(productMapper.productCacheDtoToProduct(dto)))
                 .switchIfEmpty(fetchAndCacheProduct(uuid))
                 .onErrorResume(e -> fetchAndCacheProduct(uuid));
     }
@@ -71,7 +71,7 @@ public class ProductCacheServiceImpl implements ProductCacheService {
         }
 
         List<ProductCacheDto> dtos = products.stream()
-                .map(productMapper::toCacheDto)
+                .map(productMapper::productToCacheDto)
                 .collect(Collectors.toList());
 
         Mono<Void> cacheIndividualProducts = Flux.fromIterable(dtos)
@@ -100,7 +100,7 @@ public class ProductCacheServiceImpl implements ProductCacheService {
                 .collectList()
                 .flatMapMany(products -> {
                     List<ProductCacheDto> dtos = products.stream()
-                            .map(productMapper::toCacheDto)
+                            .map(productMapper::productToCacheDto)
                             .collect(Collectors.toList());
 
                     return listCacheTemplate.opsForValue()
@@ -114,7 +114,7 @@ public class ProductCacheServiceImpl implements ProductCacheService {
                 .switchIfEmpty(Mono.error(new ProductNotFoundException("Product not found")))
                 .flatMap(dao -> {
                     Product product = productMapper.productDaoToProduct(dao);
-                    ProductCacheDto dto = productMapper.toCacheDto(product);
+                    ProductCacheDto dto = productMapper.productToCacheDto(product);
 
                     return Mono.zip(
                             productCacheTemplate.opsForValue()

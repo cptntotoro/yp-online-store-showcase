@@ -10,7 +10,4 @@ public class IllegalCartStateException extends BaseException {
     public IllegalCartStateException(String message) {
         super(message, HttpStatus.BAD_REQUEST, "Некорректное состояние корзины.");
     }
-//    public IllegalCartStateException(String message, Throwable cause) {
-//        super(message, HttpStatus.BAD_REQUEST, "Некорректное состояние корзины.", cause);
-//    }
 }

@@ -9,6 +9,9 @@ import java.math.BigDecimal;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * DTO кеша товаров
+ */
 @Data
 @Builder
 @NoArgsConstructor

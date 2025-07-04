@@ -84,7 +84,7 @@ class CartRestControllerTest {
 
     @Test
     void removeFromCart_ShouldReturnUpdatedTotalPrice() {
-        var mockCart = new Cart();
+        Cart mockCart = new Cart();
         mockCart.setTotalPrice(TEST_TOTAL_PRICE);
 
         when(cartService.removeFromCart(TEST_USER_UUID, TEST_PRODUCT_UUID))

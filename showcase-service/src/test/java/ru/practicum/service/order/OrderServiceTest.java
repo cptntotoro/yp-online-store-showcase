@@ -9,6 +9,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 import ru.practicum.dao.order.OrderDao;
+import ru.practicum.dao.order.OrderItemDao;
 import ru.practicum.exception.cart.IllegalCartStateException;
 import ru.practicum.exception.order.OrderNotFoundException;
 import ru.practicum.mapper.order.OrderItemMapper;
@@ -75,6 +76,7 @@ class OrderServiceTest {
     void create_WithValidCart_ShouldCreateOrder() {
         UUID userUuid = UUID.randomUUID();
         UUID productUuid = UUID.randomUUID();
+        UUID orderUuid = UUID.randomUUID();
 
         Product product = Product.builder()
                 .uuid(productUuid)
@@ -94,7 +96,7 @@ class OrderServiceTest {
                 .build();
 
         OrderDao savedOrderDao = OrderDao.builder()
-                .uuid(UUID.randomUUID())
+                .uuid(orderUuid)
                 .userUuid(userUuid)
                 .cartUuid(userUuid)
                 .status(OrderStatus.CREATED)
@@ -103,6 +105,13 @@ class OrderServiceTest {
                 .build();
 
         OrderItem orderItem = OrderItem.builder()
+                .orderUuid(savedOrderDao.getUuid())
+                .productUuid(productUuid)
+                .quantity(2)
+                .priceAtOrder(BigDecimal.TEN)
+                .build();
+
+        OrderItemDao orderItemDao = OrderItemDao.builder()
                 .orderUuid(savedOrderDao.getUuid())
                 .productUuid(productUuid)
                 .quantity(2)
@@ -122,10 +131,11 @@ class OrderServiceTest {
         when(cartService.get(userUuid)).thenReturn(Mono.just(cart));
         when(orderRepository.save(any(OrderDao.class))).thenReturn(Mono.just(savedOrderDao));
         when(orderMapper.orderToOrderDao(any(Order.class))).thenReturn(savedOrderDao);
-        when(orderMapper.orderDaoToOrderWithItems(any(OrderDao.class), anyList())).thenReturn(expectedOrder);
+        when(orderMapper.orderDaoToOrderWithItems(eq(savedOrderDao), anyList())).thenReturn(expectedOrder);
 
-        when(orderItemRepository.saveAll(anyList())).thenReturn(Flux.empty());
+        when(orderItemMapper.orderItemToOrderItemDao(any(OrderItem.class))).thenReturn(orderItemDao);
 
+        when(orderItemRepository.saveAll(anyList())).thenReturn(Flux.just(orderItemDao));
         when(cartService.clear(userUuid)).thenReturn(Mono.empty());
 
         StepVerifier.create(orderService.create(userUuid))
@@ -136,6 +146,52 @@ class OrderServiceTest {
         verify(orderRepository).save(any(OrderDao.class));
         verify(orderItemRepository).saveAll(anyList());
         verify(cartService).clear(userUuid);
+        verify(orderItemMapper).orderItemToOrderItemDao(any(OrderItem.class));
+    }
+
+    @Test
+    void save_ShouldSaveAndReturnOrder() {
+        UUID orderUuid = UUID.randomUUID();
+        UUID userUuid = UUID.randomUUID();
+
+        Order order = Order.builder()
+                .uuid(orderUuid)
+                .userUuid(userUuid)
+                .cartUuid(UUID.randomUUID())
+                .status(OrderStatus.CREATED)
+                .totalPrice(BigDecimal.TEN)
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        OrderDao orderDao = OrderDao.builder()
+                .uuid(orderUuid)
+                .userUuid(userUuid)
+                .cartUuid(UUID.randomUUID())
+                .status(OrderStatus.CREATED)
+                .totalPrice(BigDecimal.TEN)
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        Order savedOrder = Order.builder()
+                .uuid(orderUuid)
+                .userUuid(userUuid)
+                .cartUuid(UUID.randomUUID())
+                .status(OrderStatus.CREATED)
+                .totalPrice(BigDecimal.TEN)
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        when(orderMapper.orderToOrderDao(order)).thenReturn(orderDao);
+        when(orderRepository.save(orderDao)).thenReturn(Mono.just(orderDao));
+        when(orderMapper.orderDaoToOrder(orderDao)).thenReturn(savedOrder);
+
+        StepVerifier.create(orderService.save(order))
+                .expectNext(savedOrder)
+                .verifyComplete();
+
+        verify(orderMapper).orderToOrderDao(order);
+        verify(orderRepository).save(orderDao);
+        verify(orderMapper).orderDaoToOrder(orderDao);
     }
 
     @Test
@@ -219,54 +275,6 @@ class OrderServiceTest {
 
         verify(orderRepository).findByUuidAndUserUuid(orderUuid, userUuid);
     }
-
-//    @Test
-//    void checkout_WithValidOrder_ShouldUpdateStatus() {
-//        UUID userUuid = UUID.randomUUID();
-//        UUID orderUuid = UUID.randomUUID();
-//
-//        OrderDao orderDao = OrderDao.builder()
-//                .uuid(orderUuid)
-//                .userUuid(userUuid)
-//                .cartUuid(UUID.randomUUID())
-//                .status(OrderStatus.CREATED)
-//                .totalPrice(BigDecimal.TEN)
-//                .createdAt(LocalDateTime.now())
-//                .build();
-//
-//        when(orderRepository.findByUuidAndUserUuid(orderUuid, userUuid)).thenReturn(Mono.just(orderDao));
-//        when(orderRepository.save(any())).thenReturn(Mono.just(orderDao));
-//
-//        StepVerifier.create(orderService.checkout(userUuid, orderUuid))
-//                .verifyComplete();
-//
-//        verify(orderRepository).findByUuidAndUserUuid(orderUuid, userUuid);
-//        verify(orderRepository).save(any());
-//    }
-
-//    @Test
-//    void cancel_WithValidOrder_ShouldUpdateStatus() {
-//        UUID userUuid = UUID.randomUUID();
-//        UUID orderUuid = UUID.randomUUID();
-//
-//        OrderDao orderDao = OrderDao.builder()
-//                .uuid(orderUuid)
-//                .userUuid(userUuid)
-//                .cartUuid(UUID.randomUUID())
-//                .status(OrderStatus.CREATED)
-//                .totalPrice(BigDecimal.TEN)
-//                .createdAt(LocalDateTime.now())
-//                .build();
-//
-//        when(orderRepository.findByUuidAndUserUuid(orderUuid, userUuid)).thenReturn(Mono.just(orderDao));
-//        when(orderRepository.save(any())).thenReturn(Mono.just(orderDao));
-//
-//        StepVerifier.create(orderService.cancel(userUuid, orderUuid))
-//                .verifyComplete();
-//
-//        verify(orderRepository).findByUuidAndUserUuid(orderUuid, userUuid);
-//        verify(orderRepository).save(any());
-//    }
 
     @Test
     void getUserTotalAmount_ShouldReturnTotal() {

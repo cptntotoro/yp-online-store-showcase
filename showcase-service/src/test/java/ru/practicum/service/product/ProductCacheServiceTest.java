@@ -87,7 +87,7 @@ class ProductCacheServiceTest {
     @Test
     void getProductById_WhenCached_ShouldReturnFromCache() {
         when(productValueOps.get("product:" + productId)).thenReturn(Mono.just(productCacheDto));
-        when(productMapper.fromCacheDto(productCacheDto)).thenReturn(product);
+        when(productMapper.productCacheDtoToProduct(productCacheDto)).thenReturn(product);
 
         Mono<Product> result = productCacheService.getProductById(productId);
 
@@ -98,7 +98,7 @@ class ProductCacheServiceTest {
     void getProductById_WhenNotCached_ShouldFetchAndCache() {
         when(productRepository.findById(productId)).thenReturn(Mono.just(productDao));
         when(productMapper.productDaoToProduct(productDao)).thenReturn(product);
-        when(productMapper.toCacheDto(product)).thenReturn(productCacheDto);
+        when(productMapper.productToCacheDto(product)).thenReturn(productCacheDto);
 
         Mono<Product> result = productCacheService.getProductById(productId);
 
@@ -120,7 +120,7 @@ class ProductCacheServiceTest {
     void getAllProducts_WhenCached_ShouldReturnFromCache() {
         List<ProductCacheDto> cachedList = List.of(productCacheDto);
         when(listValueOps.get("all_products")).thenReturn(Mono.just(cachedList));
-        when(productMapper.fromCacheDto(productCacheDto)).thenReturn(product);
+        when(productMapper.productCacheDtoToProduct(productCacheDto)).thenReturn(product);
 
         Flux<Product> result = productCacheService.getAllProducts();
 
@@ -135,7 +135,7 @@ class ProductCacheServiceTest {
     void getAllProducts_WhenNotCached_ShouldFetchAndCache() {
         when(productRepository.findAll()).thenReturn(Flux.just(productDao));
         when(productMapper.productDaoToProduct(productDao)).thenReturn(product);
-        when(productMapper.toCacheDto(product)).thenReturn(productCacheDto);
+        when(productMapper.productToCacheDto(product)).thenReturn(productCacheDto);
 
         Flux<Product> result = productCacheService.getAllProducts();
 
@@ -159,7 +159,7 @@ class ProductCacheServiceTest {
         List<Product> products = List.of(product);
         List<ProductCacheDto> dtos = List.of(productCacheDto);
 
-        when(productMapper.toCacheDto(product)).thenReturn(productCacheDto);
+        when(productMapper.productToCacheDto(product)).thenReturn(productCacheDto);
 
         Mono<Void> result = productCacheService.cacheProducts(products);
 

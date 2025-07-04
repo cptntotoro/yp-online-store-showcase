@@ -49,9 +49,19 @@ public interface ProductMapper {
      */
     ProductDao productToProductDao(Product product);
 
-    ProductCacheDto toCacheDto(Product product);
+    /**
+     * Смаппить товар в DTO кеша товаров
+     *
+     * @param product Товар
+     * @return DTO кеша товаров
+     */
+    ProductCacheDto productToCacheDto(Product product);
 
-    ProductCacheDto toCacheDto(ProductDao dao);
-
-    Product fromCacheDto(ProductCacheDto dto);
+    /**
+     * Смаппить DTO кеша товаров в товар
+     *
+     * @param productCacheDto DTO кеша товаров
+     * @return Товар
+     */
+    Product productCacheDtoToProduct(ProductCacheDto productCacheDto);
 }

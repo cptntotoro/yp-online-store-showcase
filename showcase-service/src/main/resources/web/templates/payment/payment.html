@@ -62,7 +62,9 @@
 
         <div class="payment-actions">
           <a href="/products" class="btn btn-outline">Вернуться в магазин</a>
-          <button type="submit" class="btn btn-primary">
+          <button type="submit" class="btn btn-primary"
+                  th:classappend="${!paymentServiceActive} ? 'btn-disabled'"
+                  th:disabled="${!paymentServiceActive}">
             <span>Оплатить</span>
           </button>
         </div>
@@ -71,6 +73,13 @@
           <div class="alert alert-warning">
             <span>⚠️</span>
             <p>Недостаточно средств на счете. Пожалуйста, пополните баланс.</p>
+          </div>
+        </div>
+
+        <div class="service-status mt-4" th:if="${!paymentServiceActive}">
+          <div class="alert alert-warning">
+            <span>⚠️</span>
+            <p>Сервис оплаты временно недоступен. Пожалуйста, попробуйте позже.</p>
           </div>
         </div>
       </form>
