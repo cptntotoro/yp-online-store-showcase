@@ -1,7 +1,5 @@
 # Сервис оплаты
 
-Подключен к БД приложения. 
-
 Позволяет получить баланс счета пользователя, обработать оплату заказа и получить возврат средств за заказ.
 
 ## 🚀 Как запускать
@@ -36,7 +34,7 @@ docker-compose down -v
 
 ### Локально
 
-1. Разверните БД согласно application.properties и application-test.properties в отдельном приложении или среде разработки
+1. Убедитесь, что у вас установлен PostgreSQL на порту 5432
 
 2. Соберите сервис (компиляция + тесты):
 ```
@@ -48,4 +46,4 @@ mvn clean install -pl payment-service
 java -jar payment-service/target/payment-service.jar --spring.profiles.active=prod
 ```
 
-Сервис будет доступен по адресу: http://localhost:8081.
+Сервис будет доступен по адресу: http://localhost:8081

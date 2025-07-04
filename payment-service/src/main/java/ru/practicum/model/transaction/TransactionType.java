@@ -9,5 +9,5 @@ import lombok.Getter;
 public enum TransactionType {
     DEPOSIT,
     WITHDRAWAL,
-    REFUND;
+    REFUND
 }

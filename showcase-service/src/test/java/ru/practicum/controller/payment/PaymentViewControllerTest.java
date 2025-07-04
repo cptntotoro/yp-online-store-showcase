@@ -5,9 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.annotation.DirtiesContext;
 import reactor.core.publisher.Mono;
 import ru.practicum.controller.BaseControllerTest;
 import ru.practicum.dto.order.OrderDto;
@@ -15,7 +13,6 @@ import ru.practicum.dto.payment.PaymentCheckoutDto;
 import ru.practicum.mapper.order.OrderMapper;
 import ru.practicum.model.order.Order;
 import ru.practicum.model.order.OrderStatus;
-import ru.practicum.service.cart.CartService;
 import ru.practicum.service.order.OrderPaymentService;
 import ru.practicum.service.order.OrderService;
 
@@ -28,7 +25,6 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class PaymentViewControllerTest extends BaseControllerTest {
 
     @Mock
@@ -36,9 +32,6 @@ class PaymentViewControllerTest extends BaseControllerTest {
 
     @Mock
     private OrderPaymentService orderPaymentService;
-
-    @Mock
-    private CartService cartService;
 
     @Mock
     private OrderMapper orderMapper;
@@ -62,8 +55,6 @@ class PaymentViewControllerTest extends BaseControllerTest {
         testOrder = createTestOrder();
         testOrderDto = createTestOrderDto();
 
-        Mockito.reset(orderService, orderPaymentService, cartService, orderMapper);
-
         when(orderPaymentService.checkHealth()).thenReturn(Mono.just(true));
         when(orderMapper.orderToOrderDto(any())).thenReturn(testOrderDto);
     }
@@ -73,14 +64,10 @@ class PaymentViewControllerTest extends BaseControllerTest {
         when(orderService.create(TEST_USER_UUID))
                 .thenReturn(Mono.just(testOrder));
 
-        when(cartService.clear(TEST_USER_UUID))
-                .thenReturn(Mono.empty());
 
-        when(orderPaymentService.checkHealth())
-                .thenReturn(Mono.just(true));
-
-        when(orderMapper.orderToOrderDto(any(Order.class)))
-                .thenReturn(testOrderDto);
+        when(orderPaymentService.checkHealth()).thenReturn(Mono.just(true));
+        when(orderMapper.orderToOrderDto(any(Order.class))).thenReturn(testOrderDto);
+        when(cartService.clear(TEST_USER_UUID)).thenReturn(Mono.empty());
 
         webTestClient.get()
                 .uri("/payment/checkout")

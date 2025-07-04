@@ -9,5 +9,5 @@ import lombok.Getter;
 public enum TransactionStatus {
     PENDING,
     COMPLETED,
-    FAILED;
+    FAILED
 }

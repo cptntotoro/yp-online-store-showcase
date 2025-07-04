@@ -1,7 +1,5 @@
 package ru.practicum.model.product;
 
-import ru.practicum.dto.product.ProductCacheDto;
-
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Optional;
@@ -15,21 +13,11 @@ public enum ProductSort {
         public Comparator<Product> getComparator() {
             return Comparator.comparing(Product::getPrice);
         }
-
-        @Override
-        public Comparator<ProductCacheDto> getCacheDtoComparator() {
-            return Comparator.comparing(ProductCacheDto::getPrice);
-        }
     },
     PRICE_DESC("price-desc") {
         @Override
         public Comparator<Product> getComparator() {
             return Comparator.comparing(Product::getPrice).reversed();
-        }
-
-        @Override
-        public Comparator<ProductCacheDto> getCacheDtoComparator() {
-            return Comparator.comparing(ProductCacheDto::getPrice).reversed();
         }
     },
     NAME_ASC("name-asc") {
@@ -37,21 +25,11 @@ public enum ProductSort {
         public Comparator<Product> getComparator() {
             return Comparator.comparing(Product::getName, String.CASE_INSENSITIVE_ORDER);
         }
-
-        @Override
-        public Comparator<ProductCacheDto> getCacheDtoComparator() {
-            return Comparator.comparing(ProductCacheDto::getName, String.CASE_INSENSITIVE_ORDER);
-        }
     },
     NAME_DESC("name-desc") {
         @Override
         public Comparator<Product> getComparator() {
             return Comparator.comparing(Product::getName, String.CASE_INSENSITIVE_ORDER).reversed();
-        }
-
-        @Override
-        public Comparator<ProductCacheDto> getCacheDtoComparator() {
-            return Comparator.comparing(ProductCacheDto::getName, String.CASE_INSENSITIVE_ORDER).reversed();
         }
     };
 
@@ -62,7 +40,6 @@ public enum ProductSort {
     }
 
     public abstract Comparator<Product> getComparator();
-    public abstract Comparator<ProductCacheDto> getCacheDtoComparator();
 
     public static Optional<ProductSort> fromString(String value) {
         return Arrays.stream(values())

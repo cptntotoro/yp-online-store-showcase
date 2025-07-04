@@ -2,7 +2,6 @@ package ru.practicum.model.order;
 
 import jakarta.validation.constraints.Positive;
 import lombok.*;
-import org.springframework.data.annotation.Transient;
 
 import java.math.BigDecimal;
 import java.util.UUID;
@@ -42,14 +41,4 @@ public class OrderItem {
      * Цена товара в заказе
      */
     private BigDecimal priceAtOrder;
-
-    /**
-     * Получить стоимость товара в заказе
-     *
-     * @return Стоимость товара в заказе
-     */
-    @Transient
-    public BigDecimal getTotalPrice() {
-        return priceAtOrder.multiply(BigDecimal.valueOf(quantity));
-    }
 }

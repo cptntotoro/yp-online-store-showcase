@@ -7,7 +7,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
-import ru.practicum.client.PaymentServiceClient;
+import ru.practicum.client.PaymentServiceClientImpl;
 import ru.practicum.exception.order.IllegalOrderStateException;
 import ru.practicum.exception.order.OrderNotFoundException;
 import ru.practicum.model.balance.UserBalance;
@@ -18,7 +18,6 @@ import java.math.BigDecimal;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -28,7 +27,7 @@ class OrderPaymentServiceTest {
     private OrderService orderService;
 
     @Mock
-    private PaymentServiceClient paymentWebClient;
+    private PaymentServiceClientImpl paymentWebClient;
 
     @InjectMocks
     private OrderPaymentServiceImpl orderPaymentService;

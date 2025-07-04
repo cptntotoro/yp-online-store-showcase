@@ -42,8 +42,8 @@ public abstract class BaseControllerTest {
         AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
         context.refresh();
 
-        // Мок поведения GlobalControllerAdvice
         CartDto mockCartDto = new CartDto();
+
         when(cartService.get(TEST_USER_UUID)).thenReturn(Mono.just(new Cart()));
         when(cartMapper.cartToCartDto(any())).thenReturn(mockCartDto);
 

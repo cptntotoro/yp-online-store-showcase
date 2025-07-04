@@ -1,7 +1,9 @@
 package ru.practicum.mapper.user;
 
 import org.mapstruct.Mapper;
+import ru.practicum.client.dto.balance.UserBalanceResponseDto;
 import ru.practicum.dao.user.UserDao;
+import ru.practicum.model.balance.UserBalance;
 import ru.practicum.model.user.User;
 
 /**
@@ -25,4 +27,12 @@ public interface UserMapper {
      * @return DAO пользователя
      */
     UserDao userToUserDao(User user);
+
+    /**
+     * Смаппить DTO ответа баланса пользователя в баланс счета пользователя
+     *
+     * @param userBalanceResponseDto DTO ответа баланса пользователя
+     * @return Баланс счета пользователя
+     */
+    UserBalance userBalanceResponseDtoToUserBalance(UserBalanceResponseDto userBalanceResponseDto);
 }

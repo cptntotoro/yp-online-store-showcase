@@ -1,18 +1,18 @@
 [![Java CI with Maven](https://github.com/cptntotoro/yp-online-store-showcase/actions/workflows/maven.yml/badge.svg)](https://github.com/cptntotoro/yp-online-store-showcase/actions/workflows/maven.yml) [![Coverage Status](https://coveralls.io/repos/github/cptntotoro/yp-online-store-showcase/badge.svg)](https://coveralls.io/github/cptntotoro/yp-online-store-showcase)
 
 # Приложение "Витрина онлайн-магазина"
-Приложение на реактивном стеке: Java 21, Spring Boot (WebFlux, R2DBC), PostgreSQL, Lombok, Mapstruct, Maven, Docker, Thymeleaf, HTML, CSS, JavaScript
+Приложение на реактивном стеке: Java 21, Spring Boot (WebFlux, R2DBC), PostgreSQL, Redis, Lombok, Mapstruct, Maven, Docker, Thymeleaf, HTML, CSS, JavaScript
 
 ## О проекте
 Веб-приложение представляет собой витрину товаров.
 Пользователь может положить товар в корзину, оформить, оплатить и отменить заказ.
 Также пользователь может наполнить витрину товаров новыми товарами.
 
-Предоставление актуальных данных для разных пользователей реализовано с помощью управления идентификатором пользователя через куки в OncePerRequestFilter в Spring Web.
+Предоставление актуальных данных для разных пользователей реализовано с помощью управления идентификатором пользователя через куки с помощью WebFilter.
 
 Для отображения актуальной стоимости корзины и реализации UI элементов согласно её состоянию применен @ControllerAdvice. 
 
-Для уменьшения нагрузки на приложение состояние корзины кешируется с помощью Spring Cache.  
+Для уменьшения нагрузки на приложение состояние корзины и список товаров кешируются с помощью Redis.  
 
 ## Демонстрация
 
@@ -50,16 +50,21 @@ docker-compose down -v
 
 ### Локально
 
-1. Разверните БД согласно application.properties и application-test.properties в отдельном приложении или среде разработки
+1. Убедитесь, что у вас установлен PostgreSQL на порту 5432
 
-2. Соберите проект:
+2. Убедитесь, что у вас устновлен Redis на порту 6379
+
+3. Убедитесь, что у вас запущен Docker Desktop и соберите проект:
 ```
 mvn clean package
 ```
-
-3. Запустите приложение:
+4. Запустите сервис витрины товаров:
 ```
-java -jar target/yp-online-store.jar --spring.profiles.active=prod
+java -jar showcase-service/target/showcase-service.jar --spring.profiles.active=prod
+```
+5. (Опционально) запустите сервис оплаты:
+```
+java -jar payment-service/target/payment-service.jar --spring.profiles.active=prod
 ```
 
 Приложение будет доступно по адресу: http://localhost:8080/products.

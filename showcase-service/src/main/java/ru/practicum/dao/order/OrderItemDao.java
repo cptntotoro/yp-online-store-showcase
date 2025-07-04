@@ -3,7 +3,6 @@ package ru.practicum.dao.order;
 import jakarta.validation.constraints.Positive;
 import lombok.*;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.annotation.Transient;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
@@ -51,14 +50,4 @@ public class OrderItemDao {
      */
     @Column("price_at_order")
     private BigDecimal priceAtOrder;
-
-    /**
-     * Получить стоимость товара в заказе
-     *
-     * @return Стоимость товара в заказе
-     */
-    @Transient
-    public BigDecimal getTotalPrice() {
-        return priceAtOrder.multiply(BigDecimal.valueOf(quantity));
-    }
 }

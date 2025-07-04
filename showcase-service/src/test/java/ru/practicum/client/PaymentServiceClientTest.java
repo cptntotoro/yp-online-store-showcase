@@ -12,10 +12,12 @@ import org.springframework.web.reactive.function.client.WebClientRequestExceptio
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
+import ru.practicum.client.dto.balance.UserBalanceResponseDto;
 import ru.practicum.client.dto.payment.PaymentResponseDto;
 import ru.practicum.client.dto.payment.RefundResponseDto;
 import ru.practicum.exception.payment.PaymentProcessingException;
 import ru.practicum.exception.payment.PaymentServiceUnavailableException;
+import ru.practicum.mapper.user.UserMapper;
 import ru.practicum.model.balance.UserBalance;
 
 import java.math.BigDecimal;
@@ -47,8 +49,11 @@ class PaymentServiceClientTest {
     @Mock
     private WebClient.ResponseSpec responseSpec;
 
+    @Mock
+    private UserMapper userMapper;
+
     @InjectMocks
-    private PaymentServiceClient paymentServiceClient;
+    private PaymentServiceClientImpl paymentServiceClient;
 
     private final UUID testUserId = UUID.randomUUID();
     private final UUID testOrderId = UUID.randomUUID();
@@ -147,15 +152,27 @@ class PaymentServiceClientTest {
 
     @Test
     void getBalance_shouldReturnUserBalance() {
+        UserBalanceResponseDto responseDto = new UserBalanceResponseDto(
+                testUserId,
+                BigDecimal.valueOf(1000.00)
+        );
+
         UserBalance expectedBalance = new UserBalance(
-                testUserId, BigDecimal.valueOf(1000.00)
+                testUserId,
+                BigDecimal.valueOf(1000.00)
         );
 
         when(webClient.get()).thenReturn(requestHeadersUriSpec);
-        when(requestHeadersUriSpec.uri("/payment/{userId}/balance", testUserId)).thenReturn(requestHeadersSpec);
+        when(requestHeadersUriSpec.uri("/payment/{userId}/balance", testUserId))
+                .thenReturn(requestHeadersSpec);
         when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
         when(responseSpec.onStatus(any(), any())).thenReturn(responseSpec);
-        when(responseSpec.bodyToMono(UserBalance.class)).thenReturn(Mono.just(expectedBalance));
+
+        when(responseSpec.bodyToMono(UserBalanceResponseDto.class))
+                .thenReturn(Mono.just(responseDto));
+
+        when(userMapper.userBalanceResponseDtoToUserBalance(responseDto))
+                .thenReturn(expectedBalance);
 
         StepVerifier.create(paymentServiceClient.getBalance(testUserId))
                 .expectNext(expectedBalance)

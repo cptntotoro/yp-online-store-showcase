@@ -2,9 +2,12 @@ package ru.practicum.mapper.user;
 
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
+import ru.practicum.client.dto.balance.UserBalanceResponseDto;
 import ru.practicum.dao.user.UserDao;
+import ru.practicum.model.balance.UserBalance;
 import ru.practicum.model.user.User;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -95,5 +98,35 @@ class UserMapperTest {
         assertEquals(testEmail, userDao.getEmail());
         assertNull(userDao.getUsername());
         assertNull(userDao.getCreatedAt());
+    }
+
+    @Test
+    void userBalanceResponseDtoToUserBalance_ShouldMapAllFieldsCorrectly() {
+        UUID userId = UUID.randomUUID();
+        BigDecimal balance = new BigDecimal("1000.50");
+        UserBalanceResponseDto dto = new UserBalanceResponseDto(userId, balance);
+
+        UserBalance result = userMapper.userBalanceResponseDtoToUserBalance(dto);
+
+        assertNotNull(result);
+        assertEquals(userId, result.getUserUuid());
+        assertEquals(balance, result.getBalance());
+    }
+
+    @Test
+    void userBalanceResponseDtoToUserBalance_ShouldReturnNull_WhenInputIsNull() {
+        assertNull(userMapper.userBalanceResponseDtoToUserBalance(null));
+    }
+
+    @Test
+    void userBalanceResponseDtoToUserBalance_ShouldHandlePartialData() {
+        UUID userId = UUID.randomUUID();
+        UserBalanceResponseDto dto = new UserBalanceResponseDto(userId, null);
+
+        UserBalance result = userMapper.userBalanceResponseDtoToUserBalance(dto);
+
+        assertNotNull(result);
+        assertEquals(userId, result.getUserUuid());
+        assertNull(result.getBalance());
     }
 }
