@@ -1,5 +1,15 @@
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
+-- Таблица пользователей
+CREATE TABLE IF NOT EXISTS users (
+    user_uuid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    username VARCHAR(255) NOT NULL,
+    email VARCHAR(255) UNIQUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_user_user ON users(user_uuid);
+
 -- Таблица балансов пользователей
 CREATE TABLE IF NOT EXISTS user_balances (
     balance_uuid UUID PRIMARY KEY DEFAULT gen_random_uuid(),

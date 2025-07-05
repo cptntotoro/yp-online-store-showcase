@@ -67,10 +67,10 @@ services:
   showcase-test:
     profiles: ["test"]
     build:
-      context: ./showcase-service
-      dockerfile: Dockerfile-test
-    image: test-image
-    container_name: "test-container"
+      context: .
+      dockerfile: showcase-service/Dockerfile-test
+    image: showcase-test
+    container_name: "showcase-test"
     ports:
       - "9090:9090"
     environment:
@@ -132,13 +132,13 @@ services:
       timeout: 10s
       retries: 3
 
-  payment-test:
+  payment-service-test:
     profiles: ["test"]
     build:
       context: .
       dockerfile: payment-service/Dockerfile-test
-    image: payment-test-image
-    container_name: "payment-test-container"
+    image: payment-service-test
+    container_name: "payment-service-test"
     environment:
       SPRING_PROFILES_ACTIVE: test
       SPRING_DATASOURCE_URL: r2dbc:postgresql://test-db:5432/test_db

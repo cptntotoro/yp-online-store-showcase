@@ -8,7 +8,7 @@
 
 #### Только тесты
 ```
-docker-compose --profile test up --build --abort-on-container-exit payment-test
+docker-compose --profile test up --build --abort-on-container-exit payment-service-test
 ```
 Если ответ 0, все тесты прошли успешно
 

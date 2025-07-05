@@ -30,21 +30,12 @@ class UserBalanceRepositoryTest {
     @Autowired
     private DatabaseClient databaseClient;
 
-    private UUID testUserId;
+    private final UUID testUserId = UUID.randomUUID();
 
     @BeforeEach
     void setupDatabase() {
         transactionRepository.deleteAll().block();
         userBalanceRepository.deleteAll().block();
-
-        databaseClient.sql("DELETE FROM users").fetch().rowsUpdated().block();
-
-        testUserId = UUID.randomUUID();
-        databaseClient.sql("INSERT INTO users (user_uuid, username, email) VALUES (:userId, 'test_user', 'test@example.com')")
-                .bind("userId", testUserId)
-                .fetch()
-                .rowsUpdated()
-                .block();
     }
 
     private Mono<UserBalanceDao> createTestBalance(BigDecimal amount) {
