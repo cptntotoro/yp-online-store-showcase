@@ -3,14 +3,16 @@ services:
     profiles: ["prod"]
     restart: on-failure
     build:
-      context: ./showcase-service
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: showcase-service/Dockerfile
     image: yp-online-showcase
     container_name: "yp-online-showcase"
     ports:
       - "8080:8080"
     depends_on:
       postgres:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     environment:
       - SPRING_PROFILES_ACTIVE=prod
@@ -20,6 +22,9 @@ services:
       - DB_NAME=postgres
       - DB_HOST=postgres
       - DB_PORT=5432
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
       interval: 30s
@@ -45,14 +50,21 @@ services:
       retries: 5
 
   redis:
+    profiles: ["prod"]
     image: redis:7.2
     ports:
       - "6379:6379"
     volumes:
       - redis_data:/data
     command: redis-server --appendonly yes
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   showcase-test:
+    profiles: ["test"]
     build:
       context: ./showcase-service
       dockerfile: Dockerfile-test
@@ -77,6 +89,7 @@ services:
       - test-db
 
   test-db:
+    profiles: ["test"]
     container_name: "test-db"
     image: postgres:14-alpine
     ports:
@@ -94,6 +107,7 @@ services:
       - test_db_data:/var/lib/postgresql/data
 
   payment-service:
+    profiles: ["prod"]
     build:
       context: ./payment-service
       dockerfile: Dockerfile
@@ -107,6 +121,7 @@ services:
       - SPRING_R2DBC_URL=r2dbc:postgresql://postgres:5432/postgres
       - SPRING_R2DBC_USERNAME=postgres
       - SPRING_R2DBC_PASSWORD=postgres
+      - PAYMENT_DEFAULT_BALANCE=15000.00
     depends_on:
       postgres:
         condition: service_healthy
@@ -119,9 +134,10 @@ services:
       retries: 3
 
   payment-test:
+    profiles: ["test"]
     build:
-      context: ./payment-service
-      dockerfile: Dockerfile-test
+      context: .
+      dockerfile: payment-service/Dockerfile-test
     image: payment-test-image
     container_name: "payment-test-container"
     environment:
