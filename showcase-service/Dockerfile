@@ -9,7 +9,6 @@ COPY showcase-service/src ./showcase-service/src/
 # Устанавливаем родительский POM в локальный репозиторий Maven
 RUN mvn install -N -DskipTests
 
-# Собираем только showcase-service, игнорируя отсутствующие модули
 RUN mvn -f showcase-service/pom.xml clean package -DskipTests
 
 FROM eclipse-temurin:21-jre-jammy

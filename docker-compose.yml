@@ -19,6 +19,7 @@ services:
       - SPRING_R2DBC_URL=r2dbc:postgresql://postgres:5432/postgres
       - SPRING_R2DBC_USERNAME=postgres
       - SPRING_R2DBC_PASSWORD=postgres
+      - PAYMENT_SERVICE_URL=http://payment-service:8081
       - DB_NAME=postgres
       - DB_HOST=postgres
       - DB_PORT=5432
@@ -109,8 +110,8 @@ services:
   payment-service:
     profiles: ["prod"]
     build:
-      context: ./payment-service
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: payment-service/Dockerfile
     image: yp-payment-service
     container_name: "yp-payment-service"
     ports:
@@ -124,8 +125,6 @@ services:
       - PAYMENT_DEFAULT_BALANCE=15000.00
     depends_on:
       postgres:
-        condition: service_healthy
-      redis:
         condition: service_healthy
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8081/actuator/health" ]
