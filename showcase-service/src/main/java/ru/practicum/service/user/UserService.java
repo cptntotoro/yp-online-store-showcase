@@ -17,6 +17,14 @@ public interface UserService {
     Mono<User> createGuest();
 
     /**
+     * Зарегистрировать пользователя
+     *
+     * @param user Пользователь
+     * @return Пользователь
+     */
+    Mono<User> register(User user);
+
+    /**
      * Проверить существование пользователя
      *
      * @param userUuid Идентификатор пользователя

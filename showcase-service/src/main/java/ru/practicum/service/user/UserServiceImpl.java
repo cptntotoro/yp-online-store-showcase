@@ -1,9 +1,11 @@
 package ru.practicum.service.user;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
+import ru.practicum.exception.auth.UserAlreadyExistsException;
 import ru.practicum.mapper.user.UserMapper;
 import ru.practicum.model.user.User;
 import ru.practicum.repository.user.UserRepository;
@@ -31,6 +33,7 @@ public class UserServiceImpl implements UserService {
      */
     private final UserMapper userMapper;
 
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     @Transactional
@@ -48,6 +51,30 @@ public class UserServiceImpl implements UserService {
                     .onErrorResume(e -> Mono.error(new RuntimeException("Ошибка создания гостевого пользователя и его корзины", e)))
                     .map(userMapper::userDaoToUser);
         });
+    }
+
+    @Override
+    @Transactional
+    public Mono<User> register(User user) {
+        return userRepository.findByUsername(user.getUsername())
+                .flatMap(existingUser -> Mono.<User>error(new UserAlreadyExistsException("Пользователь с таким именем уже существует")))
+                .switchIfEmpty(Mono.defer(() -> {
+                    user.setPassword(passwordEncoder.encode(user.getPassword()));
+                    user.setRole("ROLE_USER");
+                    user.setCreatedAt(LocalDateTime.now());
+
+                    return userRepository.save(userMapper.userToUserDao(user))
+                            .flatMap(savedUser -> cartService.createGuest(savedUser.getUuid())
+                                    .thenReturn(savedUser)
+                            )
+                            .map(userMapper::userDaoToUser);
+                }));
+//                .onErrorResume(e -> {
+//                    if (e instanceof UserAlreadyExistsException) {
+//                        return Mono.error(e);
+//                    }
+//                    return Mono.error(new RuntimeException("Ошибка при регистрации пользователя", e));
+//                });
     }
 
     @Override

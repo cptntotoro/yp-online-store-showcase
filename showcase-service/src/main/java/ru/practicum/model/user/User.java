@@ -26,6 +26,16 @@ public class User {
     private String username;
 
     /**
+     * Пароль
+     */
+    private String password;
+
+    /**
+     * Роль
+     */
+    private String role;
+
+    /**
      * Адрес электронной почты
      */
     private String email;
