@@ -21,11 +21,22 @@ CREATE INDEX IF NOT EXISTS idx_products_price ON products(price);
 CREATE TABLE IF NOT EXISTS users (
     user_uuid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     username VARCHAR(255) NOT NULL,
+    password VARCHAR(100) NOT NULL,
+    role VARCHAR(20) NOT NULL,
     email VARCHAR(255) UNIQUE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    enabled BOOLEAN DEFAULT TRUE
 );
 
 CREATE INDEX IF NOT EXISTS idx_user ON users(user_uuid);
+
+-- Таблица ролей пользователей
+CREATE TABLE IF NOT EXISTS user_roles (
+    user_uuid UUID,
+    role VARCHAR(20) NOT NULL,
+    PRIMARY KEY (user_uuid, role),
+    FOREIGN KEY (user_uuid) REFERENCES users(user_uuid)
+);
 
 -- Таблица корзин
 CREATE TABLE IF NOT EXISTS carts (

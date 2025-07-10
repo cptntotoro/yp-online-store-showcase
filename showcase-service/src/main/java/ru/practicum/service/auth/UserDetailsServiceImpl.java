@@ -6,7 +6,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
-import ru.practicum.dao.user.UserDao;
+import ru.practicum.mapper.user.UserMapper;
 import ru.practicum.repository.user.UserRepository;
 
 @Service
@@ -18,24 +18,16 @@ public class UserDetailsServiceImpl implements ReactiveUserDetailsService {
      */
     private final UserRepository userRepository;
 
+    /**
+     * Маппер пользователей
+     */
+    private final UserMapper userMapper;
+
     @Override
     public Mono<UserDetails> findByUsername(String username) {
         return userRepository.findByUsername(username)
                 .switchIfEmpty(Mono.error(new UsernameNotFoundException("User with username '" + username + "' not found")))
-                .map(this::mapToUserDetails);
-    }
-
-    private UserDetails mapToUserDetails(UserDao userDao) {
-        String role = userDao.getRole() != null ? userDao.getRole().replace("ROLE_", "") : "USER";
-
-        return org.springframework.security.core.userdetails.User.builder()
-                .username(userDao.getUsername())
-                .password(userDao.getPassword())
-                .roles(role)
-                .accountExpired(false)
-                .accountLocked(false)
-                .credentialsExpired(false)
-                .disabled(false)
-                .build();
+                .map(userMapper::userDaoToUser)
+                .map(userMapper::userToUserDetails);
     }
 }

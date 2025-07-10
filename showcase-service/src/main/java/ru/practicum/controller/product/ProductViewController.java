@@ -2,6 +2,8 @@ package ru.practicum.controller.product;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -39,7 +41,10 @@ public class ProductViewController {
                                         @RequestParam(defaultValue = "10") int size,
                                         @RequestParam(required = false) String search,
                                         @RequestParam(required = false) String sort,
+                                        @AuthenticationPrincipal UserDetails userDetails,
                                         Model model) {
+
+        model.addAttribute("isAuthenticated", userDetails != null);
 
         return productService.getProducts(search, sort, PageRequest.of(page, size))
                 .map(productPage -> {
@@ -62,12 +67,14 @@ public class ProductViewController {
                 .thenReturn("product/product");
     }
 
+//    @PreAuthorize("isAuthenticated()")
     @GetMapping("/add")
     public Mono<String> showAddProductForm(Model model) {
         return Mono.just(model.addAttribute("products", new ProductListInDto()))
                 .thenReturn("product/add");
     }
 
+    //    @PreAuthorize("isAuthenticated()")
     @PostMapping("/add")
     public Mono<String> addProducts(@ModelAttribute("products") ProductListInDto products) {
         List<Product> productList = products.getProducts().stream()

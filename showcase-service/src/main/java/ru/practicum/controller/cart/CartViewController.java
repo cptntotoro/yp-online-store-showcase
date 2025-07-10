@@ -2,7 +2,11 @@ package ru.practicum.controller.cart;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.reactive.result.view.RedirectView;
 import org.springframework.web.reactive.result.view.Rendering;
 import reactor.core.publisher.Mono;
@@ -26,6 +30,8 @@ public class CartViewController {
      */
     private final CartMapper cartMapper;
 
+//    @PreAuthorize("#user.username == authentication.name")
+//  @PreAuthorize("#product.ownerId == principal.id")
     @GetMapping
     public Mono<Rendering> showCart(@RequestAttribute(WebAttributes.USER_UUID) UUID userUuid) {
         return cartService.get(userUuid)
@@ -34,6 +40,8 @@ public class CartViewController {
                         .build());
     }
 
+//    @PreAuthorize("#user.username == authentication.name")
+//  @PreAuthorize("#product.ownerId == principal.id")
     @PostMapping("/remove/{productUuid}")
     public Mono<RedirectView> removeFromCart(@RequestAttribute(WebAttributes.USER_UUID) UUID userUuid,
                                              @PathVariable UUID productUuid) {
@@ -41,6 +49,8 @@ public class CartViewController {
                 .thenReturn(new RedirectView("/cart"));
     }
 
+//    @PreAuthorize("#user.username == authentication.name")
+//  @PreAuthorize("#product.ownerId == principal.id")
     @PostMapping("/clear")
     public Mono<RedirectView> clearCart(@RequestAttribute(WebAttributes.USER_UUID) UUID userUuid) {
         return cartService.clear(userUuid)

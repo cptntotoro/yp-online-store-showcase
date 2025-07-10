@@ -19,4 +19,7 @@ public interface UserRepository extends ReactiveCrudRepository<UserDao, UUID> {
      * @return Пользователь
      */
     Mono<UserDao> findByUsername(String username);
+
+    Mono<Boolean> existsByUsername(String username);
+    Mono<Boolean> existsByEmail(String email);
 }

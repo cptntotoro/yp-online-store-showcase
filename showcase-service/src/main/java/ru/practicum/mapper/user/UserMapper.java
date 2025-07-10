@@ -3,10 +3,17 @@ package ru.practicum.mapper.user;
 import org.mapstruct.Mapper;
 import ru.practicum.client.dto.UserBalanceResponseDto;
 import org.mapstruct.Mapping;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 import ru.practicum.dao.user.UserDao;
 import ru.practicum.dto.auth.UserAuthDto;
 import ru.practicum.model.balance.UserBalance;
 import ru.practicum.model.user.User;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Маппер пользователей
@@ -39,13 +46,45 @@ public interface UserMapper {
     UserBalance userBalanceResponseDtoToUserBalance(UserBalanceResponseDto userBalanceResponseDto);
 
     /**
-     * Смаппить DTO авторизации пользователя в пользователя
+     * Смаппить DTO авторизации пользователя в пользователя (для регистрации)
      *
      * @param userAuthDto DTO авторизации пользователя
      * @return Пользователь
      */
     @Mapping(target = "uuid", ignore = true)
-    @Mapping(target = "role", ignore = true)
+    @Mapping(target = "roles", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     User userAuthDtoToUser(UserAuthDto userAuthDto);
+
+    /**
+     * Преобразование списка ролей в строку (для БД)
+     */
+    default String mapRolesToString(List<String> roles) {
+        return roles != null ? String.join(",", roles) : "";
+    }
+
+    /**
+     * Преобразование строки в список ролей (из БД)
+     */
+    default List<String> mapStringToRoles(String roles) {
+        return roles != null && !roles.isEmpty() ? List.of(roles.split(",")) : Collections.emptyList();
+    }
+
+    /**
+     * Смаппить пользователя в UserDetails для Spring Security
+     */
+    default UserDetails userToUserDetails(User user) {
+        List<GrantedAuthority> authorities = user.getRoles().stream()
+                .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
+                .collect(Collectors.toList());
+
+        return User.builder()
+                        .uuid(user.getUuid())
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .password(user.getPassword())
+                .enabled(user.isEnabled())
+                .roles(mapStringToRoles(mapRolesToString(user.getRoles())))
+                                .build();
+    }
 }

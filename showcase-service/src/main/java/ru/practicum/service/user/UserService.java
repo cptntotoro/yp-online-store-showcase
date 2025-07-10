@@ -14,7 +14,7 @@ public interface UserService {
      *
      * @return Пользователь
      */
-    Mono<User> createGuest();
+//    Mono<User> createGuest();
 
     /**
      * Зарегистрировать пользователя
@@ -24,6 +24,8 @@ public interface UserService {
      */
     Mono<User> register(User user);
 
+    Mono<User> findByUsername(String username);
+
     /**
      * Проверить существование пользователя
      *
@@ -31,4 +33,8 @@ public interface UserService {
      * @return Да/Нет
      */
     Mono<Boolean> existsByUuid(UUID userUuid);
+
+    Mono<Boolean> existsByUsername(String username);
+
+    Mono<Boolean> existsByEmail(String email);
 }

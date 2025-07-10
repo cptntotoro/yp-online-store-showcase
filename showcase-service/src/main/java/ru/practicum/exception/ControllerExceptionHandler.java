@@ -1,8 +1,10 @@
 package ru.practicum.exception;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
@@ -21,5 +23,13 @@ public class ControllerExceptionHandler {
 
         model.addAttribute("error", error);
         return Mono.just("error");
+    }
+
+    @ExceptionHandler(ResponseStatusException.class)
+    public Mono<String> handleResponseStatus(ResponseStatusException ex) {
+        if (ex.getStatusCode() == HttpStatus.NOT_FOUND) {
+            return Mono.just("error/notfound");
+        }
+        return Mono.error(ex);
     }
 }

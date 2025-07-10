@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import reactor.core.publisher.Mono;
 import ru.practicum.dto.auth.UserAuthDto;
-import ru.practicum.dto.product.ProductListInDto;
 import ru.practicum.exception.auth.UserAlreadyExistsException;
 import ru.practicum.mapper.user.UserMapper;
 import ru.practicum.service.user.UserService;
@@ -16,8 +15,14 @@ import ru.practicum.service.user.UserService;
 @Controller
 @RequiredArgsConstructor
 public class AuthController {
+    /**
+     * Сервис управления пользователями
+     */
     private final UserService userService;
 
+    /**
+     * Маппер пользователей
+     */
     private final UserMapper userMapper;
 
     @GetMapping("/login")
@@ -40,5 +45,10 @@ public class AuthController {
                     model.addAttribute("user", userAuthDto);
                     return Mono.just("auth/sign-up");
                 });
+    }
+
+    @GetMapping("/notfound")
+    public Mono<String> notFound() {
+        return Mono.just("auth/notfound");
     }
 }

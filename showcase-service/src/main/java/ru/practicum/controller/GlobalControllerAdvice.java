@@ -12,7 +12,12 @@ import ru.practicum.service.cart.CartService;
 
 import java.util.UUID;
 
-@ControllerAdvice
+@ControllerAdvice(basePackages = {
+        "ru.practicum.controller.cart",
+        "ru.practicum.controller.order",
+        "ru.practicum.controller.payment",
+        "ru.practicum.controller.product"
+})
 @RequiredArgsConstructor
 public class GlobalControllerAdvice {
     /**
@@ -26,8 +31,13 @@ public class GlobalControllerAdvice {
     private final CartMapper cartMapper;
 
     @ModelAttribute
-    public Mono<Void> addCommonAttributes(@RequestAttribute(WebAttributes.USER_UUID) UUID userUuid,
+    public Mono<Void> addCommonAttributes(@RequestAttribute(name = WebAttributes.USER_UUID, required = false) UUID userUuid,
                                           Model model) {
+
+        if (userUuid == null) {
+            return Mono.empty(); // Пропускаем для анонимных пользователей
+        }
+
         return cartService.get(userUuid)
                 .map(cartMapper::cartToCartDto)
                 .doOnNext(cartDto -> model.addAttribute("cart", cartDto))

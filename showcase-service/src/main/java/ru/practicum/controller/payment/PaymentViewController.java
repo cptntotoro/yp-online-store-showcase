@@ -3,7 +3,12 @@ package ru.practicum.controller.payment;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
 import reactor.core.publisher.Mono;
 import ru.practicum.config.WebAttributes;
 import ru.practicum.dto.payment.PaymentCheckoutDto;
@@ -39,6 +44,8 @@ public class PaymentViewController {
      */
     private final OrderMapper orderMapper;
 
+//    @PreAuthorize("#user.username == authentication.name")
+//  @PreAuthorize("#product.ownerId == principal.id")
     @GetMapping("/checkout")
     public Mono<String> previewOrder(@RequestAttribute(WebAttributes.USER_UUID) UUID userUuid, Model model) {
         return Mono.zip(
@@ -54,6 +61,8 @@ public class PaymentViewController {
                 .map(tuple -> "payment/payment");
     }
 
+//    @PreAuthorize("#user.username == authentication.name")
+//  @PreAuthorize("#product.ownerId == principal.id")
     @GetMapping("/checkout/created/{orderUuid}")
     public Mono<String> previewExistingOrder(@RequestAttribute(WebAttributes.USER_UUID) UUID userUuid,
                                              @PathVariable UUID orderUuid,
@@ -69,6 +78,8 @@ public class PaymentViewController {
                 .map(tuple -> "payment/payment");
     }
 
+//    @PreAuthorize("#user.username == authentication.name")
+//  @PreAuthorize("#product.ownerId == principal.id")
     @PostMapping("/{orderUuid}/checkout")
     public Mono<String> checkout(@RequestAttribute(WebAttributes.USER_UUID) UUID userUuid,
                                  @PathVariable UUID orderUuid,

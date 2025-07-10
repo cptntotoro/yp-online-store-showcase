@@ -1,11 +1,16 @@
 package ru.practicum.dao.user;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -39,7 +44,7 @@ public class UserDao {
     /**
      * Роль
      */
-    private String role;
+    private List<String> roles;
 
     /**
      * Адрес электронной почты
@@ -51,4 +56,7 @@ public class UserDao {
      */
     @Column("created_at")
     private LocalDateTime createdAt;
+
+    @Column("enabled")
+    private boolean enabled = true;
 }

@@ -52,6 +52,8 @@ public class OrderViewController {
      */
     private final ProductMapper productMapper;
 
+//    @PreAuthorize("#user.username == authentication.name")
+//  @PreAuthorize("#product.ownerId == principal.id")
     @GetMapping
     public Mono<String> showOrderList(@RequestAttribute(WebAttributes.USER_UUID) UUID userUuid, Model model) {
         return orderService.getUserOrdersWithProducts(userUuid)
@@ -68,6 +70,8 @@ public class OrderViewController {
                 });
     }
 
+//    @PreAuthorize("#user.username == authentication.name")
+//  @PreAuthorize("#product.ownerId == principal.id")
     @GetMapping("/{orderUuid}")
     public Mono<String> showOrderDetails(@RequestAttribute(WebAttributes.USER_UUID) UUID userUuid,
                                          @PathVariable UUID orderUuid,
@@ -93,6 +97,8 @@ public class OrderViewController {
         });
     }
 
+//    @PreAuthorize("#user.username == authentication.name")
+//  @PreAuthorize("#product.ownerId == principal.id")
     @GetMapping("/{orderUuid}/checkout/cancel")
     public Mono<String> cancel(@RequestAttribute(WebAttributes.USER_UUID) UUID userUuid,
                                @PathVariable UUID orderUuid) {

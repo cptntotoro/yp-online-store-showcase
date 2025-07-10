@@ -10,14 +10,14 @@
     <link rel="stylesheet" type="text/css" th:href="@{/styles/layout.css}">
     <link rel="stylesheet" type="text/css" th:href="@{/styles/auth/sign-up.css}">
 
-    <th:block th:include="~{../fragments/header :: header-head}"></th:block>
+<!--    <th:block th:include="~{../fragments/header :: header-head}"></th:block>-->
     <th:block th:include="~{../fragments/footer :: footer-head}"></th:block>
 
     <script type="text/javascript" th:src="@{/scripts/auth/sign-up.js}"></script>
 </head>
 
 <body>
-<div th:replace="~{../fragments/header :: header}"></div>
+<!--<div th:replace="~{../fragments/header :: header}"></div>-->
 
 <main class="main">
     <div class="signup-container">
@@ -27,37 +27,41 @@
         </div>
 
         <form id="registrationForm" th:action="@{/sign-up}" method="post" class="signup-form">
-            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+<!--            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>-->
 
             <div class="form-group">
                 <label for="username">Имя пользователя</label>
-                <input type="text" id="username" name="username" class="form-control" required
-                       th:classappend="${#fields.hasErrors('username')} ? 'is-invalid' : ''">
-                <div class="signup-error" th:if="${#fields.hasErrors('username')}"
-                     th:errors="*{username}"></div>
+                <input type="text" id="username" name="username" class="form-control" required>
+<!--                <input type="text" id="username" name="username" class="form-control" required-->
+<!--                       th:classappend="${#fields.hasErrors('username')} ? 'is-invalid' : ''">-->
+<!--                <div class="signup-error" th:if="${#fields.hasErrors('username')}"-->
+<!--                     th:errors="*{username}"></div>-->
             </div>
 
             <div class="form-group">
                 <label for="email">Адрес электронной почты</label>
-                <input type="email" id="email" name="email" class="form-control" required
-                       th:classappend="${#fields.hasErrors('email')} ? 'is-invalid' : ''">
-                <div class="signup-error" th:if="${#fields.hasErrors('email')}"
-                     th:errors="*{email}"></div>
+                <input type="email" id="email" name="email" class="form-control" required>
+<!--                <input type="email" id="email" name="email" class="form-control" required-->
+<!--                       th:classappend="${#fields.hasErrors('email')} ? 'is-invalid' : ''">-->
+<!--                <div class="signup-error" th:if="${#fields.hasErrors('email')}"-->
+<!--                     th:errors="*{email}"></div>-->
             </div>
 
             <div class="form-group">
                 <label for="password">Пароль</label>
                 <input type="password" id="password" name="password" class="form-control" required
-                       th:classappend="${#fields.hasErrors('password')} ? 'is-invalid' : ''"
                        oninput="checkPasswordStrength(this.value)">
+<!--                <input type="password" id="password" name="password" class="form-control" required-->
+<!--                       th:classappend="${#fields.hasErrors('password')} ? 'is-invalid' : ''"-->
+<!--                       oninput="checkPasswordStrength(this.value)">-->
                 <div class="password-strength">
                     <div class="password-strength-fill" id="password-strength-fill"></div>
                 </div>
                 <div class="password-hint">
                     Минимум 8 символов, включая цифры и специальные символы
                 </div>
-                <div class="signup-error" th:if="${#fields.hasErrors('password')}"
-                     th:errors="*{password}"></div>
+<!--                <div class="signup-error" th:if="${#fields.hasErrors('password')}"-->
+<!--                     th:errors="*{password}"></div>-->
             </div>
 
             <div class="form-group">

@@ -26,6 +26,8 @@ public class CartRestController {
      */
     private final CartService cartService;
 
+//    @PreAuthorize("#user.username == authentication.name")
+//  @PreAuthorize("#product.ownerId == principal.id")
     @PostMapping("/add/{productUuid}")
     public Mono<BigDecimal> addToCart(@RequestAttribute(WebAttributes.USER_UUID) UUID userUuid,
                                       @PathVariable UUID productUuid,
@@ -34,6 +36,8 @@ public class CartRestController {
                 .map(Cart::getTotalPrice);
     }
 
+//    @PreAuthorize("#user.username == authentication.name")
+//  @PreAuthorize("#product.ownerId == principal.id")
     @PatchMapping("/update/{productUuid}")
     public Mono<BigDecimal> updateCartItem(@PathVariable UUID productUuid,
                                            @RequestParam int quantity,
@@ -43,6 +47,8 @@ public class CartRestController {
                 .map(Cart::getTotalPrice);
     }
 
+//    @PreAuthorize("#user.username == authentication.name")
+//  @PreAuthorize("#product.ownerId == principal.id")
     @DeleteMapping("/remove/{productUuid}")
     public Mono<BigDecimal> removeFromCart(@RequestAttribute(WebAttributes.USER_UUID) UUID userUuid,
                                            @PathVariable UUID productUuid) {
