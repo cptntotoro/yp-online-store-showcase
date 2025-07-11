@@ -7,11 +7,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
-import ru.practicum.dto.balance.UserBalanceResponseDto;
-import ru.practicum.dto.payment.PaymentRequestDto;
-import ru.practicum.dto.payment.PaymentResponseDto;
-import ru.practicum.dto.refund.RefundRequestDto;
-import ru.practicum.dto.refund.RefundResponseDto;
+import ru.practicum.dto.PaymentRequestDto;
+import ru.practicum.dto.PaymentResponseDto;
+import ru.practicum.dto.RefundRequestDto;
+import ru.practicum.dto.RefundResponseDto;
+import ru.practicum.dto.UserBalanceResponseDto;
 import ru.practicum.mapper.balance.UserBalanceMapper;
 import ru.practicum.mapper.payment.PaymentMapper;
 import ru.practicum.model.balance.UserBalance;
@@ -24,7 +24,9 @@ import ru.practicum.service.PaymentService;
 import java.math.BigDecimal;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -62,7 +64,7 @@ class PaymentControllerTest {
         when(userBalanceMapper.userBalanceToUserBalanceResponseDto(userBalance))
                 .thenReturn(responseDto);
 
-        StepVerifier.create(paymentController.getBalance(userId))
+        StepVerifier.create(paymentController.getBalance(userId, null))
                 .assertNext(dto -> {
                     assertNotNull(dto);
                     assertEquals(amount, dto.getBalance());
@@ -96,7 +98,7 @@ class PaymentControllerTest {
         when(paymentMapper.paymentResultToPaymentResponse(paymentResult))
                 .thenReturn(responseDto);
 
-        StepVerifier.create(paymentController.processPayment(request))
+        StepVerifier.create(paymentController.processPayment(Mono.just(request), null))
                 .assertNext(dto -> {
                     assertNotNull(dto);
                     assertEquals(userId, dto.getUserUuid());
@@ -134,13 +136,13 @@ class PaymentControllerTest {
         when(paymentMapper.paymentResultToRefundResponse(paymentResult))
                 .thenReturn(responseDto);
 
-        StepVerifier.create(paymentController.processRefund(request))
+        StepVerifier.create(paymentController.processRefund(Mono.just(request), null))
                 .assertNext(dto -> {
                     assertNotNull(dto);
                     assertEquals(userId, dto.getUserUuid());
                     assertEquals(transaction.getTransactionUuid(), dto.getTransactionUuid());
                     assertEquals(0, new BigDecimal("300.50").compareTo(dto.getNewBalance()));
-                    assertTrue(dto.isSuccess());
+                    assertTrue(dto.getIsSuccess());
                     assertEquals("Успешный возврат средств", dto.getMessage());
                 })
                 .verifyComplete();
@@ -151,7 +153,7 @@ class PaymentControllerTest {
         when(paymentService.getUserBalance(userId))
                 .thenReturn(Mono.error(new RuntimeException("Недостаточно средств на счете")));
 
-        StepVerifier.create(paymentController.getBalance(userId))
+        StepVerifier.create(paymentController.getBalance(userId, null))
                 .expectErrorMatches(e -> e instanceof RuntimeException &&
                         e.getMessage().equals("Недостаточно средств на счете"))
                 .verify();
@@ -163,7 +165,7 @@ class PaymentControllerTest {
         when(paymentService.processPayment(userId, amount, orderId))
                 .thenReturn(Mono.error(new RuntimeException("Недостаточно средств на счете")));
 
-        StepVerifier.create(paymentController.processPayment(request))
+        StepVerifier.create(paymentController.processPayment(Mono.just(request), null))
                 .expectErrorMatches(e -> e instanceof RuntimeException &&
                         e.getMessage().equals("Недостаточно средств на счете"))
                 .verify();
@@ -175,7 +177,7 @@ class PaymentControllerTest {
         when(paymentService.processRefund(userId, amount, orderId))
                 .thenReturn(Mono.error(new RuntimeException("Ошибка возврата средств")));
 
-        StepVerifier.create(paymentController.processRefund(request))
+        StepVerifier.create(paymentController.processRefund(Mono.just(request), null))
                 .expectErrorMatches(e -> e instanceof RuntimeException &&
                         e.getMessage().equals("Ошибка возврата средств"))
                 .verify();

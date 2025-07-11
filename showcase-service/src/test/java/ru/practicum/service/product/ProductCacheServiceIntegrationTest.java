@@ -9,7 +9,7 @@ import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import reactor.test.StepVerifier;
 import ru.practicum.dao.product.ProductDao;
-import ru.practicum.dto.product.ProductCacheDto;
+import ru.practicum.dto.product.cache.ProductCacheDto;
 import ru.practicum.exception.product.ProductNotFoundException;
 import ru.practicum.mapper.product.ProductMapper;
 import ru.practicum.model.product.Product;
@@ -21,7 +21,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest
 @ActiveProfiles("test")

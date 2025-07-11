@@ -3,7 +3,10 @@ package ru.practicum.controller.order;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
 import reactor.core.publisher.Mono;
 import ru.practicum.config.WebAttributes;
 import ru.practicum.dto.order.OrderDto;
@@ -91,7 +94,8 @@ public class OrderViewController {
     }
 
     @GetMapping("/{orderUuid}/checkout/cancel")
-    public Mono<String> cancel(@RequestAttribute(WebAttributes.USER_UUID) UUID userUuid, @PathVariable UUID orderUuid) {
+    public Mono<String> cancel(@RequestAttribute(WebAttributes.USER_UUID) UUID userUuid,
+                               @PathVariable UUID orderUuid) {
         return orderPaymentService.cancel(userUuid, orderUuid)
                 .thenReturn("redirect:/orders/" + orderUuid);
     }

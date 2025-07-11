@@ -1,16 +1,13 @@
 package ru.practicum.client;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatusCode;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientRequestException;
 import reactor.core.publisher.Mono;
-import ru.practicum.client.dto.balance.UserBalanceResponseDto;
-import ru.practicum.client.dto.payment.PaymentRequestDto;
-import ru.practicum.client.dto.payment.PaymentResponseDto;
-import ru.practicum.client.dto.payment.RefundResponseDto;
+import ru.practicum.client.api.PaymentApi;
+import ru.practicum.client.dto.PaymentRequestDto;
+import ru.practicum.client.dto.RefundRequestDto;
 import ru.practicum.exception.payment.PaymentProcessingException;
 import ru.practicum.exception.payment.PaymentServiceUnavailableException;
 import ru.practicum.mapper.user.UserMapper;
@@ -34,28 +31,23 @@ public class PaymentServiceClientImpl implements PaymentServiceClient {
     private final UserMapper userMapper;
 
     private final WebClient webClient;
+
+    private final PaymentApi paymentApiClient;
+
     private static final Duration TIMEOUT = Duration.ofSeconds(3);
 
     @Override
     public Mono<Void> processPayment(UUID userUuid, UUID orderUuid, BigDecimal total) {
-        PaymentRequestDto request = PaymentRequestDto.builder()
+        PaymentRequestDto request = new PaymentRequestDto()
                 .userUuid(userUuid)
                 .orderUuid(orderUuid)
-                .amount(total)
-                .build();
+                .amount(total);
 
-        return webClient.post()
-                .uri("/payment")
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(request)
-                .retrieve()
-                .onStatus(HttpStatusCode::isError, response ->
-                        response.bodyToMono(String.class)
-                                .flatMap(error -> Mono.error(new PaymentProcessingException(
-                                        "Ошибка при обработке платежа: " + error))))
-                .bodyToMono(PaymentResponseDto.class)
+        return paymentApiClient.processPayment(request)
+                .onErrorResume(throwable -> Mono.error(new PaymentProcessingException(
+                        "Ошибка при обработке платежа: " + throwable)))
                 .flatMap(response -> {
-                    if (!response.isSuccess()) {
+                    if (!response.getIsSuccess()) {
                         return Mono.error(new PaymentProcessingException(
                                 "Недостаточно средств на счете. TransactionUuid: " +
                                         response.getTransactionUuid()));
@@ -69,28 +61,18 @@ public class PaymentServiceClientImpl implements PaymentServiceClient {
 
     @Override
     public Mono<Void> processRefund(UUID userUuid, UUID orderUuid, BigDecimal total) {
-        PaymentRequestDto request = PaymentRequestDto.builder()
+        RefundRequestDto request = new RefundRequestDto()
                 .userUuid(userUuid)
                 .orderUuid(orderUuid)
-                .amount(total)
-                .build();
+                .amount(total);
 
-        return webClient.post()
-                .uri("/payment/refund")
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(request)
-                .retrieve()
-                .onStatus(HttpStatusCode::isError, response ->
-                        response.bodyToMono(String.class)
-                                .flatMap(error -> Mono.error(new PaymentProcessingException(
-                                        "Ошибка при возврате средств: " + error))
-                                )
-                )
-                .bodyToMono(RefundResponseDto.class)
+        return paymentApiClient.processRefund(request)
+                .onErrorResume(throwable -> Mono.error(new PaymentProcessingException(
+                        "Ошибка при возврате средств: " + throwable)))
                 .flatMap(response -> {
-                    if (!response.isSuccess()) {
+                    if (!response.getIsSuccess()) {
                         return Mono.error(new PaymentProcessingException(
-                                response.getMessage() != null ? response.getMessage() :
+                                !response.getMessage().isEmpty() ? response.getMessage() :
                                         "Ошибка при возврате средств. TransactionUuid: " + response.getTransactionUuid()));
                     }
                     return Mono.<Void>empty();
@@ -102,14 +84,9 @@ public class PaymentServiceClientImpl implements PaymentServiceClient {
 
     @Override
     public Mono<UserBalance> getBalance(UUID userId) {
-        return webClient.get()
-                .uri("/payment/{userId}/balance", userId)
-                .retrieve()
-                .onStatus(HttpStatusCode::isError, response ->
-                        response.bodyToMono(String.class)
-                                .flatMap(error -> Mono.error(new PaymentProcessingException(
-                                        "Ошибка при получении баланса: " + error))))
-                .bodyToMono(UserBalanceResponseDto.class)
+        return paymentApiClient.getBalance(userId)
+                .onErrorResume(throwable -> Mono.error(new PaymentProcessingException(
+                        "Ошибка при получении баланса: " + throwable)))
                 .map(userMapper::userBalanceResponseDtoToUserBalance)
                 .timeout(TIMEOUT)
                 .onErrorMap(WebClientRequestException.class, e ->

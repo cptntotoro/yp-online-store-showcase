@@ -2,11 +2,11 @@ package ru.practicum.mapper.payment;
 
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
-import ru.practicum.dto.payment.PaymentResponseDto;
-import ru.practicum.dto.refund.RefundResponseDto;
+import ru.practicum.dto.PaymentResponseDto;
+import ru.practicum.dto.RefundResponseDto;
+import ru.practicum.model.balance.UserBalance;
 import ru.practicum.model.payment.PaymentResult;
 import ru.practicum.model.transaction.PaymentTransaction;
-import ru.practicum.model.balance.UserBalance;
 
 import java.math.BigDecimal;
 import java.util.UUID;
@@ -70,7 +70,7 @@ class PaymentMapperTest {
         assertThat(dto.getUserUuid()).isEqualTo(userId);
         assertThat(dto.getTransactionUuid()).isEqualTo(transactionId);
         assertThat(dto.getNewBalance()).isEqualTo(BigDecimal.valueOf(300.25));
-        assertTrue(dto.isSuccess());
+        assertTrue(dto.getIsSuccess());
         assertThat(dto.getMessage()).isEqualTo("Успешный возврат средств");
     }
 

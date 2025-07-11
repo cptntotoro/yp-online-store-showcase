@@ -1,7 +1,7 @@
 package ru.practicum.mapper.user;
 
 import org.mapstruct.Mapper;
-import ru.practicum.client.dto.balance.UserBalanceResponseDto;
+import ru.practicum.client.dto.UserBalanceResponseDto;
 import ru.practicum.dao.user.UserDao;
 import ru.practicum.model.balance.UserBalance;
 import ru.practicum.model.user.User;

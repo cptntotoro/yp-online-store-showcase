@@ -6,6 +6,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.client.WebClient;
+import ru.practicum.client.ApiClient;
+import ru.practicum.client.api.PaymentApi;
 
 @Configuration
 public class WebClientConfig {
@@ -20,5 +22,17 @@ public class WebClientConfig {
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
                 .build();
+    }
+
+    @Bean
+    ApiClient apiClient(WebClient webClient) {
+        ApiClient apiClient = new ApiClient(webClient);
+        apiClient.setBasePath(paymentServiceUrl);
+        return apiClient;
+    }
+
+    @Bean
+    PaymentApi paymentApiClient(ApiClient apiClient) {
+        return new PaymentApi(apiClient);
     }
 }
