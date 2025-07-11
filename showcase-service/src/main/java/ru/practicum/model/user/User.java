@@ -54,6 +54,9 @@ public class User implements UserDetails {
      */
     private LocalDateTime createdAt;
 
+    /**
+     * Флаг активности аккаунта
+     */
     private boolean enabled;
 
     @Override

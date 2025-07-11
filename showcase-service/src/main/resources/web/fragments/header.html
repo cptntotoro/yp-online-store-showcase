@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
+<html
+      xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
       lang="ru">
 <head th:fragment="header-head">
@@ -28,7 +29,17 @@
                 </div>
 
                 <!-- Для анонимных пользователей -->
-                <div sec:authorize="!isAuthenticated()">
+                <div sec:authorize="isAnonymous()">
+                    <a href="/login" class="nav-link">Войти</a>
+                    <a href="/sign-up" class="nav-link">Регистрация</a>
+                </div>
+
+                <div th:unless="${#authorization.expression('isAuthenticated()')}">
+                    <a href="/login" class="nav-link">Войти</a>
+                    <a href="/sign-up" class="nav-link">Регистрация</a>
+                </div>
+
+                <div th:if="${#authorization.expression('isAnonymous()')}">
                     <a href="/login" class="nav-link">Войти</a>
                     <a href="/sign-up" class="nav-link">Регистрация</a>
                 </div>

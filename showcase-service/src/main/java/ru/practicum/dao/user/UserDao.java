@@ -42,11 +42,6 @@ public class UserDao {
     private String password;
 
     /**
-     * Роль
-     */
-    private List<String> roles;
-
-    /**
      * Адрес электронной почты
      */
     private String email;
@@ -57,6 +52,8 @@ public class UserDao {
     @Column("created_at")
     private LocalDateTime createdAt;
 
-    @Column("enabled")
-    private boolean enabled = true;
+    /**
+     * Флаг активности аккаунта
+     */
+    private boolean enabled;
 }

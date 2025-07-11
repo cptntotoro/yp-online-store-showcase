@@ -20,7 +20,7 @@ CREATE INDEX IF NOT EXISTS idx_products_price ON products(price);
 -- Таблица пользователей
 CREATE TABLE IF NOT EXISTS users (
     user_uuid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    username VARCHAR(255) NOT NULL,
+    username VARCHAR(255) NOT NULL UNIQUE,
     password VARCHAR(100) NOT NULL,
     role VARCHAR(20) NOT NULL,
     email VARCHAR(255) UNIQUE,
@@ -28,15 +28,27 @@ CREATE TABLE IF NOT EXISTS users (
     enabled BOOLEAN DEFAULT TRUE
 );
 
-CREATE INDEX IF NOT EXISTS idx_user ON users(user_uuid);
+CREATE INDEX IF NOT EXISTS idx_user_user_uuid ON users(user_uuid);
+CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
+CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 
--- Таблица ролей пользователей
-CREATE TABLE IF NOT EXISTS user_roles (
-    user_uuid UUID,
-    role VARCHAR(20) NOT NULL,
-    PRIMARY KEY (user_uuid, role),
-    FOREIGN KEY (user_uuid) REFERENCES users(user_uuid)
+-- Таблица ролей (справочник)
+CREATE TABLE IF NOT EXISTS roles (
+    role_uuid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    description TEXT,
+    name VARCHAR(20) NOT NULL UNIQUE
 );
+
+-- Таблица связи пользователей и ролей
+CREATE TABLE IF NOT EXISTS user_roles (
+    user_uuid UUID PRIMARY KEY NOT NULL,
+    role_id UUID PRIMARY KEY NOT NULL,
+    FOREIGN KEY (user_uuid) REFERENCES users(user_uuid) ON DELETE CASCADE,
+    FOREIGN KEY (role_id) REFERENCES roles(role_id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_user_roles_user_id ON user_roles(user_id);
+CREATE INDEX idx_user_roles_role_id ON user_roles(role_id);
 
 -- Таблица корзин
 CREATE TABLE IF NOT EXISTS carts (

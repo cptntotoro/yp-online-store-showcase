@@ -1,5 +1,8 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html
+        xmlns:th="http://www.thymeleaf.org"
+        xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+        lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -70,7 +73,9 @@
                             <span class="card-price"
                                   th:text="${#numbers.formatDecimal(product.price, 1, 2)} + ' ₽'"></span>
 
-                        <div th:replace="~{../fragments/cart-controls :: cart-controls(isCartPage=false)}"></div>
+                        <div sec:authorize="isAuthenticated()"
+                             th:replace="~{../fragments/cart-controls :: cart-controls(isCartPage=false)}">
+                        </div>
                     </div>
                 </div>
             </div>
