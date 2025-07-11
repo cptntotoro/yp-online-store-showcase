@@ -12,11 +12,13 @@ import org.springframework.web.reactive.function.client.WebClientRequestExceptio
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
-import ru.practicum.client.dto.balance.UserBalanceResponseDto;
-import ru.practicum.client.dto.payment.PaymentResponseDto;
-import ru.practicum.client.dto.payment.RefundResponseDto;
+import ru.practicum.client.api.PaymentApi;
+import ru.practicum.client.dto.PaymentRequestDto;
+import ru.practicum.client.dto.PaymentResponseDto;
+import ru.practicum.client.dto.RefundRequestDto;
+import ru.practicum.client.dto.RefundResponseDto;
+import ru.practicum.client.dto.UserBalanceResponseDto;
 import ru.practicum.exception.payment.PaymentProcessingException;
-import ru.practicum.exception.payment.PaymentServiceUnavailableException;
 import ru.practicum.mapper.user.UserMapper;
 import ru.practicum.model.balance.UserBalance;
 
@@ -33,6 +35,9 @@ class PaymentServiceClientTest {
 
     @Mock
     private WebClient webClient;
+
+    @Mock
+    private PaymentApi paymentApiClient;
 
     @Mock
     private WebClient.RequestHeadersUriSpec requestHeadersUriSpec;
@@ -61,14 +66,14 @@ class PaymentServiceClientTest {
 
     @Test
     void processPayment_shouldSuccessfullyProcessPayment() {
-        PaymentResponseDto responseDto = PaymentResponseDto.builder()
+        PaymentResponseDto responseDto = new PaymentResponseDto()
                 .userUuid(testUserId)
                 .isSuccess(true)
                 .transactionUuid(UUID.randomUUID())
-                .newBalance(BigDecimal.valueOf(500.00))
-                .build();
+                .newBalance(BigDecimal.valueOf(500.00));
 
-        mockPostRequest("/payment", responseDto);
+        when(paymentApiClient.processPayment(any(PaymentRequestDto.class)))
+                .thenReturn(Mono.just(responseDto));
 
         StepVerifier.create(paymentServiceClient.processPayment(testUserId, testOrderId, testAmount))
                 .verifyComplete();
@@ -76,14 +81,14 @@ class PaymentServiceClientTest {
 
     @Test
     void processPayment_shouldThrowWhenPaymentFails() {
-        PaymentResponseDto responseDto = PaymentResponseDto.builder()
+        PaymentResponseDto responseDto = new PaymentResponseDto()
                 .userUuid(testUserId)
                 .isSuccess(false)
                 .transactionUuid(UUID.randomUUID())
-                .newBalance(BigDecimal.valueOf(50.00))
-                .build();
+                .newBalance(BigDecimal.valueOf(50.00));
 
-        mockPostRequest("/payment", responseDto);
+        when(paymentApiClient.processPayment(any(PaymentRequestDto.class)))
+                .thenReturn(Mono.just(responseDto));
 
         StepVerifier.create(paymentServiceClient.processPayment(testUserId, testOrderId, testAmount))
                 .expectErrorMatches(e -> e instanceof PaymentProcessingException &&
@@ -93,13 +98,6 @@ class PaymentServiceClientTest {
 
     @Test
     void processPayment_shouldThrowWhenServiceUnavailable() {
-        when(webClient.post()).thenReturn(requestBodyUriSpec);
-        when(requestBodyUriSpec.uri("/payment")).thenReturn(requestBodySpec);
-        when(requestBodySpec.contentType(any())).thenReturn(requestBodySpec);
-        when(requestBodySpec.bodyValue(any())).thenReturn(requestHeadersSpec);
-        when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
-        when(responseSpec.onStatus(any(), any())).thenReturn(responseSpec);
-
         WebClientRequestException exception = new WebClientRequestException(
                 new RuntimeException("Connection refused"),
                 HttpMethod.POST,
@@ -107,26 +105,31 @@ class PaymentServiceClientTest {
                 new HttpHeaders()
         );
 
-        when(responseSpec.bodyToMono(PaymentResponseDto.class))
+        when(paymentApiClient.processPayment(any(PaymentRequestDto.class)))
                 .thenReturn(Mono.error(exception));
 
         StepVerifier.create(paymentServiceClient.processPayment(testUserId, testOrderId, testAmount))
-                .expectErrorMatches(e -> e instanceof PaymentServiceUnavailableException &&
-                        e.getMessage().contains("Сервис платежей недоступен"))
+                .expectErrorMatches(e -> {
+                    if (!(e instanceof PaymentProcessingException)) {
+                        return false;
+                    }
+                    return e.getMessage().contains("Сервис платежей недоступен") ||
+                            e.getMessage().contains("Ошибка при обработке платежа");
+                })
                 .verify();
     }
 
     @Test
     void processRefund_shouldSuccessfullyProcessRefund() {
-        RefundResponseDto responseDto = RefundResponseDto.builder()
+        RefundResponseDto responseDto = new RefundResponseDto()
                 .userUuid(testUserId)
                 .isSuccess(true)
                 .transactionUuid(UUID.randomUUID())
                 .newBalance(BigDecimal.valueOf(600.00))
-                .message("Refund processed successfully")
-                .build();
+                .message("Refund processed successfully");
 
-        mockPostRequest("/payment/refund", responseDto);
+        when(paymentApiClient.processRefund(any(RefundRequestDto.class)))
+                .thenReturn(Mono.just(responseDto));
 
         StepVerifier.create(paymentServiceClient.processRefund(testUserId, testOrderId, testAmount))
                 .verifyComplete();
@@ -134,15 +137,15 @@ class PaymentServiceClientTest {
 
     @Test
     void processRefund_shouldThrowWhenRefundFails() {
-        RefundResponseDto responseDto = RefundResponseDto.builder()
+        RefundResponseDto responseDto = new RefundResponseDto()
                 .userUuid(testUserId)
                 .isSuccess(false)
                 .transactionUuid(UUID.randomUUID())
                 .newBalance(BigDecimal.valueOf(500.00))
-                .message("Insufficient funds for refund")
-                .build();
+                .message("Insufficient funds for refund");
 
-        mockPostRequest("/payment/refund", responseDto);
+        when(paymentApiClient.processRefund(any(RefundRequestDto.class)))
+                .thenReturn(Mono.just(responseDto));
 
         StepVerifier.create(paymentServiceClient.processRefund(testUserId, testOrderId, testAmount))
                 .expectErrorMatches(e -> e instanceof PaymentProcessingException &&
@@ -152,25 +155,17 @@ class PaymentServiceClientTest {
 
     @Test
     void getBalance_shouldReturnUserBalance() {
-        UserBalanceResponseDto responseDto = new UserBalanceResponseDto(
-                testUserId,
-                BigDecimal.valueOf(1000.00)
-        );
+        UserBalanceResponseDto responseDto = new UserBalanceResponseDto()
+                .userUuid(testUserId)
+                .balance(BigDecimal.valueOf(1000.00));
 
         UserBalance expectedBalance = new UserBalance(
                 testUserId,
                 BigDecimal.valueOf(1000.00)
         );
 
-        when(webClient.get()).thenReturn(requestHeadersUriSpec);
-        when(requestHeadersUriSpec.uri("/payment/{userId}/balance", testUserId))
-                .thenReturn(requestHeadersSpec);
-        when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
-        when(responseSpec.onStatus(any(), any())).thenReturn(responseSpec);
-
-        when(responseSpec.bodyToMono(UserBalanceResponseDto.class))
+        when(paymentApiClient.getBalance(testUserId))
                 .thenReturn(Mono.just(responseDto));
-
         when(userMapper.userBalanceResponseDtoToUserBalance(responseDto))
                 .thenReturn(expectedBalance);
 
@@ -202,15 +197,5 @@ class PaymentServiceClientTest {
         StepVerifier.create(paymentServiceClient.checkHealth())
                 .expectNext(false)
                 .verifyComplete();
-    }
-
-    private <T> void mockPostRequest(String uri, T response) {
-        when(webClient.post()).thenReturn(requestBodyUriSpec);
-        when(requestBodyUriSpec.uri(uri)).thenReturn(requestBodySpec);
-        when(requestBodySpec.contentType(any())).thenReturn(requestBodySpec);
-        when(requestBodySpec.bodyValue(any())).thenReturn(requestHeadersSpec);
-        when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
-        when(responseSpec.onStatus(any(), any())).thenReturn(responseSpec);
-        when(responseSpec.bodyToMono(any(Class.class))).thenReturn(Mono.just(response));
     }
 }

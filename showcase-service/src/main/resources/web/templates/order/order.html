@@ -78,9 +78,9 @@
 
         <div class="order-actions">
             <a th:href="@{/orders}" class="btn btn-outline">← Вернуться к списку заказов</a>
-            <a th:if="${order.status.name() == 'PAID'}"
-               th:classappend="${!paymentServiceActive} ? 'btn-disabled'"
-               th:disabled="${!paymentServiceActive}"
+            <a th:if="${order.status.name() == 'PAID' or order.status.name() == 'CREATED'}"
+               th:classappend="${order.status.name() == 'PAID' and !paymentServiceActive} ? 'btn-disabled'"
+               th:disabled="${order.status.name() == 'PAID' and !paymentServiceActive}"
                th:href="@{/orders/{uuid}/checkout/cancel(uuid=${order.uuid})}"
                class="btn btn-danger">Отменить заказ
             </a>

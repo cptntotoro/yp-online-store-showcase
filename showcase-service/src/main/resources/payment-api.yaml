@@ -7,17 +7,14 @@ servers:
   - url: http://localhost:8080
 
 tags:
-  - name: Balance
-    description: Операции с балансом пользователя
   - name: Payment
-    description: Операции оплаты заказов
-  - name: Refund
-    description: Операции возврата средств
+    description: Операции с балансом пользователя, оплатами заказов, возврата средств
 
 paths:
   /payment/{userId}/balance:
     get:
-      tags: [Balance]
+      tags: [Payment]
+      operationId: getBalance
       summary: Получить баланс пользователя
       description: Возвращает текущий баланс пользователя. Если баланс не существует - создает новый с дефолтным значением.
       parameters:
@@ -43,6 +40,7 @@ paths:
   /payment:
     post:
       tags: [Payment]
+      operationId: processPayment
       summary: Обработать платеж
       description: Выполняет списание средств с баланса пользователя для оплаты заказа
       requestBody:
@@ -71,7 +69,8 @@ paths:
 
   /payment/refund:
     post:
-      tags: [Refund]
+      tags: [Payment]
+      operationId: processRefund
       summary: Обработать возврат средств
       description: Выполняет возврат средств на баланс пользователя
       requestBody:
@@ -82,7 +81,7 @@ paths:
               $ref: '#/components/schemas/RefundRequestDto'
       responses:
         '200':
-          description: Результат обработки возврата
+          description: Успешный возврат
           content:
             application/json:
               schema:
@@ -105,7 +104,7 @@ components:
           description: Идентификатор пользователя
         balance:
           type: number
-          format: double
+          format: bigDecimal
           description: Текущий баланс пользователя
       required: [userUuid, balance]
 
@@ -118,7 +117,7 @@ components:
           description: Идентификатор пользователя
         amount:
           type: number
-          format: double
+          format: bigDecimal
           minimum: 0
           exclusiveMinimum: true
           description: Сумма к оплате (должна быть положительной)
@@ -144,7 +143,7 @@ components:
           description: Идентификатор транзакции
         newBalance:
           type: number
-          format: double
+          format: bigDecimal
           description: Новый баланс пользователя
       required: [userUuid, isSuccess, transactionUuid, newBalance]
 
@@ -157,7 +156,7 @@ components:
           description: Идентификатор пользователя
         amount:
           type: number
-          format: double
+          format: bigDecimal
           minimum: 0
           exclusiveMinimum: true
           description: Сумма возврата (должна быть положительной)
@@ -183,7 +182,7 @@ components:
           description: Идентификатор транзакции
         newBalance:
           type: number
-          format: double
+          format: bigDecimal
           description: Новый баланс пользователя
         message:
           type: string

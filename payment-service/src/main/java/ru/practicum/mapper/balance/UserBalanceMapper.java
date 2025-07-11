@@ -3,7 +3,7 @@ package ru.practicum.mapper.balance;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import ru.practicum.dao.balance.UserBalanceDao;
-import ru.practicum.dto.balance.UserBalanceResponseDto;
+import ru.practicum.dto.UserBalanceResponseDto;
 import ru.practicum.model.balance.UserBalance;
 
 /**

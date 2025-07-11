@@ -3,9 +3,9 @@ package ru.practicum.mapper.product;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import ru.practicum.dao.product.ProductDao;
-import ru.practicum.dto.product.ProductCacheDto;
 import ru.practicum.dto.product.ProductInDto;
 import ru.practicum.dto.product.ProductOutDto;
+import ru.practicum.dto.product.cache.ProductCacheDto;
 import ru.practicum.model.product.Product;
 
 /**

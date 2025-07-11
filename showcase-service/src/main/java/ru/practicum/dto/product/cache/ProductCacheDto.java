@@ -1,4 +1,4 @@
-package ru.practicum.dto.product;
+package ru.practicum.dto.product.cache;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonInclude;

@@ -2,8 +2,8 @@ package ru.practicum.mapper.payment;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import ru.practicum.dto.payment.PaymentResponseDto;
-import ru.practicum.dto.refund.RefundResponseDto;
+import ru.practicum.dto.PaymentResponseDto;
+import ru.practicum.dto.RefundResponseDto;
 import ru.practicum.model.payment.PaymentResult;
 
 /**

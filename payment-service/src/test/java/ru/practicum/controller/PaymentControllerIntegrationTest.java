@@ -10,9 +10,9 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
-import ru.practicum.dto.balance.UserBalanceResponseDto;
-import ru.practicum.dto.payment.PaymentRequestDto;
-import ru.practicum.dto.refund.RefundRequestDto;
+import ru.practicum.dto.PaymentRequestDto;
+import ru.practicum.dto.RefundRequestDto;
+import ru.practicum.dto.UserBalanceResponseDto;
 import ru.practicum.repository.balance.UserBalanceRepository;
 import ru.practicum.repository.transaction.TransactionRepository;
 
@@ -78,7 +78,7 @@ class PaymentControllerIntegrationTest {
                 .expectStatus().isOk()
                 .expectBody()
                 .jsonPath("$.userUuid").isEqualTo(testUserId.toString())
-                .jsonPath("$.success").isEqualTo(true)
+                .jsonPath("$.isSuccess").isEqualTo(true)
                 .jsonPath("$.transactionUuid").hasJsonPath()
                 .jsonPath("$.newBalance").hasJsonPath();
 
@@ -98,7 +98,7 @@ class PaymentControllerIntegrationTest {
                 .expectStatus().isOk()
                 .expectBody()
                 .jsonPath("$.userUuid").isEqualTo(testUserId.toString())
-                .jsonPath("$.success").isEqualTo(false)
+                .jsonPath("$.isSuccess").isEqualTo(false)
                 .jsonPath("$.transactionUuid").hasJsonPath()
                 .jsonPath("$.newBalance").hasJsonPath();
 
@@ -124,7 +124,7 @@ class PaymentControllerIntegrationTest {
                 .expectStatus().isOk()
                 .expectBody()
                 .jsonPath("$.userUuid").isEqualTo(testUserId.toString())
-                .jsonPath("$.success").isEqualTo(true)
+                .jsonPath("$.isSuccess").isEqualTo(true)
                 .jsonPath("$.transactionUuid").hasJsonPath()
                 .jsonPath("$.newBalance").isEqualTo(initialBalance.doubleValue())
                 .jsonPath("$.message").hasJsonPath();
