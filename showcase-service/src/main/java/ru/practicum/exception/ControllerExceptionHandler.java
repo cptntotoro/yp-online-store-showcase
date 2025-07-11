@@ -22,13 +22,13 @@ public class ControllerExceptionHandler {
         );
 
         model.addAttribute("error", error);
-        return Mono.just("error");
+        return Mono.just("util/error");
     }
 
     @ExceptionHandler(ResponseStatusException.class)
     public Mono<String> handleResponseStatus(ResponseStatusException ex) {
         if (ex.getStatusCode() == HttpStatus.NOT_FOUND) {
-            return Mono.just("error/notfound");
+            return Mono.just("util/notfound");
         }
         return Mono.error(ex);
     }

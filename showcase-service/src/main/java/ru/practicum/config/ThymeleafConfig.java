@@ -5,7 +5,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.web.reactive.config.WebFluxConfigurer;
 import org.springframework.web.reactive.result.view.ViewResolver;
-import org.thymeleaf.extras.springsecurity6.dialect.SpringSecurityDialect;
 import org.thymeleaf.spring6.SpringWebFluxTemplateEngine;
 import org.thymeleaf.spring6.templateresolver.SpringResourceTemplateResolver;
 import org.thymeleaf.spring6.view.reactive.ThymeleafReactiveViewResolver;
@@ -38,7 +37,6 @@ public class ThymeleafConfig implements WebFluxConfigurer {
     public SpringWebFluxTemplateEngine thymeleafTemplateEngine() {
         SpringWebFluxTemplateEngine engine = new SpringWebFluxTemplateEngine();
         engine.setTemplateResolver(thymeleafTemplateResolver());
-        engine.addDialect(new SpringSecurityDialect());
         return engine;
     }
 }

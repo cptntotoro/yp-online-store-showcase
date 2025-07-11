@@ -48,7 +48,7 @@
                     <div class="product-detail-description"
                          th:text="${product.description}"></div>
 
-                    <div class="product-detail-actions">
+                    <div th:if="${isAuthenticated}" class="product-detail-actions">
                         <div th:replace="~{../fragments/cart-controls :: cart-controls(isCartPage=false)}"></div>
                     </div>
                 </div>

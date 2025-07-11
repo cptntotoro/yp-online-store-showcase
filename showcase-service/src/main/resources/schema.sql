@@ -1,6 +1,6 @@
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
-DROP TABLE IF EXISTS products, users, carts, cart_items, orders, order_items CASCADE;
+DROP TABLE IF EXISTS products, users, carts, cart_items, orders, order_items, roles, user_roles CASCADE;
 
 -- Таблица товаров
 CREATE TABLE IF NOT EXISTS products (
@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS users (
     user_uuid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     username VARCHAR(255) NOT NULL UNIQUE,
     password VARCHAR(100) NOT NULL,
-    role VARCHAR(20) NOT NULL,
+--     role VARCHAR(20) NOT NULL,
     email VARCHAR(255) UNIQUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     enabled BOOLEAN DEFAULT TRUE
@@ -41,14 +41,15 @@ CREATE TABLE IF NOT EXISTS roles (
 
 -- Таблица связи пользователей и ролей
 CREATE TABLE IF NOT EXISTS user_roles (
-    user_uuid UUID PRIMARY KEY NOT NULL,
-    role_id UUID PRIMARY KEY NOT NULL,
+    user_uuid UUID NOT NULL,
+    role_uuid UUID NOT NULL,
+    PRIMARY KEY (user_uuid, role_uuid),
     FOREIGN KEY (user_uuid) REFERENCES users(user_uuid) ON DELETE CASCADE,
-    FOREIGN KEY (role_id) REFERENCES roles(role_id) ON DELETE CASCADE
+    FOREIGN KEY (role_uuid) REFERENCES roles(role_uuid) ON DELETE CASCADE
 );
 
-CREATE INDEX idx_user_roles_user_id ON user_roles(user_id);
-CREATE INDEX idx_user_roles_role_id ON user_roles(role_id);
+CREATE INDEX idx_user_roles_user_id ON user_roles(user_uuid);
+CREATE INDEX idx_user_roles_role_id ON user_roles(role_uuid);
 
 -- Таблица корзин
 CREATE TABLE IF NOT EXISTS carts (

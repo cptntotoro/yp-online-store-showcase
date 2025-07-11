@@ -1,19 +1,20 @@
 package ru.practicum.controller.payment;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import reactor.core.publisher.Mono;
-import ru.practicum.config.WebAttributes;
 import ru.practicum.dto.payment.PaymentCheckoutDto;
 import ru.practicum.mapper.order.OrderMapper;
 import ru.practicum.model.order.Order;
+import ru.practicum.model.user.User;
 import ru.practicum.service.cart.CartService;
 import ru.practicum.service.order.OrderPaymentService;
 import ru.practicum.service.order.OrderService;
@@ -44,13 +45,12 @@ public class PaymentViewController {
      */
     private final OrderMapper orderMapper;
 
-//    @PreAuthorize("#user.username == authentication.name")
-//  @PreAuthorize("#product.ownerId == principal.id")
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/checkout")
-    public Mono<String> previewOrder(@RequestAttribute(WebAttributes.USER_UUID) UUID userUuid, Model model) {
+    public Mono<String> previewOrder(@AuthenticationPrincipal User user, Model model) {
         return Mono.zip(
-                        orderService.create(userUuid)
-                                .flatMap(order -> cartService.clear(userUuid)
+                        orderService.create(user.getUuid())
+                                .flatMap(order -> cartService.clear(user.getUuid())
                                         .thenReturn(order)),
                         orderPaymentService.checkHealth().defaultIfEmpty(false)
                 )
@@ -61,14 +61,13 @@ public class PaymentViewController {
                 .map(tuple -> "payment/payment");
     }
 
-//    @PreAuthorize("#user.username == authentication.name")
-//  @PreAuthorize("#product.ownerId == principal.id")
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/checkout/created/{orderUuid}")
-    public Mono<String> previewExistingOrder(@RequestAttribute(WebAttributes.USER_UUID) UUID userUuid,
+    public Mono<String> previewExistingOrder(@AuthenticationPrincipal User user,
                                              @PathVariable UUID orderUuid,
                                              Model model) {
         return Mono.zip(
-                        orderService.getByUuid(userUuid, orderUuid),
+                        orderService.getByUuid(user.getUuid(), orderUuid),
                         orderPaymentService.checkHealth().defaultIfEmpty(false)
                 )
                 .doOnNext(tuple -> {
@@ -78,15 +77,14 @@ public class PaymentViewController {
                 .map(tuple -> "payment/payment");
     }
 
-//    @PreAuthorize("#user.username == authentication.name")
-//  @PreAuthorize("#product.ownerId == principal.id")
+    @PreAuthorize("isAuthenticated()")
     @PostMapping("/{orderUuid}/checkout")
-    public Mono<String> checkout(@RequestAttribute(WebAttributes.USER_UUID) UUID userUuid,
+    public Mono<String> checkout(@AuthenticationPrincipal User user,
                                  @PathVariable UUID orderUuid,
                                  @ModelAttribute PaymentCheckoutDto paymentCheckoutDto,
                                  Model model) {
         return Mono.zip(
-                        orderService.getByUuid(userUuid, orderUuid),
+                        orderService.getByUuid(user.getUuid(), orderUuid),
                         orderPaymentService.checkHealth().defaultIfEmpty(false)
                 )
                 .flatMap(tuple -> {
@@ -100,7 +98,7 @@ public class PaymentViewController {
                         return Mono.just("payment/payment");
                     }
 
-                    return orderPaymentService.isBalanceSufficient(userUuid, order.getUuid())
+                    return orderPaymentService.isBalanceSufficient(user.getUuid(), order.getUuid())
                             .defaultIfEmpty(false)
                             .flatMap(isBalanceSufficient -> {
                                 model.addAttribute("balanceSufficient", isBalanceSufficient);
@@ -109,7 +107,7 @@ public class PaymentViewController {
                                     return Mono.just("payment/payment");
                                 }
 
-                                return orderPaymentService.processPayment(userUuid, orderUuid, paymentCheckoutDto.getCardNumber())
+                                return orderPaymentService.processPayment(user.getUuid(), orderUuid, paymentCheckoutDto.getCardNumber())
                                         .thenReturn("redirect:/orders/" + orderUuid);
                             });
                 });

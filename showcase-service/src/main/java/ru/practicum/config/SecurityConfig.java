@@ -7,6 +7,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.authentication.UserDetailsRepositoryReactiveAuthenticationManager;
+import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.core.userdetails.ReactiveUserDetailsService;
@@ -24,7 +25,7 @@ import java.net.URI;
 
 @Configuration
 @EnableWebFluxSecurity
-//@EnableReactiveMethodSecurity // для аннотаций над методами контроллеров
+@EnableReactiveMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
     private final ReactiveUserDetailsService userDetailsService;
@@ -42,6 +43,9 @@ public class SecurityConfig {
                         .pathMatchers(
                                 "/favicon.ico",
                                 "/login",
+                                "/logout",
+                                "/notfound",
+                                "/error",
                                 "/sign-up",
                                 "/styles/**",
                                 "/scripts/**",
@@ -61,6 +65,15 @@ public class SecurityConfig {
                 .formLogin(form -> form
                                 .loginPage("/login") // неудачная — на /login?error.
                                 .authenticationSuccessHandler(new RedirectServerAuthenticationSuccessHandler("/products"))
+                                .authenticationFailureHandler((webFilterExchange, exception) -> {
+                                    return Mono.fromRunnable(() -> {
+                                        ServerWebExchange serverWebExchange = webFilterExchange.getExchange();
+                                        serverWebExchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+                                        serverWebExchange.getResponse().getHeaders().setLocation(
+                                                // TODO
+                                                URI.create("/login?error")
+                                        );
+                                }))
 
 //                        Таким образом, после логина в сессии пользователя будут сохранены:
                         //        JSESSIONID (cookie, идентификатор сессии);

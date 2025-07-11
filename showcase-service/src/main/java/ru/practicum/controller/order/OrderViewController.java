@@ -1,19 +1,20 @@
 package ru.practicum.controller.order;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import reactor.core.publisher.Mono;
-import ru.practicum.config.WebAttributes;
 import ru.practicum.dto.order.OrderDto;
 import ru.practicum.mapper.order.OrderMapper;
 import ru.practicum.mapper.product.ProductMapper;
 import ru.practicum.model.order.Order;
 import ru.practicum.model.order.OrderItem;
+import ru.practicum.model.user.User;
 import ru.practicum.service.order.OrderPaymentService;
 import ru.practicum.service.order.OrderService;
 import ru.practicum.service.product.ProductService;
@@ -52,11 +53,10 @@ public class OrderViewController {
      */
     private final ProductMapper productMapper;
 
-//    @PreAuthorize("#user.username == authentication.name")
-//  @PreAuthorize("#product.ownerId == principal.id")
+    @PreAuthorize("isAuthenticated()")
     @GetMapping
-    public Mono<String> showOrderList(@RequestAttribute(WebAttributes.USER_UUID) UUID userUuid, Model model) {
-        return orderService.getUserOrdersWithProducts(userUuid)
+    public Mono<String> showOrderList(@AuthenticationPrincipal User user, Model model) {
+        return orderService.getUserOrdersWithProducts(user.getUuid())
                 .map(data -> {
                     List<OrderDto> orderDtos = data.getOrders().stream()
                             .map(order -> orderMapper.orderToOrderDtoWithProducts(order, data.getProducts(), productMapper))
@@ -70,14 +70,13 @@ public class OrderViewController {
                 });
     }
 
-//    @PreAuthorize("#user.username == authentication.name")
-//  @PreAuthorize("#product.ownerId == principal.id")
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/{orderUuid}")
-    public Mono<String> showOrderDetails(@RequestAttribute(WebAttributes.USER_UUID) UUID userUuid,
+    public Mono<String> showOrderDetails(@AuthenticationPrincipal User user,
                                          @PathVariable UUID orderUuid,
                                          Model model) {
         return Mono.zip(
-                orderService.getByUuid(userUuid, orderUuid),
+                orderService.getByUuid(user.getUuid(), orderUuid),
                 orderPaymentService.checkHealth().defaultIfEmpty(false)
         ).flatMap(tuple -> {
             Order order = tuple.getT1();
@@ -97,12 +96,11 @@ public class OrderViewController {
         });
     }
 
-//    @PreAuthorize("#user.username == authentication.name")
-//  @PreAuthorize("#product.ownerId == principal.id")
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/{orderUuid}/checkout/cancel")
-    public Mono<String> cancel(@RequestAttribute(WebAttributes.USER_UUID) UUID userUuid,
+    public Mono<String> cancel(@AuthenticationPrincipal User user,
                                @PathVariable UUID orderUuid) {
-        return orderPaymentService.cancel(userUuid, orderUuid)
+        return orderPaymentService.cancel(user.getUuid(), orderUuid)
                 .thenReturn("redirect:/orders/" + orderUuid);
     }
 }

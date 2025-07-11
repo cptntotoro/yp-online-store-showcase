@@ -1,3 +1,7 @@
+.main {
+    display: block;
+}
+
 .login-container {
     max-width: 480px;
     margin: 2rem auto;
@@ -27,7 +31,8 @@
 }
 
 .login-form label {
-    display: block;
+    display: flex;
+    gap: 1rem;
     margin-bottom: 0.5rem;
     font-weight: 600;
     color: var(--dark);
@@ -36,6 +41,19 @@
 .login-form .form-control {
     width: 100%;
     padding: 0.75rem 1rem;
+}
+
+.checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+}
+
+.checkbox-group input[type="checkbox"] {
+    width: auto;
+    margin: 0;
+    transform: scale(2);
+    accent-color: var(--primary);
 }
 
 .login-actions {

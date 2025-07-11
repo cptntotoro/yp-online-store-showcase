@@ -1,8 +1,5 @@
 <!DOCTYPE html>
-<html
-      xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
-      lang="ru">
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
 <head th:fragment="header-head">
     <link rel="stylesheet" th:href="@{/styles/fragments/header.css}">
 </head>
@@ -12,10 +9,7 @@
     <div class="container">
         <nav class="nav">
             <a href="/products" class="logo">GeekStore</a>
-            <div class="nav-links">
-
-                <!-- Для авторизованных пользователей -->
-                <div sec:authorize="hasRole('USER')">
+            <div th:if="${isAuthenticated}" class="nav-links">
                     <a href="/products/add" class="nav-link">Добавить товары</a>
                     <a href="/orders" class="nav-link">Заказы</a>
                     <a href="/cart" class="nav-link">
@@ -24,25 +18,14 @@
                               th:text="${cart?.totalPrice != null
                         ? (cart.totalPrice == 0 ? '0,00'
                         : #numbers.formatDecimal(cart.totalPrice, 0, 2, 'COMMA')) : '0,00'} + ' ₽'">
-                </span>
+                        </span>
                     </a>
-                </div>
+                    <a href="/logout" class="nav-link">Выйти из аккаунта</a>
+            </div>
 
-                <!-- Для анонимных пользователей -->
-                <div sec:authorize="isAnonymous()">
-                    <a href="/login" class="nav-link">Войти</a>
-                    <a href="/sign-up" class="nav-link">Регистрация</a>
-                </div>
-
-                <div th:unless="${#authorization.expression('isAuthenticated()')}">
-                    <a href="/login" class="nav-link">Войти</a>
-                    <a href="/sign-up" class="nav-link">Регистрация</a>
-                </div>
-
-                <div th:if="${#authorization.expression('isAnonymous()')}">
-                    <a href="/login" class="nav-link">Войти</a>
-                    <a href="/sign-up" class="nav-link">Регистрация</a>
-                </div>
+            <div th:unless="${isAuthenticated}" class="nav-links">
+                <a href="/login" class="nav-link">Войти</a>
+                <a href="/sign-up" class="nav-link">Регистрация</a>
             </div>
         </nav>
     </div>

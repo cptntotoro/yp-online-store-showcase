@@ -23,7 +23,7 @@
 }
 
 .signup-form .form-group {
-    margin-bottom: 1.5rem;
+    margin-bottom: 2rem;
 }
 
 .signup-form label {
@@ -71,7 +71,7 @@
 
 .password-strength-fill {
     height: 100%;
-    width: 0%;
+    width: 0;
     background-color: var(--danger);
     transition: width 0.3s ease;
 }
@@ -94,12 +94,14 @@
 .checkbox-group {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 2rem;
 }
 
 .checkbox-group input[type="checkbox"] {
     width: auto;
     margin: 0;
+    transform: scale(2);
+    accent-color: var(--primary);
 }
 
 .checkbox-group label {

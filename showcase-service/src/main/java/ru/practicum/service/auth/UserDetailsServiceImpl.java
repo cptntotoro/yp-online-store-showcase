@@ -39,7 +39,7 @@ public class UserDetailsServiceImpl implements ReactiveUserDetailsService {
                         .map(roles -> {
                             User user = userMapper.userDaoToUser(userDao);
                             user.setRoles(roles);
-                            return userMapper.userToUserDetails(user);
+                            return user;
                         }));
     }
 }

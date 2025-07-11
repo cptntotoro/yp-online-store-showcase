@@ -6,6 +6,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import reactor.core.publisher.Mono;
 import ru.practicum.dto.auth.UserAuthDto;
 import ru.practicum.exception.auth.UserAlreadyExistsException;
@@ -26,7 +27,11 @@ public class AuthController {
     private final UserMapper userMapper;
 
     @GetMapping("/login")
-    public Mono<String> login() {
+    public Mono<String> login(@RequestParam (required = false) String state, Model model) {
+        if (state != null && (state.equals("error") || state.equals("logout"))) {
+            model.addAttribute("state", state);
+        }
+
         return Mono.just("auth/login");
     }
 
@@ -39,16 +44,11 @@ public class AuthController {
     @PostMapping("/sign-up")
     public Mono<String> registerUser(@ModelAttribute("user") UserAuthDto userAuthDto, Model model) {
         return userService.register(userMapper.userAuthDtoToUser(userAuthDto))
-                .then(Mono.just("redirect:/auth/login?registered"))
+                .then(Mono.just("redirect:/login"))
                 .onErrorResume(UserAlreadyExistsException.class, e -> {
                     model.addAttribute("error", e.getMessage());
                     model.addAttribute("user", userAuthDto);
                     return Mono.just("auth/sign-up");
                 });
-    }
-
-    @GetMapping("/notfound")
-    public Mono<String> notFound() {
-        return Mono.just("auth/notfound");
     }
 }

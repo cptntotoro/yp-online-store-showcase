@@ -30,6 +30,6 @@ public interface UserRoleRepository extends ReactiveCrudRepository<UserRoleDao, 
      * @param userUuid Идентификатор пользователя
      * @param roleUuid Идентификатор роли
      */
-    @Query("INSERT INTO user_roles (user_uuid, role_uuid) VALUES (:userUuid, :roleUuid)")
-    Mono<Void> addRoleToUser(UUID userUuid, UUID roleUuid);
+    @Query("INSERT INTO user_roles (user_uuid, role_uuid) VALUES (:userUuid, :roleUuid) RETURNING *")
+    Mono<UserRoleDao> addRoleToUser(UUID userUuid, UUID roleUuid);
 }

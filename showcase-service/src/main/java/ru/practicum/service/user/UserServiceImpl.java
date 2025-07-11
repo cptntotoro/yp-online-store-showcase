@@ -71,10 +71,10 @@ public class UserServiceImpl implements UserService {
 
                     return userRepository.save(userDao)
                             .flatMap(savedUser -> roleRepository.findByName("USER")
-                                    .flatMap(role -> userRoleRepository.addRoleToUser(savedUser.getUuid(), role.getUuid()))
-                                    .then(cartService.createGuest(savedUser.getUuid()))
-                                    .thenReturn(savedUser))
-                            .map(userMapper::userDaoToUser);
+                                    .flatMap(role -> userRoleRepository.addRoleToUser(savedUser.getUuid(), role.getUuid())
+                                            .then(cartService.createGuest(savedUser.getUuid()))
+                                            .thenReturn(savedUser))
+                                    .map(userMapper::userDaoToUser));
                 });
     }
 

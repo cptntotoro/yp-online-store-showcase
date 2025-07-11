@@ -10,14 +10,14 @@
     <link rel="stylesheet" type="text/css" th:href="@{/styles/layout.css}">
     <link rel="stylesheet" type="text/css" th:href="@{/styles/auth/sign-up.css}">
 
-<!--    <th:block th:include="~{../fragments/header :: header-head}"></th:block>-->
+    <th:block th:include="~{../fragments/header :: header-head}"></th:block>
     <th:block th:include="~{../fragments/footer :: footer-head}"></th:block>
 
     <script type="text/javascript" th:src="@{/scripts/auth/sign-up.js}"></script>
 </head>
 
 <body>
-<!--<div th:replace="~{../fragments/header :: header}"></div>-->
+<div th:replace="~{../fragments/header :: header}"></div>
 
 <main class="main">
     <div class="signup-container">
@@ -74,7 +74,7 @@
 
             <div class="form-group checkbox-group">
                 <input type="checkbox" id="agreeTerms" name="agreeTerms" required>
-                <label for="agreeTerms">Я согласен с <a href="#">Условиями использования</a> и <a href="#">Политикой конфиденциальности</a></label>
+                <label for="agreeTerms">Я согласен с <a href="#">Условиями использования</a> и&nbsp;<a href="#">Политикой конфиденциальности</a></label>
                 <div class="signup-error" id="termsError" style="display: none;">
                     Необходимо принять условия
                 </div>
