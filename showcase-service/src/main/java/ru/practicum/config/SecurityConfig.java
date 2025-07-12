@@ -14,9 +14,11 @@ import org.springframework.security.core.userdetails.ReactiveUserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.server.SecurityWebFilterChain;
+import org.springframework.security.web.server.authentication.RedirectServerAuthenticationFailureHandler;
 import org.springframework.security.web.server.authentication.RedirectServerAuthenticationSuccessHandler;
 import org.springframework.security.web.server.context.ServerSecurityContextRepository;
 import org.springframework.security.web.server.context.WebSessionServerSecurityContextRepository;
+import org.springframework.security.web.server.util.matcher.PathPatternParserServerWebExchangeMatcher;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebSession;
 import reactor.core.publisher.Mono;
@@ -28,6 +30,9 @@ import java.net.URI;
 @EnableReactiveMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
+    /**
+     * Кастомный ReactiveUserDetailsService
+     */
     private final ReactiveUserDetailsService userDetailsService;
 
     @Bean
@@ -53,88 +58,42 @@ public class SecurityConfig {
                                 "/templates/**",
                                 "/fragments/**"
                         ).permitAll()
-                                .pathMatchers(HttpMethod.GET, "/products", "/products/**").permitAll()
-                                .pathMatchers(
-                                        "/cart/**",
-                                        "/orders/**",
-                                        "/checkout",
-                                        "/payment"
-                                ).authenticated()
-                                .anyExchange().authenticated()
+                        .pathMatchers(HttpMethod.GET, "/products", "/products/**").permitAll()
+                        .pathMatchers(
+                                "/cart/**",
+                                "/orders/**",
+                                "/checkout",
+                                "/payment"
+                        ).authenticated()
+                        .anyExchange().authenticated()
                 )
                 .formLogin(form -> form
-                                .loginPage("/login") // неудачная — на /login?error.
-                                .authenticationSuccessHandler(new RedirectServerAuthenticationSuccessHandler("/products"))
-                                .authenticationFailureHandler((webFilterExchange, exception) -> {
-                                    return Mono.fromRunnable(() -> {
-                                        ServerWebExchange serverWebExchange = webFilterExchange.getExchange();
-                                        serverWebExchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-                                        serverWebExchange.getResponse().getHeaders().setLocation(
-                                                // TODO
-                                                URI.create("/login?error")
-                                        );
-                                }))
-
-//                        Таким образом, после логина в сессии пользователя будут сохранены:
-                        //        JSESSIONID (cookie, идентификатор сессии);
-                        //        SecurityContext (в реактивной обёртке — через ReactiveSecurityContextHolder);
-                        //        Authentication (внутри SecurityContext).
-
-
-                        // Однако в приложениях с кастомной аутентификацией (например, при использовании собственного AuthenticationWebFilter, ServerAuthenticationSuccessHandler или когда SecurityContext сохраняется вручную) Spring уже не гарантирует смену ID сессии. В этом случае защита от фиксации ложится на вас.
-                        //Чтобы явно инициировать создание новой сессии, достаточно вызвать:
-                        //
-                        //exchange.getSession()
-                        //    .flatMap(WebSession::invalidate) 
-
-//                        .authenticationFailureHandler((exchange, exception) ->
-//                                Mono.fromRunnable(() -> {
-//                                    ServerWebExchange serverWebExchange = exchange.getExchange();
-//                                    String path = serverWebExchange.getRequest().getPath().pathWithinApplication().value();
-//                                    serverWebExchange.getResponse().setStatusCode(org.springframework.http.HttpStatus.FOUND);
-//                                    serverWebExchange.getResponse().getHeaders().setLocation(
-//                                            java.net.URI.create(path + "?error=true")
-//                                    );
-//                                })
-//                        )
+                        .loginPage("/login")
+                        .authenticationSuccessHandler(new RedirectServerAuthenticationSuccessHandler("/products"))
+                        .authenticationFailureHandler(new RedirectServerAuthenticationFailureHandler("/login?error"))
                 )
+//                        Таким образом, после логина в сессии пользователя будут сохранены:
+                //        JSESSIONID (cookie, идентификатор сессии);
+                //        SecurityContext (в реактивной обёртке — через ReactiveSecurityContextHolder);
+                //        Authentication (внутри SecurityContext).
                 .logout(logout -> logout
                                 .logoutUrl("/logout")
-                                // Регистрируем OidcClientInitiatedServerLogoutSuccessHandler
-//                                .logoutSuccessHandler(oidcLogoutSuccessHandler())
-                                .logoutSuccessHandler((exchange, authentication) -> {
-                                    ServerWebExchange serverWebExchange = exchange.getExchange();
-                                    // Правильный способ инвалидации сессии в реактивном контексте
-                                    return serverWebExchange.getSession()
+                                .requiresLogout(new PathPatternParserServerWebExchangeMatcher("/logout"))
+                                .logoutSuccessHandler((exchange, auth) -> {
+                                    ServerWebExchange swe = exchange.getExchange();
+                                    return swe.getSession()
                                             .doOnNext(WebSession::invalidate)
                                             .then(Mono.fromRunnable(() -> {
-                                                serverWebExchange.getResponse().setStatusCode(org.springframework.http.HttpStatus.FOUND);
-                                                serverWebExchange.getResponse().getHeaders().setLocation(
-                                                        URI.create("/login?logout=true")
-                                                );
+                                                swe.getResponse().setStatusCode(HttpStatus.FOUND);
+                                                swe.getResponse().getHeaders().setLocation(URI.create("/login?logout"));
                                             }));
                                 })
-
-
+                )
                         // вы можете дополнительно:
                         //удалить куки;
                         //записать информацию о выходе в лог;
                         //отправить событие;
                         //вернуть JSON-ответ вместо пустого тела.
-
-//                        .requiresLogout(new ServerWebExchangeMatcher() {
-//                            @Override
-//                            public Mono<MatchResult> matches(ServerWebExchange exchange) {
-//                                exchange.getResponse().addCookie(
-//                                        ResponseCookie.from("JSESSIONID", "")
-//                                                .maxAge(0)
-//                                                .path("/")
-//                                                .build()
-//                                );
-//                                return ServerWebExchangeMatcher.MatchResult.match();
-//                            }
-//                        })
-                )
 //                .oauth2Login(oauth2 -> oauth2
 //                        .authenticationMatcher(new PathPatternParserServerWebExchangeMatcher("/login/oauth2/code/{registrationId}"))
 //                        .authenticationSuccessHandler(new RedirectServerAuthenticationSuccessHandler("/"))
@@ -160,15 +119,6 @@ public class SecurityConfig {
         manager.setPasswordEncoder(passwordEncoder());
         return manager;
     }
-
-//    @Bean
-//    public ReactiveUserDetailsService userDetailsService(UserRepository userRepository) {
-//        return username -> userRepository.findByUsername(username)
-//                .map(user -> User.withUsername(user.getUsername())
-//                        .password(user.getPassword())
-//                        .roles("USER")
-//                        .build());
-//    }
 
     @Bean
     public ServerSecurityContextRepository securityContextRepository() {

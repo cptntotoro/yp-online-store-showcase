@@ -6,7 +6,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import ru.practicum.dto.auth.UserAuthDto;
 import ru.practicum.exception.auth.UserAlreadyExistsException;
@@ -27,9 +27,12 @@ public class AuthController {
     private final UserMapper userMapper;
 
     @GetMapping("/login")
-    public Mono<String> login(@RequestParam (required = false) String state, Model model) {
-        if (state != null && (state.equals("error") || state.equals("logout"))) {
-            model.addAttribute("state", state);
+    public Mono<String> login(ServerWebExchange exchange, Model model) {
+        if (exchange.getRequest().getQueryParams().get("error") != null) {
+            model.addAttribute("hasError", true);
+        }
+        if (exchange.getRequest().getQueryParams().get("logout") != null) {
+            model.addAttribute("hasLogout", true);
         }
 
         return Mono.just("auth/login");
