@@ -8,7 +8,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Mono;
-import ru.practicum.config.WebAttributes;
 import ru.practicum.model.cart.Cart;
 import ru.practicum.service.cart.CartService;
 

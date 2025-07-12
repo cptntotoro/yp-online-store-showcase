@@ -49,8 +49,7 @@ public class AuthController {
         return userService.register(userMapper.userAuthDtoToUser(userAuthDto))
                 .then(Mono.just("redirect:/login"))
                 .onErrorResume(UserAlreadyExistsException.class, e -> {
-                    model.addAttribute("error", e.getMessage());
-                    model.addAttribute("user", userAuthDto);
+                    model.addAttribute("userExists", true);
                     return Mono.just("auth/sign-up");
                 });
     }

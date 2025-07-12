@@ -10,7 +10,6 @@ import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.UUID;
 
 /**
@@ -51,6 +50,10 @@ public class UserDao {
      */
     @Column("created_at")
     private LocalDateTime createdAt;
+
+//    private boolean locked;
+//    private boolean expired;
+//    private boolean credentialsExpired;
 
     /**
      * Флаг активности аккаунта

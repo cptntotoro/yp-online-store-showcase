@@ -31,7 +31,6 @@ public class GlobalControllerAdvice {
     @ModelAttribute
     public Mono<Void> addCommonAttributes(@AuthenticationPrincipal User user,
                                           Model model) {
-
         boolean isAuthenticated = user != null;
 
         model.addAttribute("isAuthenticated", isAuthenticated);

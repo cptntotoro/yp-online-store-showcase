@@ -9,7 +9,6 @@ import org.thymeleaf.spring6.templateresolver.SpringResourceTemplateResolver;
 import org.thymeleaf.spring6.view.reactive.ThymeleafReactiveViewResolver;
 import org.thymeleaf.templatemode.TemplateMode;
 import reactor.core.publisher.Mono;
-import ru.practicum.config.WebAttributes;
 import ru.practicum.dto.cart.CartDto;
 import ru.practicum.exception.ControllerExceptionHandler;
 import ru.practicum.mapper.cart.CartMapper;
@@ -51,7 +50,7 @@ public abstract class BaseControllerTest {
         webTestClient = WebTestClient.bindToController(getController())
                 .controllerAdvice(new GlobalControllerAdvice(cartService, cartMapper), new ControllerExceptionHandler())
                 .webFilter((exchange, chain) -> {
-                    exchange.getAttributes().put(WebAttributes.USER_UUID, TEST_USER_UUID);
+//                    exchange.getAttributes().put(WebAttributes.USER_UUID, TEST_USER_UUID);
                     return chain.filter(exchange);
                 })
                 .viewResolvers(registry -> {

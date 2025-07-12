@@ -58,6 +58,21 @@ public class User implements UserDetails {
      * Флаг активности аккаунта
      */
     private boolean enabled;
+//
+//    /**
+//     * Флаг блокировки аккаунта
+//     */
+//    private boolean accountNonLocked = true;
+//
+//    /**
+//     * Флаг истечения срока аккаунта
+//     */
+//    private boolean accountNonExpired = true;
+//
+//    /**
+//     * Флаг истечения срока учетных данных
+//     */
+//    private boolean credentialsNonExpired = true;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

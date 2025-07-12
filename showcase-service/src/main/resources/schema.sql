@@ -22,9 +22,11 @@ CREATE TABLE IF NOT EXISTS users (
     user_uuid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     username VARCHAR(255) NOT NULL UNIQUE,
     password VARCHAR(100) NOT NULL,
---     role VARCHAR(20) NOT NULL,
     email VARCHAR(255) UNIQUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+--     locked BOOLEAN NOT NULL,
+--     expired BOOLEAN NOT NULL,
+--     credentials_expired BOOLEAN NOT NULL,
     enabled BOOLEAN DEFAULT TRUE
 );
 

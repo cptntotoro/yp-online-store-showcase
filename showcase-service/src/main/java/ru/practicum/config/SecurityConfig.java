@@ -5,15 +5,19 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.authentication.UserDetailsRepositoryReactiveAuthenticationManager;
 import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
+import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.core.userdetails.ReactiveUserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.server.SecurityWebFilterChain;
+import org.springframework.security.web.server.authentication.AnonymousAuthenticationWebFilter;
+import org.springframework.security.web.server.authentication.DelegatingServerAuthenticationSuccessHandler;
 import org.springframework.security.web.server.authentication.RedirectServerAuthenticationFailureHandler;
 import org.springframework.security.web.server.authentication.RedirectServerAuthenticationSuccessHandler;
 import org.springframework.security.web.server.context.ServerSecurityContextRepository;
@@ -22,6 +26,9 @@ import org.springframework.security.web.server.util.matcher.PathPatternParserSer
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebSession;
 import reactor.core.publisher.Mono;
+import ru.practicum.config.rememberme.RememberMeAuthenticationConverter;
+import ru.practicum.config.rememberme.RememberMeAuthenticationWebFilter;
+import ru.practicum.config.rememberme.RememberMeSuccessHandler;
 
 import java.net.URI;
 
@@ -34,6 +41,16 @@ public class SecurityConfig {
      * Кастомный ReactiveUserDetailsService
      */
     private final ReactiveUserDetailsService userDetailsService;
+
+    /**
+     * Remember me ключ
+     */
+    private final String rememberMeKey = "super-secret-key";
+
+    /**
+     * Время действия токена (2 недели в секундах)
+     */
+    int tokenValidity = 1209600;
 
     @Bean
     public SecurityWebFilterChain securityFilterChain(ServerHttpSecurity http) {
@@ -69,10 +86,21 @@ public class SecurityConfig {
                 )
                 .formLogin(form -> form
                         .loginPage("/login")
-                        .authenticationSuccessHandler(new RedirectServerAuthenticationSuccessHandler("/products"))
+                        .authenticationSuccessHandler(new DelegatingServerAuthenticationSuccessHandler(
+                                rememberMeSuccessHandler(),
+                                new RedirectServerAuthenticationSuccessHandler("/products")
+                        ))
                         .authenticationFailureHandler(new RedirectServerAuthenticationFailureHandler("/login?error"))
                 )
-//                        Таким образом, после логина в сессии пользователя будут сохранены:
+                .addFilterAt(new RememberMeAuthenticationWebFilter(
+                        rememberMeConverter(),
+                        new AnonymousAuthenticationWebFilter("anonymous")
+                ), SecurityWebFiltersOrder.AUTHENTICATION)
+//                .oauth2Login(oauth2 -> oauth2
+//                        .loginPage("/login")
+//                        .authenticationSuccessHandler(new RedirectServerAuthenticationSuccessHandler("/products"))
+//                )
+                //        Таким образом, после логина в сессии пользователя будут сохранены:
                 //        JSESSIONID (cookie, идентификатор сессии);
                 //        SecurityContext (в реактивной обёртке — через ReactiveSecurityContextHolder);
                 //        Authentication (внутри SecurityContext).
@@ -81,6 +109,14 @@ public class SecurityConfig {
                                 .requiresLogout(new PathPatternParserServerWebExchangeMatcher("/logout"))
                                 .logoutSuccessHandler((exchange, auth) -> {
                                     ServerWebExchange swe = exchange.getExchange();
+                                    // Очищаем remember-me куку
+                                    ResponseCookie cookie = ResponseCookie.from("remember-me", "")
+                                            .maxAge(0)
+                                            .path("/")
+                                            .httpOnly(true)
+                                            .build();
+                                    swe.getResponse().addCookie(cookie);
+
                                     return swe.getSession()
                                             .doOnNext(WebSession::invalidate)
                                             .then(Mono.fromRunnable(() -> {
@@ -167,5 +203,19 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public RememberMeAuthenticationConverter rememberMeConverter() {
+        return new RememberMeAuthenticationConverter(
+                userDetailsService,
+                passwordEncoder(),
+                rememberMeKey
+        );
+    }
+
+    @Bean
+    public RememberMeSuccessHandler rememberMeSuccessHandler() {
+        return new RememberMeSuccessHandler(rememberMeKey, tokenValidity);
     }
 }
