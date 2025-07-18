@@ -1,4 +1,13 @@
 services:
+  auth-service:
+    image: auth-service
+    build:
+      context: ./auth-service
+    ports:
+      - "9000:9000"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+
   showcase-service:
     profiles: ["prod"]
     restart: on-failure
@@ -26,6 +35,7 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - REDIS_PASSWORD=
+      - AUTH_SERVER_URL=http://auth-server:9000
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
       interval: 30s
@@ -48,6 +58,7 @@ services:
       - SPRING_R2DBC_USERNAME=postgres
       - SPRING_R2DBC_PASSWORD=postgres
       - PAYMENT_DEFAULT_BALANCE=15000.00
+      - AUTH_SERVER_URL=http://auth-server:9000
     depends_on:
       postgres:
         condition: service_healthy

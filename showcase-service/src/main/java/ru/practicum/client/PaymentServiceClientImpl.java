@@ -1,6 +1,8 @@
 package ru.practicum.client;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientService;
+import org.springframework.security.oauth2.client.registration.ReactiveClientRegistrationRepository;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientRequestException;
@@ -33,6 +35,9 @@ public class PaymentServiceClientImpl implements PaymentServiceClient {
     private final WebClient webClient;
 
     private final PaymentApi paymentApiClient;
+
+    private final ReactiveClientRegistrationRepository clientRegistrationRepository;
+    private final ReactiveOAuth2AuthorizedClientService authorizedClientService;
 
     private static final Duration TIMEOUT = Duration.ofSeconds(3);
 

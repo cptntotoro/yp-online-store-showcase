@@ -5,6 +5,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.security.oauth2.client.AuthorizedClientServiceReactiveOAuth2AuthorizedClientManager;
+import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientService;
+import org.springframework.security.oauth2.client.registration.ReactiveClientRegistrationRepository;
+import org.springframework.security.oauth2.client.web.reactive.function.client.ServerOAuth2AuthorizedClientExchangeFilterFunction;
 import org.springframework.web.reactive.function.client.WebClient;
 import ru.practicum.client.ApiClient;
 import ru.practicum.client.api.PaymentApi;
@@ -16,8 +20,24 @@ public class WebClientConfig {
     private String paymentServiceUrl;
 
     @Bean
-    public WebClient paymentWebClient(WebClient.Builder webClientBuilder) {
-        return webClientBuilder
+    public WebClient webClient(ReactiveClientRegistrationRepository clientRegistrationRepository,
+                               ReactiveOAuth2AuthorizedClientService authorizedClientService) {
+
+        // Создаем менеджер для авторизованных клиентов
+        AuthorizedClientServiceReactiveOAuth2AuthorizedClientManager authorizedClientManager =
+                new AuthorizedClientServiceReactiveOAuth2AuthorizedClientManager(
+                        clientRegistrationRepository, authorizedClientService);
+
+        // Настраиваем функцию для OAuth2
+        ServerOAuth2AuthorizedClientExchangeFilterFunction oauth2 =
+                new ServerOAuth2AuthorizedClientExchangeFilterFunction(authorizedClientManager);
+
+        // Устанавливаем регистрацию клиента по умолчанию
+        oauth2.setDefaultClientRegistrationId("payment-service");
+        oauth2.setDefaultOAuth2AuthorizedClient(true);
+
+        return WebClient.builder()
+                .filter(oauth2)
                 .baseUrl(paymentServiceUrl)
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
@@ -25,14 +45,14 @@ public class WebClientConfig {
     }
 
     @Bean
-    ApiClient apiClient(WebClient webClient) {
+    public ApiClient apiClient(WebClient webClient) {
         ApiClient apiClient = new ApiClient(webClient);
         apiClient.setBasePath(paymentServiceUrl);
         return apiClient;
     }
 
     @Bean
-    PaymentApi paymentApiClient(ApiClient apiClient) {
+    public PaymentApi paymentApiClient(ApiClient apiClient) {
         return new PaymentApi(apiClient);
     }
 }

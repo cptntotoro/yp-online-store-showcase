@@ -62,6 +62,7 @@ public class SecurityConfig {
                 .securityContextRepository(new WebSessionServerSecurityContextRepository())
                 .csrf(ServerHttpSecurity.CsrfSpec::disable) // Для REST API, для форм включить
                 .authorizeExchange(exchanges -> exchanges
+//                        .pathMatchers("/public/**").permitAll()
                         .pathMatchers(
                                 "/favicon.ico",
                                 "/login",
@@ -96,14 +97,6 @@ public class SecurityConfig {
                         rememberMeConverter(),
                         new AnonymousAuthenticationWebFilter("anonymous")
                 ), SecurityWebFiltersOrder.AUTHENTICATION)
-//                .oauth2Login(oauth2 -> oauth2
-//                        .loginPage("/login")
-//                        .authenticationSuccessHandler(new RedirectServerAuthenticationSuccessHandler("/products"))
-//                )
-                //        Таким образом, после логина в сессии пользователя будут сохранены:
-                //        JSESSIONID (cookie, идентификатор сессии);
-                //        SecurityContext (в реактивной обёртке — через ReactiveSecurityContextHolder);
-                //        Authentication (внутри SecurityContext).
                 .logout(logout -> logout
                                 .logoutUrl("/logout")
                                 .requiresLogout(new PathPatternParserServerWebExchangeMatcher("/logout"))
@@ -125,19 +118,10 @@ public class SecurityConfig {
                                             }));
                                 })
                 )
-                        // вы можете дополнительно:
-                        //удалить куки;
-                        //записать информацию о выходе в лог;
-                        //отправить событие;
-                        //вернуть JSON-ответ вместо пустого тела.
-//                .oauth2Login(oauth2 -> oauth2
-//                        .authenticationMatcher(new PathPatternParserServerWebExchangeMatcher("/login/oauth2/code/{registrationId}"))
-//                        .authenticationSuccessHandler(new RedirectServerAuthenticationSuccessHandler("/"))
-//                )
+//                .oauth2Login(withDefaults())
+//                .oauth2Client(withDefaults())
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .authenticationManager(authenticationManager())
-//                .oauth2Login(Customizer.withDefaults())
-//                .oauth2Client(Customizer.withDefaults())
                 .exceptionHandling(handling -> handling
                         .authenticationEntryPoint((exchange, ex) -> {
                             exchange.getResponse().setStatusCode(HttpStatus.FOUND);
@@ -161,49 +145,14 @@ public class SecurityConfig {
         return new WebSessionServerSecurityContextRepository();
     }
 
-    // Источник описаний клиентов с одним статическим клиентом Google.
-//    @Bean
-//    public ReactiveClientRegistrationRepository clientRegistrationRepository() {
-//        return new InMemoryReactiveClientRegistrationRepository(this.googleClientRegistration());
-//    }
-
-    // Сервис для выполнения авторизации клиентов, а также их хранения на время жизни токена.
-//    @Bean
-//    public ReactiveOAuth2AuthorizedClientService authorizedClientService(
-//            ReactiveClientRegistrationRepository clientRegistrationRepository) {
-//        return new InMemoryReactiveOAuth2AuthorizedClientService(clientRegistrationRepository);
-//    }
-
-    // Репозиторий-обёртка для ReactiveOAuth2AuthorizedClientService
-//    @Bean
-//    public ServerOAuth2AuthorizedClientRepository authorizedClientRepository(
-//            ReactiveOAuth2AuthorizedClientService authorizedClientService) {
-//        return new AuthenticatedPrincipalServerOAuth2AuthorizedClientRepository(authorizedClientService);
-//    }
-
-//    private ClientRegistration googleClientRegistration() {
-//        return CommonOAuth2Provider.GOOGLE.getBuilder("google")
-//                .clientId("google-client-id")
-//                .clientSecret("google-client-secret")
-//                .build();
-//    }
-
-//    private ServerLogoutSuccessHandler oidcLogoutSuccessHandler() {
-//        // Для работы необходимо указать ReactiveClientRegistrationRepository
-//        // Этот репозиторий содержит информацию обо всех зарегистрированных в приложении клиентах (и их провайдерах).
-//        OidcClientInitiatedServerLogoutSuccessHandler handler =
-//                new OidcClientInitiatedServerLogoutSuccessHandler(clientRegistrationRepository);
-//
-//        // Можно указать адрес после успешного логаута
-//        handler.setPostLogoutRedirectUri("{baseUrl}");
-//
-//        return handler;
-//    }
-
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
+//    @Bean
+//    public PasswordEncoder passwordEncoder() {
+//        return NoOpPasswordEncoder.getInstance(); // Только для тестирования!
+//    }
 
     @Bean
     public RememberMeAuthenticationConverter rememberMeConverter() {
