@@ -23,7 +23,7 @@ public class WebClientConfig {
     public WebClient webClient(ReactiveClientRegistrationRepository clientRegistrationRepository,
                                ReactiveOAuth2AuthorizedClientService authorizedClientService) {
 
-        // Создаем менеджер для авторизованных клиентов
+        // Менеджер для авторизованных клиентов
         AuthorizedClientServiceReactiveOAuth2AuthorizedClientManager authorizedClientManager =
                 new AuthorizedClientServiceReactiveOAuth2AuthorizedClientManager(
                         clientRegistrationRepository, authorizedClientService);

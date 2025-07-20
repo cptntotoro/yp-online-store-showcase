@@ -1,4 +1,4 @@
-package ru.practicum;
+package ru.practicum.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -9,6 +9,8 @@ import org.springframework.security.oauth2.jwt.NimbusReactiveJwtDecoder;
 import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
 import org.springframework.security.web.server.SecurityWebFilterChain;
+import ru.practicum.repository.ReactiveRegisteredClientRepository;
+import ru.practicum.repository.ReactiveToBlockingClientRepositoryAdapter;
 
 @Configuration
 @EnableWebFluxSecurity
@@ -29,13 +31,15 @@ public class SecurityConfig {
 
     @Bean
     public ReactiveJwtDecoder jwtDecoder() {
-        return NimbusReactiveJwtDecoder.withJwkSetUri("http://localhost:9000/oauth2/jwks").build();
+        return NimbusReactiveJwtDecoder
+                .withJwkSetUri("http://localhost:9000/oauth2/jwks")
+                .build();
     }
 
     @Bean
     @Primary
-    public RegisteredClientRepository registeredClientRepository(
-            ReactiveToBlockingClientRepositoryAdapter adapter) {
+    // Spring Security OAuth2 не поддерживает реактивный репозиторий
+    public RegisteredClientRepository registeredClientRepository(ReactiveToBlockingClientRepositoryAdapter adapter) {
         return adapter;
     }
 

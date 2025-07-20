@@ -1,8 +1,11 @@
-package ru.practicum;
+package ru.practicum.repository;
 
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
 
+/**
+ * Адаптер реактивного репозитория в блокирующий для Spring Security OAuth2
+ */
 public class ReactiveToBlockingClientRepositoryAdapter implements RegisteredClientRepository {
 
     private final ReactiveRegisteredClientRepository reactiveRepository;

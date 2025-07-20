@@ -1,6 +1,5 @@
 package ru.practicum.controller.cart;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -32,15 +31,15 @@ class CartRestControllerTest {
     private final UUID TEST_PRODUCT_UUID = UUID.randomUUID();
     private final BigDecimal TEST_TOTAL_PRICE = new BigDecimal("99.99");
 
-    @BeforeEach
-    void setUp() {
-        webTestClient = WebTestClient.bindToController(cartRestController)
-                .webFilter((exchange, chain) -> {
-                    exchange.getAttributes().put(WebAttributes.USER_UUID, TEST_USER_UUID);
-                    return chain.filter(exchange);
-                })
-                .build();
-    }
+//    @BeforeEach
+//    void setUp() {
+//        webTestClient = WebTestClient.bindToController(cartRestController)
+//                .webFilter((exchange, chain) -> {
+//                    exchange.getAttributes().put(WebAttributes.USER_UUID, TEST_USER_UUID);
+//                    return chain.filter(exchange);
+//                })
+//                .build();
+//    }
 
     @Test
     void addToCart_ShouldReturnTotalPrice() {

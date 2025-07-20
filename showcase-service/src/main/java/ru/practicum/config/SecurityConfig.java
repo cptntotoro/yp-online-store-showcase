@@ -55,14 +55,9 @@ public class SecurityConfig {
     @Bean
     public SecurityWebFilterChain securityFilterChain(ServerHttpSecurity http) {
         return http
-                // Этот компонент сохраняет SecurityContext в реактивной сессии
-                //  и автоматически восстанавливает его из сессии при каждом запросе, если она активна.
-                //  Такой подход позволяет реализовать stateful-аутентификацию, аналогичную поведению классических веб-приложений.
-                // включить сохранение и восстановление SecurityContext через сессию
                 .securityContextRepository(new WebSessionServerSecurityContextRepository())
                 .csrf(ServerHttpSecurity.CsrfSpec::disable) // Для REST API, для форм включить
                 .authorizeExchange(exchanges -> exchanges
-//                        .pathMatchers("/public/**").permitAll()
                         .pathMatchers(
                                 "/favicon.ico",
                                 "/login",
@@ -118,8 +113,6 @@ public class SecurityConfig {
                                             }));
                                 })
                 )
-//                .oauth2Login(withDefaults())
-//                .oauth2Client(withDefaults())
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .authenticationManager(authenticationManager())
                 .exceptionHandling(handling -> handling
@@ -149,10 +142,6 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
-//    @Bean
-//    public PasswordEncoder passwordEncoder() {
-//        return NoOpPasswordEncoder.getInstance(); // Только для тестирования!
-//    }
 
     @Bean
     public RememberMeAuthenticationConverter rememberMeConverter() {
