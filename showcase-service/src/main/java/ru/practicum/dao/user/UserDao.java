@@ -51,9 +51,9 @@ public class UserDao {
     @Column("created_at")
     private LocalDateTime createdAt;
 
-//    private boolean locked;
-//    private boolean expired;
-//    private boolean credentialsExpired;
+    private boolean accountNonLocked;
+    private boolean accountNonExpired;
+    private boolean credentialsNonExpired;
 
     /**
      * Флаг активности аккаунта

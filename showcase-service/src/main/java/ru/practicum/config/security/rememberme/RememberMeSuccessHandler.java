@@ -1,4 +1,4 @@
-package ru.practicum.config.rememberme;
+package ru.practicum.config.security.rememberme;
 
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
@@ -58,7 +58,6 @@ public class RememberMeSuccessHandler implements ServerAuthenticationSuccessHand
      * @return Токен
      */
     private String generateToken(Authentication authentication) {
-        System.err.println("Generating token for user: " + authentication.getName());
         String username = authentication.getName();
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         long expiryTime = System.currentTimeMillis() + TimeUnit.DAYS.toMillis(14); // 2 недели

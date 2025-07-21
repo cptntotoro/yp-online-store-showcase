@@ -67,6 +67,9 @@ public class UserServiceImpl implements UserService {
                             .password(passwordEncoder.encode(user.getPassword()))
                             .email(user.getEmail())
                             .enabled(true)
+                            .accountNonLocked(true)
+                            .accountNonExpired(true)
+                            .credentialsNonExpired(true)
                             .build();
 
                     return userRepository.save(userDao)

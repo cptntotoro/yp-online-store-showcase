@@ -18,7 +18,7 @@ public interface RoleRepository extends ReactiveCrudRepository<RoleDao, UUID> {
      * Найти роль по названию
      *
      * @param name Название роли
-     * @return
+     * @return DAO пользовательской роли
      */
     @Query("SELECT * FROM roles WHERE name = :name")
     Mono<RoleDao> findByName(String name);

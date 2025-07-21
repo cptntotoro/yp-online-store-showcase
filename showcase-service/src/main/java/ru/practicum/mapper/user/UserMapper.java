@@ -23,6 +23,7 @@ public interface UserMapper {
 //    @Mapping(target = "accountNonLocked", expression = "java(!userDao.isLocked())")
 //    @Mapping(target = "accountNonExpired", expression = "java(!userDao.isExpired())")
 //    @Mapping(target = "credentialsNonExpired", expression = "java(!userDao.isCredentialsExpired())")
+    @Mapping(target = "roles", ignore = true)
     User userDaoToUser(UserDao userDao);
 
     /**
@@ -31,6 +32,8 @@ public interface UserMapper {
      * @param user Пользователь
      * @return DAO пользователя
      */
+    @Mapping(target = "uuid", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
     UserDao userToUserDao(User user);
 
     /**
@@ -50,6 +53,10 @@ public interface UserMapper {
     @Mapping(target = "uuid", ignore = true)
     @Mapping(target = "roles", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "enabled", ignore = true)
+    @Mapping(target = "accountNonLocked", ignore = true)
+    @Mapping(target = "accountNonExpired", ignore = true)
+    @Mapping(target = "credentialsNonExpired", ignore = true)
     User userAuthDtoToUser(UserAuthDto userAuthDto);
 
 //    /**

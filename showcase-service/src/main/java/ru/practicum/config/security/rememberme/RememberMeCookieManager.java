@@ -1,4 +1,4 @@
-package ru.practicum.config.rememberme;
+package ru.practicum.config.security.rememberme;
 
 import org.springframework.web.server.ServerWebExchange;
 

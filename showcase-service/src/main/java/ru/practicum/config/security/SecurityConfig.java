@@ -1,4 +1,4 @@
-package ru.practicum.config;
+package ru.practicum.config.security;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -26,9 +26,9 @@ import org.springframework.security.web.server.util.matcher.PathPatternParserSer
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebSession;
 import reactor.core.publisher.Mono;
-import ru.practicum.config.rememberme.RememberMeAuthenticationConverter;
-import ru.practicum.config.rememberme.RememberMeAuthenticationWebFilter;
-import ru.practicum.config.rememberme.RememberMeSuccessHandler;
+import ru.practicum.config.security.rememberme.RememberMeAuthenticationConverter;
+import ru.practicum.config.security.rememberme.RememberMeAuthenticationWebFilter;
+import ru.practicum.config.security.rememberme.RememberMeSuccessHandler;
 
 import java.net.URI;
 
@@ -50,7 +50,7 @@ public class SecurityConfig {
     /**
      * Время действия токена (2 недели в секундах)
      */
-    int tokenValidity = 1209600;
+    private final int tokenValidity = 1209600;
 
     @Bean
     public SecurityWebFilterChain securityFilterChain(ServerHttpSecurity http) {
@@ -58,26 +58,14 @@ public class SecurityConfig {
                 .securityContextRepository(new WebSessionServerSecurityContextRepository())
                 .csrf(ServerHttpSecurity.CsrfSpec::disable) // Для REST API, для форм включить
                 .authorizeExchange(exchanges -> exchanges
-                        .pathMatchers(
-                                "/favicon.ico",
-                                "/login",
-                                "/logout",
-                                "/notfound",
-                                "/error",
-                                "/sign-up",
-                                "/styles/**",
-                                "/scripts/**",
-                                "/images/**",
-                                "/templates/**",
-                                "/fragments/**"
-                        ).permitAll()
+                        .pathMatchers(PermittedPaths.PATTERNS.toArray(String[]::new)).permitAll()
                         .pathMatchers(HttpMethod.GET, "/products", "/products/**").permitAll()
-                        .pathMatchers(
-                                "/cart/**",
-                                "/orders/**",
-                                "/checkout",
-                                "/payment"
-                        ).authenticated()
+//                        .pathMatchers(
+//                                "/cart/**",
+//                                "/orders/**",
+//                                "/checkout",
+//                                "/payment"
+//                        ).authenticated()
                         .anyExchange().authenticated()
                 )
                 .formLogin(form -> form
@@ -91,7 +79,7 @@ public class SecurityConfig {
                 .addFilterAt(new RememberMeAuthenticationWebFilter(
                         rememberMeConverter(),
                         new AnonymousAuthenticationWebFilter("anonymous")
-                ), SecurityWebFiltersOrder.AUTHENTICATION)
+                ), SecurityWebFiltersOrder.HTTP_BASIC)
                 .logout(logout -> logout
                                 .logoutUrl("/logout")
                                 .requiresLogout(new PathPatternParserServerWebExchangeMatcher("/logout"))
@@ -102,6 +90,7 @@ public class SecurityConfig {
                                             .maxAge(0)
                                             .path("/")
                                             .httpOnly(true)
+                                            .sameSite("Lax")
                                             .build();
                                     swe.getResponse().addCookie(cookie);
 
@@ -147,8 +136,8 @@ public class SecurityConfig {
     public RememberMeAuthenticationConverter rememberMeConverter() {
         return new RememberMeAuthenticationConverter(
                 userDetailsService,
-                passwordEncoder(),
-                rememberMeKey
+                rememberMeKey,
+                passwordEncoder()
         );
     }
 

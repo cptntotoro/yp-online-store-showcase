@@ -1,5 +1,6 @@
-package ru.practicum.config.rememberme;
+package ru.practicum.config.security.rememberme;
 
+import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AccountExpiredException;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -21,12 +22,12 @@ import ru.practicum.service.auth.UserDetailsServiceImpl;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
 import java.util.Base64;
 
 /**
  * Извлекает токен из куки
  */
+@AllArgsConstructor
 public class RememberMeAuthenticationConverter implements ServerAuthenticationConverter, RememberMeCookieManager {
 
     /**
@@ -40,35 +41,29 @@ public class RememberMeAuthenticationConverter implements ServerAuthenticationCo
     private final String rememberMeKey;
     private final PasswordEncoder passwordEncoder;
 
-    public RememberMeAuthenticationConverter(ReactiveUserDetailsService userDetailsService,
-                                             PasswordEncoder passwordEncoder,
-                                             String rememberMeKey) {
-        this.userDetailsService = userDetailsService;
-        this.passwordEncoder = passwordEncoder;
-        this.rememberMeKey = rememberMeKey;
-    }
-
     @Override
     public Mono<Authentication> convert(ServerWebExchange exchange) {
-        return Mono.justOrEmpty(exchange.getRequest().getCookies().getFirst("remember-me"))
-                .doOnNext(cookie -> System.err.println("Found remember-me cookie: " + cookie.getValue()))
-                .flatMap(cookie -> {
-                    String[] cookieTokens = decodeCookie(cookie.getValue());
-                    System.err.println("Decoded tokens: " + Arrays.toString(cookieTokens));
-                    return validateTokenAndGetUser(cookieTokens)
-                            .map(userDetails -> {
-                                return new UsernamePasswordAuthenticationToken(
-                                        userDetails,
-                                        userDetails.getPassword(),
-                                        userDetails.getAuthorities()
-                                );
-                            })
-                            .doOnError(e -> {
-                                System.err.println("Remember-me error: " + e.getMessage());
-                                // Удаляем куку при любой ошибке валидации
-                                removeRememberMeCookie(exchange);
-                            });
-                });
+        return Mono.defer(() ->
+                exchange.getPrincipal()
+                        .ofType(Authentication.class)
+                        .switchIfEmpty(Mono.defer(() ->
+                                Mono.justOrEmpty(exchange.getRequest().getCookies().getFirst("remember-me"))
+                                        .flatMap(cookie -> {
+                                            try {
+                                                String[] cookieTokens = decodeCookie(cookie.getValue());
+                                                return validateTokenAndGetUser(cookieTokens)
+                                                        .map(userDetails -> new UsernamePasswordAuthenticationToken(
+                                                                userDetails,
+                                                                userDetails.getPassword(),
+                                                                userDetails.getAuthorities()
+                                                        ))
+                                                        .doOnError(e -> removeRememberMeCookie(exchange));
+                                            } catch (Exception e) {
+                                                removeRememberMeCookie(exchange);
+                                                return Mono.error(e);
+                                            }
+                                        })
+                        )));
     }
 
     @Override
@@ -77,6 +72,7 @@ public class RememberMeAuthenticationConverter implements ServerAuthenticationCo
                 .maxAge(0)
                 .path("/")
                 .httpOnly(true)
+                .sameSite("Lax")
                 .build();
         exchange.getResponse().addCookie(cookie);
     }
@@ -136,6 +132,7 @@ public class RememberMeAuthenticationConverter implements ServerAuthenticationCo
                     return Mono.just(userDetails);
                 })
                 .onErrorResume(e -> {
+                    System.err.println(e.getMessage());
                     if (e instanceof AuthenticationException) {
                         return Mono.error(e);
                     }

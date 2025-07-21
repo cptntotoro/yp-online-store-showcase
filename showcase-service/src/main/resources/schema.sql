@@ -24,9 +24,9 @@ CREATE TABLE IF NOT EXISTS users (
     password VARCHAR(100) NOT NULL,
     email VARCHAR(255) UNIQUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
---     locked BOOLEAN NOT NULL,
---     expired BOOLEAN NOT NULL,
---     credentials_expired BOOLEAN NOT NULL,
+    account_non_locked BOOLEAN DEFAULT TRUE,
+    account_non_expired BOOLEAN DEFAULT TRUE,
+    credentials_non_expired BOOLEAN DEFAULT TRUE,
     enabled BOOLEAN DEFAULT TRUE
 );
 

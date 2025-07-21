@@ -58,21 +58,21 @@ public class User implements UserDetails {
      * Флаг активности аккаунта
      */
     private boolean enabled;
-//
-//    /**
-//     * Флаг блокировки аккаунта
-//     */
-//    private boolean accountNonLocked = true;
-//
-//    /**
-//     * Флаг истечения срока аккаунта
-//     */
-//    private boolean accountNonExpired = true;
-//
-//    /**
-//     * Флаг истечения срока учетных данных
-//     */
-//    private boolean credentialsNonExpired = true;
+
+    /**
+     * Флаг блокировки аккаунта
+     */
+    private boolean accountNonLocked;
+
+    /**
+     * Флаг истечения срока аккаунта
+     */
+    private boolean accountNonExpired;
+
+    /**
+     * Флаг истечения срока учетных данных
+     */
+    private boolean credentialsNonExpired;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -83,21 +83,21 @@ public class User implements UserDetails {
 
     @Override
     public boolean isAccountNonExpired() {
-        return UserDetails.super.isAccountNonExpired();
+        return accountNonExpired;
     }
 
     @Override
     public boolean isAccountNonLocked() {
-        return UserDetails.super.isAccountNonLocked();
+        return accountNonLocked;
     }
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return UserDetails.super.isCredentialsNonExpired();
+        return credentialsNonExpired;
     }
 
     @Override
     public boolean isEnabled() {
-        return UserDetails.super.isEnabled();
+        return enabled;
     }
 }
