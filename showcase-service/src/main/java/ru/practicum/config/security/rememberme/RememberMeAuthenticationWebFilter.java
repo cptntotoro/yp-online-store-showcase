@@ -1,6 +1,5 @@
 package ru.practicum.config.security.rememberme;
 
-import org.springframework.http.server.PathContainer;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
@@ -14,7 +13,7 @@ import reactor.core.publisher.Mono;
 import ru.practicum.config.security.PermittedPaths;
 
 /**
- * Фильтр для проверки наличия куки
+ * Фильтр для обработки куки remember-me и установки пользователя в контекст
  */
 public class RememberMeAuthenticationWebFilter implements WebFilter {
 
@@ -30,9 +29,14 @@ public class RememberMeAuthenticationWebFilter implements WebFilter {
     @Override
     @NonNull
     public Mono<Void> filter(@NonNull ServerWebExchange exchange, @NonNull WebFilterChain chain) {
-        if (isPermittedPath(exchange.getRequest().getPath().toString())) {
+        String path = exchange.getRequest().getPath().value();
+
+        if (PermittedPaths.matches(path)) {
             return chain.filter(exchange);
         }
+
+        // TODO:
+        System.err.println("Processing remember-me for path: " + path);
 
         return exchange.getPrincipal()
                 .flatMap(principal -> chain.filter(exchange))
@@ -41,8 +45,10 @@ public class RememberMeAuthenticationWebFilter implements WebFilter {
 
     private Mono<Void> processRememberMe(ServerWebExchange exchange, WebFilterChain chain) {
         return converter.convert(exchange)
-                .flatMap(auth -> chain.filter(exchange)
-                        .contextWrite(ReactiveSecurityContextHolder.withAuthentication(auth)))
+                .flatMap(auth ->
+                        chain.filter(exchange)
+                                .contextWrite(ReactiveSecurityContextHolder.withAuthentication(auth))
+                )
                 .onErrorResume(e -> {
                     if (!exchange.getResponse().isCommitted() &&
                             (e instanceof UsernameNotFoundException || e instanceof BadCredentialsException)) {
@@ -51,11 +57,5 @@ public class RememberMeAuthenticationWebFilter implements WebFilter {
                     }
                     return Mono.error(e);
                 });
-    }
-
-    private boolean isPermittedPath(String path) {
-        PathContainer container = PathContainer.parsePath(path);
-        return PermittedPaths.PERMITTED_PATH_PATTERNS.stream()
-                .anyMatch(p -> p.matches(container));
     }
 }

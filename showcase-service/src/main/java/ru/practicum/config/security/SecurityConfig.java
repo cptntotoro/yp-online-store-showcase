@@ -1,6 +1,7 @@
 package ru.practicum.config.security;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -28,6 +29,8 @@ import org.springframework.web.server.WebSession;
 import reactor.core.publisher.Mono;
 import ru.practicum.config.security.rememberme.RememberMeAuthenticationConverter;
 import ru.practicum.config.security.rememberme.RememberMeAuthenticationWebFilter;
+import ru.practicum.config.security.rememberme.RememberMeCookieUtil;
+import ru.practicum.config.security.rememberme.RememberMeProperties;
 import ru.practicum.config.security.rememberme.RememberMeSuccessHandler;
 
 import java.net.URI;
@@ -36,6 +39,7 @@ import java.net.URI;
 @EnableWebFluxSecurity
 @EnableReactiveMethodSecurity
 @RequiredArgsConstructor
+@EnableConfigurationProperties(RememberMeProperties.class)
 public class SecurityConfig {
     /**
      * Кастомный ReactiveUserDetailsService
@@ -43,14 +47,14 @@ public class SecurityConfig {
     private final ReactiveUserDetailsService userDetailsService;
 
     /**
-     * Remember me ключ
+     * Создает токен при успешном входе
      */
-    private final String rememberMeKey = "super-secret-key";
+    private final RememberMeSuccessHandler rememberMeSuccessHandler;
 
     /**
-     * Время действия токена (2 недели в секундах)
+     * Извлекает токен из куки
      */
-    private final int tokenValidity = 1209600;
+    private final RememberMeAuthenticationConverter rememberMeAuthenticationConverter;
 
     @Bean
     public SecurityWebFilterChain securityFilterChain(ServerHttpSecurity http) {
@@ -60,47 +64,35 @@ public class SecurityConfig {
                 .authorizeExchange(exchanges -> exchanges
                         .pathMatchers(PermittedPaths.PATTERNS.toArray(String[]::new)).permitAll()
                         .pathMatchers(HttpMethod.GET, "/products", "/products/**").permitAll()
-//                        .pathMatchers(
-//                                "/cart/**",
-//                                "/orders/**",
-//                                "/checkout",
-//                                "/payment"
-//                        ).authenticated()
                         .anyExchange().authenticated()
                 )
                 .formLogin(form -> form
                         .loginPage("/login")
                         .authenticationSuccessHandler(new DelegatingServerAuthenticationSuccessHandler(
-                                rememberMeSuccessHandler(),
+                                rememberMeSuccessHandler,
                                 new RedirectServerAuthenticationSuccessHandler("/products")
                         ))
                         .authenticationFailureHandler(new RedirectServerAuthenticationFailureHandler("/login?error"))
                 )
                 .addFilterAt(new RememberMeAuthenticationWebFilter(
-                        rememberMeConverter(),
+                        rememberMeAuthenticationConverter,
                         new AnonymousAuthenticationWebFilter("anonymous")
                 ), SecurityWebFiltersOrder.HTTP_BASIC)
                 .logout(logout -> logout
-                                .logoutUrl("/logout")
-                                .requiresLogout(new PathPatternParserServerWebExchangeMatcher("/logout"))
-                                .logoutSuccessHandler((exchange, auth) -> {
-                                    ServerWebExchange swe = exchange.getExchange();
-                                    // Очищаем remember-me куку
-                                    ResponseCookie cookie = ResponseCookie.from("remember-me", "")
-                                            .maxAge(0)
-                                            .path("/")
-                                            .httpOnly(true)
-                                            .sameSite("Lax")
-                                            .build();
-                                    swe.getResponse().addCookie(cookie);
+                        .logoutUrl("/logout")
+                        .requiresLogout(new PathPatternParserServerWebExchangeMatcher("/logout"))
+                        .logoutSuccessHandler((exchange, auth) -> {
+                            ServerWebExchange swe = exchange.getExchange();
+                            ResponseCookie cookie = RememberMeCookieUtil.clearRememberMeCookie();
+                            swe.getResponse().addCookie(cookie);
 
-                                    return swe.getSession()
-                                            .doOnNext(WebSession::invalidate)
-                                            .then(Mono.fromRunnable(() -> {
-                                                swe.getResponse().setStatusCode(HttpStatus.FOUND);
-                                                swe.getResponse().getHeaders().setLocation(URI.create("/login?logout"));
-                                            }));
-                                })
+                            return swe.getSession()
+                                    .doOnNext(WebSession::invalidate)
+                                    .then(Mono.fromRunnable(() -> {
+                                        swe.getResponse().setStatusCode(HttpStatus.FOUND);
+                                        swe.getResponse().getHeaders().setLocation(URI.create("/login?logout"));
+                                    }));
+                        })
                 )
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .authenticationManager(authenticationManager())
@@ -130,19 +122,5 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
-    }
-
-    @Bean
-    public RememberMeAuthenticationConverter rememberMeConverter() {
-        return new RememberMeAuthenticationConverter(
-                userDetailsService,
-                rememberMeKey,
-                passwordEncoder()
-        );
-    }
-
-    @Bean
-    public RememberMeSuccessHandler rememberMeSuccessHandler() {
-        return new RememberMeSuccessHandler(rememberMeKey, tokenValidity);
     }
 }

@@ -20,9 +20,6 @@ public interface UserMapper {
      * @param userDao DAO пользователя
      * @return Пользователь
      */
-//    @Mapping(target = "accountNonLocked", expression = "java(!userDao.isLocked())")
-//    @Mapping(target = "accountNonExpired", expression = "java(!userDao.isExpired())")
-//    @Mapping(target = "credentialsNonExpired", expression = "java(!userDao.isCredentialsExpired())")
     @Mapping(target = "roles", ignore = true)
     User userDaoToUser(UserDao userDao);
 
@@ -58,36 +55,4 @@ public interface UserMapper {
     @Mapping(target = "accountNonExpired", ignore = true)
     @Mapping(target = "credentialsNonExpired", ignore = true)
     User userAuthDtoToUser(UserAuthDto userAuthDto);
-
-//    /**
-//     * Преобразование списка ролей в строку (для БД)
-//     */
-//    default String mapRolesToString(List<String> roles) {
-//        return roles != null ? String.join(",", roles) : "";
-//    }
-//
-//    /**
-//     * Преобразование строки в список ролей (из БД)
-//     */
-//    default List<String> mapStringToRoles(String roles) {
-//        return roles != null && !roles.isEmpty() ? List.of(roles.split(",")) : Collections.emptyList();
-//    }
-//
-//    /**
-//     * Смаппить пользователя в UserDetails для Spring Security
-//     */
-//    default UserDetails userToUserDetails(User user) {
-//        List<GrantedAuthority> authorities = user.getRoles().stream()
-//                .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
-//                .collect(Collectors.toList());
-//
-//        return User.builder()
-//                        .uuid(user.getUuid())
-//                .username(user.getUsername())
-//                .email(user.getEmail())
-//                .password(user.getPassword())
-//                .enabled(user.isEnabled())
-//                .roles(mapStringToRoles(mapRolesToString(user.getRoles())))
-//                                .build();
-//    }
 }

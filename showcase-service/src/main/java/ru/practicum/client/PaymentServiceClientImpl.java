@@ -33,9 +33,6 @@ public class PaymentServiceClientImpl implements PaymentServiceClient {
     private final WebClient webClient;
 
     private final PaymentApi paymentApiClient;
-//
-//    private final ReactiveClientRegistrationRepository clientRegistrationRepository;
-//    private final ReactiveOAuth2AuthorizedClientService authorizedClientService;
 
     private static final Duration TIMEOUT = Duration.ofSeconds(3);
 

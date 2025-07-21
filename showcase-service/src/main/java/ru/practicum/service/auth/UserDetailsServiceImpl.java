@@ -42,13 +42,6 @@ public class UserDetailsServiceImpl implements ReactiveUserDetailsService {
                         .map(roles -> {
                             User user = userMapper.userDaoToUser(userDao);
                             user.setRoles(roles);
-
-                            // Установка флагов состояния аккаунта
-//                            user.setEnabled(userDao.isActive()); // Предполагая, что есть такое поле в DAO
-//                            user.setAccountNonLocked(!userDao.isLocked()); // Предполагая, что есть поле locked
-//                            user.setAccountNonExpired(!userDao.isExpired()); // Предполагая, что есть поле expired
-//                            user.setCredentialsNonExpired(!userDao.isCredentialsExpired()); // Для учетных данных
-
                             return user;
                         }));
     }
