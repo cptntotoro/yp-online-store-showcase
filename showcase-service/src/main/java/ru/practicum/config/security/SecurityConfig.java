@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.authentication.UserDetailsRepositoryReactiveAuthenticationManager;
+import org.springframework.security.authorization.AuthorizationDecision;
 import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
@@ -63,7 +64,13 @@ public class SecurityConfig {
                 .csrf(ServerHttpSecurity.CsrfSpec::disable) // Для REST API, для форм включить
                 .authorizeExchange(exchanges -> exchanges
                         .pathMatchers(PermittedPaths.PATTERNS.toArray(String[]::new)).permitAll()
-                        .pathMatchers(HttpMethod.GET, "/products", "/products/**").permitAll()
+                                .pathMatchers(HttpMethod.GET, "/products", "/products/**")
+                                .access((mono, context) -> {
+                                    // Разрешить доступ всем, но запустить фильтры (включая remember-me)
+                                    return mono.map(auth -> new AuthorizationDecision(true))
+                                            .defaultIfEmpty(new AuthorizationDecision(true));
+                                })
+//                        .pathMatchers(HttpMethod.GET, "/products", "/products/**").permitAll()
                         .anyExchange().authenticated()
                 )
                 .formLogin(form -> form
@@ -77,7 +84,7 @@ public class SecurityConfig {
                 .addFilterAt(new RememberMeAuthenticationWebFilter(
                         rememberMeAuthenticationConverter,
                         new AnonymousAuthenticationWebFilter("anonymous")
-                ), SecurityWebFiltersOrder.HTTP_BASIC)
+                ), SecurityWebFiltersOrder.SECURITY_CONTEXT_SERVER_WEB_EXCHANGE)
                 .logout(logout -> logout
                         .logoutUrl("/logout")
                         .requiresLogout(new PathPatternParserServerWebExchangeMatcher("/logout"))

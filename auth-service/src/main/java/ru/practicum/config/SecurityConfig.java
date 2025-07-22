@@ -4,7 +4,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.oauth2.jwt.NimbusReactiveJwtDecoder;
@@ -30,8 +29,8 @@ public class SecurityConfig {
                 .authorizeExchange(exchanges -> exchanges
                         .pathMatchers("/actuator/**").permitAll()
                         .pathMatchers("/oauth2/**").permitAll()
-                        .pathMatchers(HttpMethod.GET, "/payment/**").hasAuthority("SCOPE_payment.read")
-                        .pathMatchers(HttpMethod.POST, "/payment/**").hasAuthority("SCOPE_payment.write")
+//                        .pathMatchers(HttpMethod.GET, "/payment/**").hasAuthority("SCOPE_payment.read")
+//                        .pathMatchers(HttpMethod.POST, "/payment/**").hasAuthority("SCOPE_payment.write")
                         .anyExchange().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2

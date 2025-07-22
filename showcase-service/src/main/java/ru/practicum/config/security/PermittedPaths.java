@@ -28,8 +28,8 @@ public class PermittedPaths {
             "/images/**",
             "/templates/**",
             "/fragments/**",
-            "/actuator/**",
-            "/products/**"
+            "/actuator/**"
+//            "/products/**"
     );
 
     /**
