@@ -27,7 +27,7 @@ docker-compose --profile test up --build --abort-on-container-exit payment-servi
 
 #### Только продакшен
 ```
-docker-compose --profile prod up -d payment-service
+docker-compose --profile prod up -d auth-service
 ```
 Сервис будет доступен по адресу: http://localhost:9000.
 

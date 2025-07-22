@@ -44,6 +44,12 @@ public class RememberMeAuthenticationWebFilter implements WebFilter {
     }
 
     private Mono<Void> processRememberMe(ServerWebExchange exchange, WebFilterChain chain) {
+        boolean hasRememberMeCookie = exchange.getRequest().getCookies().getFirst("remember-me") != null;
+
+        if (!hasRememberMeCookie) {
+            return anonymousFilter.filter(exchange, chain);
+        }
+
         return converter.convert(exchange)
                 .flatMap(auth ->
                         chain.filter(exchange)
@@ -58,4 +64,5 @@ public class RememberMeAuthenticationWebFilter implements WebFilter {
                     return Mono.error(e);
                 });
     }
+
 }

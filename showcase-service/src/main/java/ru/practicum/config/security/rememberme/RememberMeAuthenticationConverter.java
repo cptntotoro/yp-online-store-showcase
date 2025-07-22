@@ -26,8 +26,14 @@ public class RememberMeAuthenticationConverter implements ServerAuthenticationCo
 
     private static final String COOKIE_NAME = "remember-me";
 
+    /**
+     * {@link ru.practicum.service.auth.UserDetailsServiceImpl}
+     */
     private final ReactiveUserDetailsService userDetailsService;
 
+    /**
+     * Сервис управления Remember Me токенами
+     */
     private final RememberMeTokenService tokenService;
 
     @Override

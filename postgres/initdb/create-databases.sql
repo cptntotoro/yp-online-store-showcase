@@ -1,0 +1,3 @@
+CREATE DATABASE auth_db;
+CREATE DATABASE showcase_db;
+CREATE DATABASE payment_db;

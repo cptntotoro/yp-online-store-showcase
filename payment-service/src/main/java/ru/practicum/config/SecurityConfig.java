@@ -1,5 +1,6 @@
 package ru.practicum.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -15,6 +16,9 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
 @Configuration
 @EnableWebFluxSecurity
 public class SecurityConfig {
+
+    @Value("${spring.security.oauth2.resourceserver.jwt.jwk-set-uri}")
+    private String jwkSetUri;
 
     @Bean
     public SecurityWebFilterChain securityFilterChain(ServerHttpSecurity http) {
@@ -36,7 +40,7 @@ public class SecurityConfig {
 
     @Bean
     public ReactiveJwtDecoder jwtDecoder() {
-        return NimbusReactiveJwtDecoder.withJwkSetUri("http://localhost:9000/oauth2/jwks").build();
+        return NimbusReactiveJwtDecoder.withJwkSetUri(jwkSetUri).build();
     }
 
     @Bean
