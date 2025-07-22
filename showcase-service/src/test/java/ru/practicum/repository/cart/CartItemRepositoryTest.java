@@ -33,8 +33,8 @@ class CartItemRepositoryTest {
             DELETE FROM products;
             DELETE FROM users;
 
-            INSERT INTO users (user_uuid, username, email)
-            VALUES ('99999999-9999-9999-9999-999999999999', 'test_user', 'test@example.com');
+            INSERT INTO users (user_uuid, username, password, email)
+            VALUES ('99999999-9999-9999-9999-999999999999', 'test_user', 'test_user_password', 'test@example.com');
 
             INSERT INTO products (product_uuid, name, price)
             VALUES 

@@ -41,8 +41,8 @@ class OrderItemRepositoryTest {
                 .flatMap(productId -> {
                     productUuid = productId;
                     return client.sql("""
-                                        INSERT INTO users (username, email)
-                                        VALUES ('testuser', 'user@test.com')
+                                        INSERT INTO users (username, email, password)
+                                        VALUES ('testuser', 'user@test.com', 'testuserpassword')
                                         RETURNING user_uuid
                                     """)
                             .map((row, metadata) -> row.get("user_uuid", UUID.class))

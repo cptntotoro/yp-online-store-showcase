@@ -28,8 +28,11 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.when;
 
 @SpringBootTest
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
@@ -71,6 +74,7 @@ class CartServiceTransactionalTest {
         UserDao user = userRepository.save(UserDao.builder()
                 .username("test_user")
                 .email("test@example.com")
+                .password("password")
                 .createdAt(LocalDateTime.now())
                 .build()).block();
         userId = Objects.requireNonNull(user).getUuid();

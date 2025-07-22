@@ -9,11 +9,14 @@ import ru.practicum.model.user.User;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class UserMapperTest {
 
@@ -21,16 +24,23 @@ class UserMapperTest {
 
     private final UUID testUuid = UUID.randomUUID();
     private final String testUsername = "testUser";
+    private final String testPassword = "password";
     private final String testEmail = "test@example.com";
     private final LocalDateTime testCreatedAt = LocalDateTime.now();
+    private final List<String> testRoles = List.of("USER", "ADMIN");
 
     @Test
     void userDaoToUser_ShouldMapAllFieldsCorrectly() {
         UserDao userDao = UserDao.builder()
                 .uuid(testUuid)
                 .username(testUsername)
+                .password(testPassword)
                 .email(testEmail)
                 .createdAt(testCreatedAt)
+                .accountNonLocked(true)
+                .accountNonExpired(true)
+                .credentialsNonExpired(true)
+                .enabled(true)
                 .build();
 
         User user = userMapper.userDaoToUser(userDao);
@@ -38,8 +48,14 @@ class UserMapperTest {
         assertNotNull(user);
         assertEquals(testUuid, user.getUuid());
         assertEquals(testUsername, user.getUsername());
+        assertEquals(testPassword, user.getPassword());
         assertEquals(testEmail, user.getEmail());
         assertEquals(testCreatedAt, user.getCreatedAt());
+        assertTrue(user.isAccountNonLocked());
+        assertTrue(user.isAccountNonExpired());
+        assertTrue(user.isCredentialsNonExpired());
+        assertTrue(user.isEnabled());
+        assertNull(user.getRoles());
     }
 
     @Test
@@ -52,17 +68,28 @@ class UserMapperTest {
         User user = User.builder()
                 .uuid(testUuid)
                 .username(testUsername)
+                .password(testPassword)
                 .email(testEmail)
                 .createdAt(testCreatedAt)
+                .accountNonLocked(true)
+                .accountNonExpired(true)
+                .credentialsNonExpired(true)
+                .enabled(true)
+                .roles(testRoles)
                 .build();
 
         UserDao userDao = userMapper.userToUserDao(user);
 
         assertNotNull(userDao);
-        assertEquals(testUuid, userDao.getUuid());
+        assertNull(userDao.getUuid());
         assertEquals(testUsername, userDao.getUsername());
+        assertEquals(testPassword, userDao.getPassword());
         assertEquals(testEmail, userDao.getEmail());
-        assertEquals(testCreatedAt, userDao.getCreatedAt());
+        assertNull(userDao.getCreatedAt());
+        assertTrue(userDao.isAccountNonLocked());
+        assertTrue(userDao.isAccountNonExpired());
+        assertTrue(userDao.isCredentialsNonExpired());
+        assertTrue(userDao.isEnabled());
     }
 
     @Test
@@ -75,6 +102,7 @@ class UserMapperTest {
         UserDao userDao = UserDao.builder()
                 .uuid(testUuid)
                 .username(testUsername)
+                .accountNonLocked(false)
                 .build();
 
         User user = userMapper.userDaoToUser(userDao);
@@ -82,8 +110,14 @@ class UserMapperTest {
         assertNotNull(user);
         assertEquals(testUuid, user.getUuid());
         assertEquals(testUsername, user.getUsername());
+        assertNull(user.getPassword());
         assertNull(user.getEmail());
         assertNull(user.getCreatedAt());
+        assertFalse(user.isAccountNonLocked());
+        assertFalse(user.isAccountNonExpired());
+        assertFalse(user.isCredentialsNonExpired());
+        assertFalse(user.isEnabled());
+        assertNull(user.getRoles());
     }
 
     @Test
@@ -91,15 +125,21 @@ class UserMapperTest {
         User user = User.builder()
                 .uuid(testUuid)
                 .email(testEmail)
+                .accountNonExpired(false)
                 .build();
 
         UserDao userDao = userMapper.userToUserDao(user);
 
         assertNotNull(userDao);
-        assertEquals(testUuid, userDao.getUuid());
+        assertNull(userDao.getUuid());
         assertEquals(testEmail, userDao.getEmail());
         assertNull(userDao.getUsername());
+        assertNull(userDao.getPassword());
         assertNull(userDao.getCreatedAt());
+        assertFalse(userDao.isAccountNonExpired());
+        assertFalse(userDao.isAccountNonLocked());
+        assertFalse(userDao.isCredentialsNonExpired());
+        assertFalse(userDao.isEnabled());
     }
 
     @Test
