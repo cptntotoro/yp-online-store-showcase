@@ -3,9 +3,8 @@ package ru.practicum.controller.product;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import reactor.core.publisher.Mono;
@@ -27,23 +26,15 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class ProductViewControllerTest extends BaseControllerTest {
 
-    @Mock
-    private ProductService productService;
+    @MockBean
+    ProductService productService;
 
-    @Mock
+    @MockBean
     private ProductMapper productMapper;
-
-    @InjectMocks
-    private ProductViewController productViewController;
 
     private UUID testProductId;
     private Product testProduct;
     private ProductOutDto testProductDto;
-
-    @Override
-    protected Object getController() {
-        return productViewController;
-    }
 
     @BeforeEach
     void setUp() {
@@ -112,10 +103,18 @@ class ProductViewControllerTest extends BaseControllerTest {
 
     @Test
     void showAddProductForm_ShouldReturnAddProductPage() {
-        webTestClient.get()
+        getWebTestClientWithMockUser().get()
                 .uri("/products/add")
                 .exchange()
                 .expectStatus().isOk();
+    }
+
+    @Test
+    void showAddProductForm_ShouldRedirect3xx() {
+        webTestClient.get()
+                .uri("/products/add")
+                .exchange()
+                .expectStatus().is3xxRedirection();
     }
 
     @Test
@@ -124,7 +123,7 @@ class ProductViewControllerTest extends BaseControllerTest {
         when(productService.batchAdd(any()))
                 .thenReturn(Mono.empty());
 
-        webTestClient.post()
+        getWebTestClientWithMockUser().post()
                 .uri("/products/add")
                 .bodyValue(productsDto)
                 .exchange()

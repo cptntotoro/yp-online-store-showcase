@@ -6,6 +6,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Mono;
@@ -17,6 +20,7 @@ import ru.practicum.repository.balance.UserBalanceRepository;
 import ru.practicum.repository.transaction.TransactionRepository;
 
 import java.math.BigDecimal;
+import java.util.Collection;
 import java.util.UUID;
 
 @SpringBootTest
@@ -26,6 +30,13 @@ class PaymentControllerIntegrationTest {
 
     @Autowired
     private WebTestClient webTestClient;
+
+    protected WebTestClient getWebTestClientWithMockUser() {
+        Collection<GrantedAuthority> authorities = AuthorityUtils.createAuthorityList("SCOPE_payment.read", "SCOPE_payment.write");
+        return webTestClient
+                .mutateWith(SecurityMockServerConfigurers.mockJwt().authorities(authorities))
+                .mutateWith(SecurityMockServerConfigurers.csrf());
+    }
 
     @Autowired
     private UserBalanceRepository userBalanceRepository;
@@ -56,7 +67,7 @@ class PaymentControllerIntegrationTest {
 
     @Test
     void getBalance_shouldReturnUserBalance() {
-        webTestClient.get()
+        getWebTestClientWithMockUser().get()
                 .uri("/payment/{userUuid}/balance", testUserId)
                 .exchange()
                 .expectStatus().isOk()
@@ -71,7 +82,7 @@ class PaymentControllerIntegrationTest {
     void processPayment_shouldProcessSuccessfulPayment() {
         PaymentRequestDto request = new PaymentRequestDto(testUserId, testAmount, testOrderId);
 
-        webTestClient.post()
+        getWebTestClientWithMockUser().post()
                 .uri("/payment")
                 .bodyValue(request)
                 .exchange()
@@ -91,7 +102,7 @@ class PaymentControllerIntegrationTest {
     void processPayment_shouldHandleInsufficientFunds() {
         PaymentRequestDto request = new PaymentRequestDto(testUserId, initialBalance.add(BigDecimal.ONE), testOrderId);
 
-        webTestClient.post()
+        getWebTestClientWithMockUser().post()
                 .uri("/payment")
                 .bodyValue(request)
                 .exchange()
@@ -110,14 +121,14 @@ class PaymentControllerIntegrationTest {
     @Test
     void processRefund_shouldProcessSuccessfulRefund() {
         PaymentRequestDto paymentRequest = new PaymentRequestDto(testUserId, testAmount, testOrderId);
-        webTestClient.post()
+        getWebTestClientWithMockUser().post()
                 .uri("/payment")
                 .bodyValue(paymentRequest)
                 .exchange();
 
         RefundRequestDto refundRequest = new RefundRequestDto(testUserId, testAmount, testOrderId);
 
-        webTestClient.post()
+        getWebTestClientWithMockUser().post()
                 .uri("/payment/refund")
                 .bodyValue(refundRequest)
                 .exchange()
@@ -138,7 +149,7 @@ class PaymentControllerIntegrationTest {
     void processPayment_whenAmountNegative_shouldValidateRequest() {
         PaymentRequestDto invalidRequest = new PaymentRequestDto(testUserId, BigDecimal.valueOf(-100), testOrderId);
 
-        webTestClient.post()
+        getWebTestClientWithMockUser().post()
                 .uri("/payment")
                 .bodyValue(invalidRequest)
                 .exchange()
@@ -153,7 +164,7 @@ class PaymentControllerIntegrationTest {
     void processPayment_whenUserUuidNull_shouldValidateRequest() {
         PaymentRequestDto nullUserIdRequest = new PaymentRequestDto(null, testAmount, testOrderId);
 
-        webTestClient.post()
+        getWebTestClientWithMockUser().post()
                 .uri("/payment")
                 .bodyValue(nullUserIdRequest)
                 .exchange()

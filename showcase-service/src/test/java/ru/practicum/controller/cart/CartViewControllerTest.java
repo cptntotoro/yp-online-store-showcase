@@ -3,7 +3,6 @@ package ru.practicum.controller.cart;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
 import ru.practicum.controller.BaseControllerTest;
@@ -19,16 +18,9 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class CartViewControllerTest extends BaseControllerTest {
 
-    @InjectMocks
-    private CartViewController cartViewController;
-
     private final UUID TEST_PRODUCT_UUID = UUID.randomUUID();
     private final BigDecimal TEST_TOTAL_PRICE = new BigDecimal("99.99");
 
-    @Override
-    protected Object getController() {
-        return cartViewController;
-    }
 
     @BeforeEach
     void setUp() {
@@ -44,7 +36,8 @@ class CartViewControllerTest extends BaseControllerTest {
         when(cartService.get(TEST_USER_UUID)).thenReturn(Mono.just(cart));
         when(cartMapper.cartToCartDto(cart)).thenReturn(cartDto);
 
-        webTestClient.get()
+        getWebTestClientWithMockUser()
+                .get()
                 .uri("/cart")
                 .exchange()
                 .expectStatus().isOk();
@@ -55,7 +48,7 @@ class CartViewControllerTest extends BaseControllerTest {
         when(cartService.removeFromCart(TEST_USER_UUID, TEST_PRODUCT_UUID))
                 .thenReturn(Mono.empty());
 
-        webTestClient.post()
+        getWebTestClientWithMockUser().post()
                 .uri("/cart/remove/{productUuid}", TEST_PRODUCT_UUID)
                 .exchange()
                 .expectStatus().is3xxRedirection()
@@ -69,7 +62,7 @@ class CartViewControllerTest extends BaseControllerTest {
         when(cartService.clear(TEST_USER_UUID))
                 .thenReturn(Mono.empty());
 
-        webTestClient.post()
+        getWebTestClientWithMockUser().post()
                 .uri("/cart/clear")
                 .exchange()
                 .expectStatus().is3xxRedirection()

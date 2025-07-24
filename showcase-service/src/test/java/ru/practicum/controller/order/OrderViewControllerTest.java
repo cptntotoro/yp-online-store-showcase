@@ -3,9 +3,8 @@ package ru.practicum.controller.order;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import reactor.core.publisher.Mono;
 import ru.practicum.controller.BaseControllerTest;
 import ru.practicum.dto.order.OrderDto;
@@ -24,39 +23,36 @@ import ru.practicum.service.product.ProductService;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.anySet;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class OrderViewControllerTest extends BaseControllerTest {
 
-    @Mock
+    @MockBean
     private OrderService orderService;
 
-    @Mock
+    @MockBean
     private OrderPaymentService orderPaymentService;
 
-    @Mock
+    @MockBean
     private ProductService productService;
 
-    @Mock
+    @MockBean
     private OrderMapper orderMapper;
 
-    @Mock
+    @MockBean
     private ProductMapper productMapper;
-
-    @InjectMocks
-    private OrderViewController orderViewController;
 
     private UUID testOrderId;
     private UUID testProductId;
-
-    @Override
-    protected Object getController() {
-        return orderViewController;
-    }
 
     @BeforeEach
     void setUp() {
@@ -81,7 +77,7 @@ class OrderViewControllerTest extends BaseControllerTest {
         when(orderMapper.orderToOrderDtoWithProducts(any(Order.class), anyMap(), eq(productMapper)))
                 .thenReturn(createTestOrderDto());
 
-        webTestClient.get()
+        getWebTestClientWithMockUser().get()
                 .uri("/orders")
                 .exchange()
                 .expectStatus().isOk();
@@ -105,7 +101,7 @@ class OrderViewControllerTest extends BaseControllerTest {
         when(orderMapper.orderToOrderDtoWithProducts(any(Order.class), anyMap(), eq(productMapper)))
                 .thenReturn(orderDto);
 
-        webTestClient.get()
+        getWebTestClientWithMockUser().get()
                 .uri("/orders/" + testOrderId)
                 .exchange()
                 .expectStatus().isOk()
@@ -117,7 +113,7 @@ class OrderViewControllerTest extends BaseControllerTest {
         when(orderPaymentService.cancel(TEST_USER_UUID, testOrderId))
                 .thenReturn(Mono.empty());
 
-        webTestClient.get()
+        getWebTestClientWithMockUser().get()
                 .uri("/orders/" + testOrderId + "/checkout/cancel")
                 .exchange()
                 .expectStatus().is3xxRedirection()
