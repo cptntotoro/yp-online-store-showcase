@@ -127,7 +127,6 @@ public class ProductCacheServiceImpl implements ProductCacheService {
                                         list.add(dto);
                                         return listCacheTemplate.opsForValue()
                                                 .set(ALL_PRODUCTS_KEY, list, CACHE_TTL)
-                                                .doOnError(e -> System.out.println("ERROR: " + e.getMessage()))
                                                 .onErrorResume(e -> Mono.empty());
                                     })
                     ).thenReturn(product);

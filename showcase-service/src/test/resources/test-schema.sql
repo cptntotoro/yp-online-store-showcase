@@ -20,9 +20,14 @@ CREATE INDEX IF NOT EXISTS idx_products_price ON products(price);
 -- Таблица пользователей
 CREATE TABLE IF NOT EXISTS users (
     user_uuid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    username VARCHAR(255) NOT NULL,
+    username VARCHAR(255) NOT NULL UNIQUE,
+    password VARCHAR(100) NOT NULL,
     email VARCHAR(255) UNIQUE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    account_non_locked BOOLEAN DEFAULT TRUE,
+    account_non_expired BOOLEAN DEFAULT TRUE,
+    credentials_non_expired BOOLEAN DEFAULT TRUE,
+    enabled BOOLEAN DEFAULT TRUE
 );
 
 -- Таблица корзин

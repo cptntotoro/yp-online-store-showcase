@@ -6,22 +6,22 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Mono;
-import ru.practicum.config.WebAttributes;
 import ru.practicum.model.cart.Cart;
+import ru.practicum.model.user.User;
 import ru.practicum.service.cart.CartService;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class CartRestControllerTest {
-
-    private WebTestClient webTestClient;
 
     @Mock
     private CartService cartService;
@@ -29,74 +29,73 @@ class CartRestControllerTest {
     @InjectMocks
     private CartRestController cartRestController;
 
-    private final UUID TEST_USER_UUID = UUID.randomUUID();
-    private final UUID TEST_PRODUCT_UUID = UUID.randomUUID();
-    private final BigDecimal TEST_TOTAL_PRICE = new BigDecimal("99.99");
+    private User testUser;
+    private UUID testUserId;
+    private UUID productId;
 
     @BeforeEach
     void setUp() {
-        webTestClient = WebTestClient.bindToController(cartRestController)
-                .webFilter((exchange, chain) -> {
-                    exchange.getAttributes().put(WebAttributes.USER_UUID, TEST_USER_UUID);
-                    return chain.filter(exchange);
-                })
+        testUserId = UUID.randomUUID();
+        productId = UUID.randomUUID();
+
+        testUser = User.builder()
+                .uuid(testUserId)
+                .username("testuser")
+                .password("password")
+                .roles(List.of("USER"))
+                .email("test@example.com")
+                .enabled(true)
+                .accountNonExpired(true)
+                .accountNonLocked(true)
+                .credentialsNonExpired(true)
+                .createdAt(LocalDateTime.now())
                 .build();
     }
 
     @Test
-    void addToCart_ShouldReturnTotalPrice() {
-        Cart mockCart = new Cart();
-        mockCart.setTotalPrice(TEST_TOTAL_PRICE);
+    void addToCart_returnsTotalPrice() {
+        Cart cart = new Cart();
+        cart.setTotalPrice(BigDecimal.valueOf(200));
 
-        when(cartService.addToCart(TEST_USER_UUID, TEST_PRODUCT_UUID, 1))
-                .thenReturn(Mono.just(mockCart));
+        when(cartService.addToCart(testUserId, productId, 3)).thenReturn(Mono.just(cart));
 
-        webTestClient.post()
-                .uri("/cart/add/{productUuid}?quantity=1", TEST_PRODUCT_UUID)
-                .exchange()
-                .expectStatus().isOk()
-                .expectBody(BigDecimal.class)
-                .isEqualTo(TEST_TOTAL_PRICE);
+        BigDecimal result = cartRestController
+                .addToCart(testUser, productId, 3)
+                .block();
 
-        verify(cartService).addToCart(TEST_USER_UUID, TEST_PRODUCT_UUID, 1);
+        assertEquals(BigDecimal.valueOf(200), result);
+        verify(cartService).addToCart(testUserId, productId, 3);
     }
 
     @Test
-    void updateCartItem_ShouldReturnUpdatedTotalPrice() {
-        Cart mockCart = new Cart();
-        mockCart.setTotalPrice(TEST_TOTAL_PRICE);
+    void updateCartItem_returnsUpdatedTotalPrice() {
+        Cart updatedCart = new Cart();
+        updatedCart.setTotalPrice(BigDecimal.valueOf(350));
 
-        when(cartService.updateQuantity(TEST_USER_UUID, TEST_PRODUCT_UUID, 2))
-                .thenReturn(Mono.empty());
-        when(cartService.get(TEST_USER_UUID))
-                .thenReturn(Mono.just(mockCart));
+        when(cartService.updateQuantity(testUserId, productId, 5)).thenReturn(Mono.empty());
+        when(cartService.get(testUserId)).thenReturn(Mono.just(updatedCart));
 
-        webTestClient.patch()
-                .uri("/cart/update/{productUuid}?quantity=2", TEST_PRODUCT_UUID)
-                .exchange()
-                .expectStatus().isOk()
-                .expectBody(BigDecimal.class)
-                .isEqualTo(TEST_TOTAL_PRICE);
+        BigDecimal result = cartRestController
+                .updateCartItem(testUser, productId, 5)
+                .block();
 
-        verify(cartService).updateQuantity(TEST_USER_UUID, TEST_PRODUCT_UUID, 2);
-        verify(cartService).get(TEST_USER_UUID);
+        assertEquals(BigDecimal.valueOf(350), result);
+        verify(cartService).updateQuantity(testUserId, productId, 5);
+        verify(cartService).get(testUserId);
     }
 
     @Test
-    void removeFromCart_ShouldReturnUpdatedTotalPrice() {
-        Cart mockCart = new Cart();
-        mockCart.setTotalPrice(TEST_TOTAL_PRICE);
+    void removeFromCart_returnsUpdatedTotalPrice() {
+        Cart cart = new Cart();
+        cart.setTotalPrice(BigDecimal.ZERO);
 
-        when(cartService.removeFromCart(TEST_USER_UUID, TEST_PRODUCT_UUID))
-                .thenReturn(Mono.just(mockCart));
+        when(cartService.removeFromCart(testUserId, productId)).thenReturn(Mono.just(cart));
 
-        webTestClient.delete()
-                .uri("/cart/remove/{productUuid}", TEST_PRODUCT_UUID)
-                .exchange()
-                .expectStatus().isOk()
-                .expectBody(BigDecimal.class)
-                .isEqualTo(TEST_TOTAL_PRICE);
+        BigDecimal result = cartRestController
+                .removeFromCart(testUser, productId)
+                .block();
 
-        verify(cartService).removeFromCart(TEST_USER_UUID, TEST_PRODUCT_UUID);
+        assertEquals(BigDecimal.ZERO, result);
+        verify(cartService).removeFromCart(testUserId, productId);
     }
 }

@@ -1,11 +1,37 @@
 services:
+  auth-service:
+    profiles: ["prod"]
+    restart: on-failure
+    container_name: "yp-auth-service"
+    build:
+      context: .
+      dockerfile: auth-service/Dockerfile
+    ports:
+      - "9000:9000"
+    environment:
+      - SPRING_R2DBC_URL=r2dbc:postgresql://postgres:5432/auth_db
+      - SPRING_R2DBC_USERNAME=postgres
+      - SPRING_R2DBC_PASSWORD=postgres
+      - DB_NAME=auth_db
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - AUTH_SERVICE_JWT_ISSUER_URI=http://auth-service:9000
+      - AUTH_SERVICE_JWT_JWK_SET_URI=http://auth-service:9000/oauth2/jwks
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9000/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
   showcase-service:
     profiles: ["prod"]
     restart: on-failure
     build:
       context: .
       dockerfile: showcase-service/Dockerfile
-    image: yp-online-showcase
     container_name: "yp-online-showcase"
     ports:
       - "8080:8080"
@@ -14,18 +40,21 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      auth-service:
+        condition: service_healthy
     environment:
       - SPRING_PROFILES_ACTIVE=prod
-      - SPRING_R2DBC_URL=r2dbc:postgresql://postgres:5432/postgres
+      - SPRING_R2DBC_URL=r2dbc:postgresql://postgres:5432/showcase_db
       - SPRING_R2DBC_USERNAME=postgres
       - SPRING_R2DBC_PASSWORD=postgres
       - PAYMENT_SERVICE_URL=http://payment-service:8081
-      - DB_NAME=postgres
+      - AUTH_SERVICE_TOKEN_URL=http://auth-service:9000/oauth2/token
+      - DB_NAME=showcase_db
       - DB_HOST=postgres
       - DB_PORT=5432
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - REDIS_PASSWORD=
+      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_PORT=6379
+      - SPRING_DATA_REDIS_PASSWORD=
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
       interval: 30s
@@ -37,19 +66,25 @@ services:
     build:
       context: .
       dockerfile: payment-service/Dockerfile
-    image: yp-payment-service
     container_name: "yp-payment-service"
     ports:
       - "8081:8081"
     environment:
       - SPRING_PROFILES_ACTIVE=prod
       - SERVER_PORT=8081
-      - SPRING_R2DBC_URL=r2dbc:postgresql://postgres:5432/postgres
+      - SPRING_R2DBC_URL=r2dbc:postgresql://postgres:5432/payment_db
+      - DB_NAME=payment_db
       - SPRING_R2DBC_USERNAME=postgres
       - SPRING_R2DBC_PASSWORD=postgres
       - PAYMENT_DEFAULT_BALANCE=15000.00
+      - AUTH_SERVICE_JWK_URL=http://auth-service:9000/oauth2/jwks
+      - AUTH_SERVICE_JWT_ISSUER_URI=http://auth-service:9000
     depends_on:
       postgres:
+        condition: service_healthy
+      auth-service:
+        condition: service_healthy
+      showcase-service:
         condition: service_healthy
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8081/actuator/health" ]
@@ -69,6 +104,7 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./postgres/initdb:/docker-entrypoint-initdb.d
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
@@ -78,6 +114,7 @@ services:
   redis:
     profiles: ["prod"]
     image: redis:7.2
+    container_name: "redis"
     ports:
       - "6379:6379"
     volumes:

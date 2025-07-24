@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Страница не найдена | GeekStore</title>
+    <meta name="description" content="Yandex Practicum Blog | Страница не найдена">
+    <link rel="icon" type="image/png" th:href="@{/images/favicon.ico}"/>
+    <link rel="stylesheet" th:href="@{/styles/base.css}">
+    <link rel="stylesheet" th:href="@{/styles/layout.css}">
+    <link rel="stylesheet" th:href="@{/styles/components.css}">
+    <link rel="stylesheet" th:href="@{/styles/util/error.css}">
+
+    <th:block th:include="~{../fragments/header :: header-head}"></th:block>
+    <th:block th:include="~{../fragments/footer :: footer-head}"></th:block>
+</head>
+<body>
+<div th:replace="~{../fragments/header :: header}"></div>
+
+<main class="main">
+    <div class="error-container">
+        <div class="error-icon">⚠️</div>
+        <h1 class="error-container__header">404 - Страница не найдена</h1>
+
+        <div class="error-details">
+            <p class="error-detail">Запрошенная страница не существует или была перемещена.</p>
+        </div>
+
+        <div class="error-actions">
+            <a href="/products" class="btn btn-primary">На главную</a>
+            <a href="javascript:history.back()" class="btn btn-outline">Назад</a>
+        </div>
+
+        <p class="error-container__timestamp" th:text="${#dates.format(#dates.createNow(), 'dd.MM.yyyy HH:mm')}"></p>
+    </div>
+</main>
+
+<div th:replace="~{../fragments/footer :: footer}"></div>
+</body>
+</html>

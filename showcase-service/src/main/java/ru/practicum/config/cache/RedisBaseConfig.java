@@ -19,9 +19,9 @@ public class RedisBaseConfig {
     @Bean
     @Primary
     public ReactiveRedisConnectionFactory rConnectionFactory(
-            @Value("${spring.data.redis.lettuce.host}") String host,
-            @Value("${spring.data.redis.lettuce.port}") int port,
-            @Value("${spring.data.redis.lettuce.password}") String password) {
+            @Value("${spring.data.redis.host}") String host,
+            @Value("${spring.data.redis.port}") int port,
+            @Value("${spring.data.redis.password}") String password) {
 
         RedisStandaloneConfiguration config = new RedisStandaloneConfiguration(host, port);
         if (StringUtils.hasText(password)) {

@@ -30,7 +30,10 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -82,22 +85,28 @@ public class CartServiceIntegrationTest extends CacheServiceIntegrationTest {
         userRepository.deleteAll().block();
         cartCacheTemplate.getConnectionFactory().getReactiveConnection().serverCommands().flushAll().block();
 
-        UserDao userDao = new UserDao();
-        userDao.setUsername("test_user");
-        userDao.setCreatedAt(LocalDateTime.now());
+        UserDao userDao = UserDao.builder()
+                .username("test_user")
+                .password("test_password")
+                .createdAt(LocalDateTime.now())
+                .build();
+
         userDao = userRepository.save(userDao).block();
         userId = Objects.requireNonNull(userDao).getUuid();
 
-        ProductDao productDao = new ProductDao();
-        productDao.setName("Test Product");
-        productDao.setPrice(BigDecimal.valueOf(100.0));
+        ProductDao productDao = ProductDao.builder()
+                .name("Test Product")
+                .price(BigDecimal.valueOf(100.0))
+                .build();
+
         productDao = productRepository.save(productDao).block();
         productId = Objects.requireNonNull(productDao).getUuid();
 
-        testProduct = new Product();
-        testProduct.setUuid(productId);
-        testProduct.setName("Test Product");
-        testProduct.setPrice(BigDecimal.valueOf(100.0));
+        testProduct = Product.builder()
+                .uuid(productId)
+                .name("Test Product")
+                .price(BigDecimal.valueOf(100.0))
+                .build();
 
         testCart = cartService.createGuest(userId).block();
     }
@@ -113,9 +122,12 @@ public class CartServiceIntegrationTest extends CacheServiceIntegrationTest {
 
     @Test
     void createGuest_ShouldCreateNewCart() {
-        UserDao userDao = new UserDao();
-        userDao.setUsername("test_user");
-        userDao.setCreatedAt(LocalDateTime.now());
+        UserDao userDao = UserDao.builder()
+                .username("test_user_new")
+                .password("test_password")
+                .createdAt(LocalDateTime.now())
+                .build();
+
         userDao = userRepository.save(userDao).block();
         UUID newUserId = Objects.requireNonNull(userDao).getUuid();
 

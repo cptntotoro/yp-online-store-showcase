@@ -3,9 +3,8 @@ package ru.practicum.controller.payment;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import reactor.core.publisher.Mono;
 import ru.practicum.controller.BaseControllerTest;
 import ru.practicum.dto.order.OrderDto;
@@ -27,26 +26,18 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class PaymentViewControllerTest extends BaseControllerTest {
 
-    @Mock
+    @MockBean
     private OrderService orderService;
 
-    @Mock
+    @MockBean
     private OrderPaymentService orderPaymentService;
 
-    @Mock
+    @MockBean
     private OrderMapper orderMapper;
-
-    @InjectMocks
-    private PaymentViewController paymentViewController;
 
     private UUID testOrderId;
     private Order testOrder;
     private OrderDto testOrderDto;
-
-    @Override
-    protected Object getController() {
-        return paymentViewController;
-    }
 
     @BeforeEach
     void setUp() {
@@ -69,7 +60,7 @@ class PaymentViewControllerTest extends BaseControllerTest {
         when(orderMapper.orderToOrderDto(any(Order.class))).thenReturn(testOrderDto);
         when(cartService.clear(TEST_USER_UUID)).thenReturn(Mono.empty());
 
-        webTestClient.get()
+        getWebTestClientWithMockUser().get()
                 .uri("/payment/checkout")
                 .exchange()
                 .expectStatus().isOk();
@@ -86,7 +77,7 @@ class PaymentViewControllerTest extends BaseControllerTest {
         when(orderMapper.orderToOrderDto(any()))
                 .thenReturn(testOrderDto);
 
-        webTestClient.get()
+        getWebTestClientWithMockUser().get()
                 .uri("/payment/checkout/created/{orderUuid}", testOrderId)
                 .exchange()
                 .expectStatus().isOk();
@@ -111,7 +102,7 @@ class PaymentViewControllerTest extends BaseControllerTest {
         when(orderMapper.orderToOrderDto(any()))
                 .thenReturn(testOrderDto);
 
-        webTestClient.post()
+        getWebTestClientWithMockUser().post()
                 .uri("/payment/{orderUuid}/checkout", testOrderId)
                 .bodyValue(checkoutDto)
                 .exchange()
@@ -132,7 +123,7 @@ class PaymentViewControllerTest extends BaseControllerTest {
         when(orderMapper.orderToOrderDto(any()))
                 .thenReturn(testOrderDto);
 
-        webTestClient.post()
+        getWebTestClientWithMockUser().post()
                 .uri("/payment/{orderUuid}/checkout", testOrderId)
                 .bodyValue(checkoutDto)
                 .exchange()
@@ -155,7 +146,7 @@ class PaymentViewControllerTest extends BaseControllerTest {
         when(orderMapper.orderToOrderDto(any()))
                 .thenReturn(testOrderDto);
 
-        webTestClient.post()
+        getWebTestClientWithMockUser().post()
                 .uri("/payment/{orderUuid}/checkout", testOrderId)
                 .bodyValue(checkoutDto)
                 .exchange()

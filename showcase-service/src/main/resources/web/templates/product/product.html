@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -48,7 +48,7 @@
                     <div class="product-detail-description"
                          th:text="${product.description}"></div>
 
-                    <div class="product-detail-actions">
+                    <div th:if="${isAuthenticated}" class="product-detail-actions">
                         <div th:replace="~{../fragments/cart-controls :: cart-controls(isCartPage=false)}"></div>
                     </div>
                 </div>

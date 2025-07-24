@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Регистрация | GeekStore</title>
+    <link rel="icon" type="image/png" th:href="@{/images/favicon.ico}"/>
+    <link rel="stylesheet" type="text/css" th:href="@{/styles/base.css}">
+    <link rel="stylesheet" type="text/css" th:href="@{/styles/components.css}">
+    <link rel="stylesheet" type="text/css" th:href="@{/styles/layout.css}">
+    <link rel="stylesheet" type="text/css" th:href="@{/styles/auth/sign-up.css}">
+
+    <th:block th:include="~{../fragments/header :: header-head}"></th:block>
+    <th:block th:include="~{../fragments/footer :: footer-head}"></th:block>
+
+    <script type="text/javascript" th:src="@{/scripts/auth/sign-up.js}"></script>
+</head>
+
+<body>
+<div th:replace="~{../fragments/header :: header}"></div>
+
+<main class="main">
+    <div class="signup-container">
+        <div class="signup-header">
+            <h1>Создайте аккаунт</h1>
+            <p>Зарегистрируйтесь, чтобы начать покупки</p>
+        </div>
+
+        <div th:if="${userExists}" class="alert alert-warning">
+            Пользователь с таким email или username уже существует
+        </div>
+
+        <form id="registrationForm" th:action="@{/sign-up}" method="post" class="signup-form">
+
+            <div class="form-group">
+                <label for="username">Имя пользователя</label>
+                <input type="text" id="username" name="username" class="form-control" required>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Адрес электронной почты</label>
+                <input type="email" id="email" name="email" class="form-control" required>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Пароль</label>
+                <input type="password" id="password" name="password" class="form-control" required
+                       oninput="checkPasswordStrength(this.value)">
+            </div>
+
+            <div class="form-group">
+                <label for="confirmPassword">Подтвердите пароль</label>
+                <input type="password" id="confirmPassword" class="form-control" required>
+                <div class="signup-error" id="passwordMatchError" style="display: none;">
+                    Пароли не совпадают
+                </div>
+            </div>
+
+            <div class="form-group checkbox-group">
+                <input type="checkbox" id="agreeTerms" name="agreeTerms" required>
+                <label for="agreeTerms">Я согласен с <a href="#">Условиями использования</a> и&nbsp;<a href="#">Политикой конфиденциальности</a></label>
+                <div class="signup-error" id="termsError" style="display: none;">
+                    Необходимо принять условия
+                </div>
+            </div>
+
+            <div class="signup-actions">
+                <button type="submit" class="btn btn-primary">Зарегистрироваться</button>
+                <a href="/login" class="btn btn-outline">Уже есть аккаунт? Войти</a>
+            </div>
+        </form>
+    </div>
+</main>
+
+<div th:replace="~{../fragments/footer :: footer}"></div>
+</body>
+</html>

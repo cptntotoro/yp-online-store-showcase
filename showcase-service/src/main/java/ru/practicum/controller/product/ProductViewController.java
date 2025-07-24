@@ -2,6 +2,7 @@ package ru.practicum.controller.product;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -41,7 +42,7 @@ public class ProductViewController {
                                         @RequestParam(required = false) String sort,
                                         Model model) {
 
-        return productService.getProducts(search, sort, PageRequest.of(page, size))
+      return productService.getProducts(search, sort, PageRequest.of(page, size))
                 .map(productPage -> {
                     model.addAttribute("products", productPage.map(productMapper::productToProductOutDto));
                     model.addAttribute("search", search);
@@ -62,12 +63,14 @@ public class ProductViewController {
                 .thenReturn("product/product");
     }
 
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/add")
     public Mono<String> showAddProductForm(Model model) {
         return Mono.just(model.addAttribute("products", new ProductListInDto()))
                 .thenReturn("product/add");
     }
 
+    @PreAuthorize("isAuthenticated()")
     @PostMapping("/add")
     public Mono<String> addProducts(@ModelAttribute("products") ProductListInDto products) {
         List<Product> productList = products.getProducts().stream()

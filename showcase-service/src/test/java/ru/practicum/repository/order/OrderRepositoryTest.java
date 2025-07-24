@@ -41,28 +41,32 @@ class OrderRepositoryTest {
     }
 
     private Mono<OrderDao> createTestOrder(UUID userUuid, UUID cartUuid) {
-        OrderDao order = new OrderDao();
-        order.setUserUuid(userUuid);
-        order.setCartUuid(cartUuid);
-        order.setStatus(OrderStatus.CREATED);
-        order.setTotalPrice(new BigDecimal("100.00"));
-        order.setCreatedAt(LocalDateTime.now());
+        OrderDao order = OrderDao.builder()
+                .userUuid(userUuid)
+                .cartUuid(cartUuid)
+                .status(OrderStatus.CREATED)
+                .totalPrice(new BigDecimal("100.00"))
+                .createdAt(LocalDateTime.now())
+                .build();
         return orderRepository.save(order);
     }
 
     private Mono<UserDao> createTestUser() {
-        UserDao user = new UserDao();
-        user.setUsername(UUID.randomUUID().toString());
-        user.setEmail(UUID.randomUUID() + "@example.com");
+        UserDao user = UserDao.builder()
+                .username(UUID.randomUUID().toString())
+                .email(UUID.randomUUID() + "@example.com")
+                .password(UUID.randomUUID().toString())
+                .build();
         return userRepository.save(user);
     }
 
     private Mono<CartDao> createTestCart(UUID userUuid) {
-        CartDao cart = new CartDao();
-        cart.setUserUuid(userUuid);
-        cart.setTotalPrice(BigDecimal.ZERO);
-        cart.setCreatedAt(LocalDateTime.now());
-        cart.setUpdatedAt(LocalDateTime.now());
+        CartDao cart = CartDao.builder()
+                .userUuid(userUuid)
+                .totalPrice(BigDecimal.ZERO)
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build();
         return cartRepository.save(cart);
     }
 
@@ -71,19 +75,21 @@ class OrderRepositoryTest {
         Flux<OrderDao> testFlow = createTestUser()
                 .flatMap(user -> createTestCart(user.getUuid()))
                 .flatMapMany(cart -> {
-                    OrderDao order1 = new OrderDao();
-                    order1.setUserUuid(cart.getUserUuid());
-                    order1.setCartUuid(cart.getUuid());
-                    order1.setStatus(OrderStatus.CREATED);
-                    order1.setTotalPrice(new BigDecimal("50.00"));
-                    order1.setCreatedAt(LocalDateTime.now());
+                    OrderDao order1 = OrderDao.builder()
+                            .userUuid(cart.getUserUuid())
+                            .cartUuid(cart.getUuid())
+                            .status(OrderStatus.CREATED)
+                            .totalPrice(new BigDecimal("50.00"))
+                            .createdAt(LocalDateTime.now())
+                            .build();
 
-                    OrderDao order2 = new OrderDao();
-                    order2.setUserUuid(cart.getUserUuid());
-                    order2.setCartUuid(cart.getUuid());
-                    order2.setStatus(OrderStatus.DELIVERED);
-                    order2.setTotalPrice(new BigDecimal("150.00"));
-                    order2.setCreatedAt(LocalDateTime.now());
+                    OrderDao order2 = OrderDao.builder()
+                            .userUuid(cart.getUserUuid())
+                            .cartUuid(cart.getUuid())
+                            .status(OrderStatus.DELIVERED)
+                            .totalPrice(new BigDecimal("150.00"))
+                            .createdAt(LocalDateTime.now())
+                            .build();
 
                     return Flux.merge(
                             orderRepository.save(order1),
@@ -132,17 +138,19 @@ class OrderRepositoryTest {
         Mono<BigDecimal> testFlow = createTestUser()
                 .flatMap(user -> createTestCart(user.getUuid()))
                 .flatMap(cart -> {
-                    OrderDao order1 = new OrderDao();
-                    order1.setUserUuid(cart.getUserUuid());
-                    order1.setCartUuid(cart.getUuid());
-                    order1.setStatus(OrderStatus.CREATED);
-                    order1.setTotalPrice(new BigDecimal("100.00"));
+                    OrderDao order1 = OrderDao.builder()
+                            .userUuid(cart.getUserUuid())
+                            .cartUuid(cart.getUuid())
+                            .status(OrderStatus.CREATED)
+                            .totalPrice(new BigDecimal("100.00"))
+                            .build();
 
-                    OrderDao order2 = new OrderDao();
-                    order2.setUserUuid(cart.getUserUuid());
-                    order2.setCartUuid(cart.getUuid());
-                    order2.setStatus(OrderStatus.DELIVERED);
-                    order2.setTotalPrice(new BigDecimal("200.00"));
+                    OrderDao order2 = OrderDao.builder()
+                            .userUuid(cart.getUserUuid())
+                            .cartUuid(cart.getUuid())
+                            .status(OrderStatus.DELIVERED)
+                            .totalPrice(new BigDecimal("200.00"))
+                            .build();
 
                     return orderRepository.save(order1)
                             .then(orderRepository.save(order2))

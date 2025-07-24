@@ -56,9 +56,11 @@ class CartRepositoryTest {
 
     @Test
     void findByUserUuid_shouldReturnCart_whenExists() {
-        UserDao user = new UserDao();
-        user.setUsername("testuser");
-        user.setEmail("test@example.com");
+        UserDao user = UserDao.builder()
+                .username("testuser")
+                .password("password")
+                .email("test@example.com")
+                .build();
 
         Mono<CartDao> testFlow = userRepository.save(user)
                 .flatMap(savedUser -> {
@@ -79,13 +81,17 @@ class CartRepositoryTest {
 
     @Test
     void findByUserUuid_shouldReturnCorrectCart_whenMultipleCartsExist() {
-        UserDao user1 = new UserDao();
-        user1.setUsername("user1");
-        user1.setEmail("user1@example.com");
+        UserDao user1 = UserDao.builder()
+                .username("user1")
+                .password("password1")
+                .email("user1@example.com")
+                .build();
 
-        UserDao user2 = new UserDao();
-        user2.setUsername("user2");
-        user2.setEmail("user2@example.com");
+        UserDao user2 = UserDao.builder()
+                .username("user2")
+                .password("password2")
+                .email("user2@example.com")
+                .build();
 
         Mono<CartDao> testFlow = Mono.zip(userRepository.save(user1), userRepository.save(user2))
                 .flatMap(tuple -> {

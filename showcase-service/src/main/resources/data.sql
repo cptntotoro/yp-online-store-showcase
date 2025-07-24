@@ -24,3 +24,6 @@ VALUES ('Уточка ночник', 'Ночник в виде уставшей 
        ('Интерьерный конструктор Robotime Sam''s Study Library',
         'Румбокс интерьерный Sam''s Study Library - сборная модель сказочной миниатюрной библиотеки Сэма. На полках вы найдете книги по философии и искусству, инструкции и романы.',
         4200.00, '/images/interernyy_konstruktor_robotime.jpg');
+
+INSERT INTO roles (name, description) VALUES
+('USER', 'Обычный пользователь');

@@ -27,6 +27,10 @@
             <groupId>jakarta.validation</groupId>
             <artifactId>jakarta.validation-api</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
@@ -101,7 +105,6 @@
                                 <reactive>true</reactive>
                                 <useResponseEntity>false</useResponseEntity>
                                 <skipDefaultInterface>true</skipDefaultInterface>
-<!--                                <dateLibrary>java21</dateLibrary>-->
                                 <useSpringController>true</useSpringController>
                                 <openApiNullable>false</openApiNullable>
                                 <serializableModel>true</serializableModel>

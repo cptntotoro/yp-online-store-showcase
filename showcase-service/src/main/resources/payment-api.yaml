@@ -6,6 +6,11 @@ info:
 servers:
   - url: http://localhost:8080
 
+security:
+  - oauth2:
+      - payment.write
+      - payment.read
+
 tags:
   - name: Payment
     description: Операции с балансом пользователя, оплатами заказов, возврата средств
@@ -17,6 +22,9 @@ paths:
       operationId: getBalance
       summary: Получить баланс пользователя
       description: Возвращает текущий баланс пользователя. Если баланс не существует - создает новый с дефолтным значением.
+      security:
+        - oauth2:
+            - payment.read
       parameters:
         - name: userId
           in: path
@@ -34,6 +42,8 @@ paths:
                 $ref: '#/components/schemas/UserBalanceResponseDto'
         '400':
           description: Невалидный UUID пользователя
+        '401':
+          description: Неавторизованный запрос
         '500':
           description: Внутренняя ошибка сервера
 
@@ -43,6 +53,9 @@ paths:
       operationId: processPayment
       summary: Обработать платеж
       description: Выполняет списание средств с баланса пользователя для оплаты заказа
+      security:
+        - oauth2:
+            - payment.write
       requestBody:
         required: true
         content:
@@ -62,6 +75,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ValidationErrorResponse'
+        '401':
+          description: Неавторизованный запрос
         '404':
           description: Пользователь не найден
         '500':
@@ -73,6 +88,9 @@ paths:
       operationId: processRefund
       summary: Обработать возврат средств
       description: Выполняет возврат средств на баланс пользователя
+      security:
+        - oauth2:
+            - payment.write
       requestBody:
         required: true
         content:
@@ -88,6 +106,8 @@ paths:
                 $ref: '#/components/schemas/RefundResponseDto'
         '400':
           description: Невалидные входные данные
+        '401':
+          description: Неавторизованный запрос
         '404':
           description: Пользователь не найден
         '500':
@@ -214,3 +234,12 @@ components:
                 description: Сообщение об ошибке
             required: [objectName, field, message]
       required: [status, message, fieldErrors]
+  securitySchemes:
+    oauth2:
+      type: oauth2
+      flows:
+        clientCredentials:
+          tokenUrl: http://localhost:9000/oauth2/token
+          scopes:
+            payment.read: Read payment data
+            payment.write: Write payment data

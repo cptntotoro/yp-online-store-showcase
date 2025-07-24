@@ -1,6 +1,10 @@
 package ru.practicum.dao.user;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
@@ -32,6 +36,11 @@ public class UserDao {
     private String username;
 
     /**
+     * Пароль
+     */
+    private String password;
+
+    /**
      * Адрес электронной почты
      */
     private String email;
@@ -41,4 +50,24 @@ public class UserDao {
      */
     @Column("created_at")
     private LocalDateTime createdAt;
+
+    /**
+     * Флаг, указывающий, не заблокирована ли учетная запись
+     */
+    private boolean accountNonLocked;
+
+    /**
+     * Флаг, указывающий, не истек ли срок действия учетной записи
+     */
+    private boolean accountNonExpired;
+
+    /**
+     * Флаг, указывающий, не истек ли срок действия учетных данных (пароля)
+     */
+    private boolean credentialsNonExpired;
+
+    /**
+     * Флаг активности аккаунта
+     */
+    private boolean enabled;
 }

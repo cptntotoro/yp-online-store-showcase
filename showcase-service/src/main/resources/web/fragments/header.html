@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="ru">
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
 <head th:fragment="header-head">
     <link rel="stylesheet" th:href="@{/styles/fragments/header.css}">
 </head>
@@ -9,17 +9,23 @@
     <div class="container">
         <nav class="nav">
             <a href="/products" class="logo">GeekStore</a>
-            <div class="nav-links">
-                <a href="/products/add" class="nav-link">Добавить товары</a>
-                <a href="/orders" class="nav-link">Заказы</a>
-                <a href="/cart" class="nav-link">
-                    🛒
-                    <span class="cart-total"
-                          th:text="${cart.totalPrice != null
+            <div th:if="${isAuthenticated}" class="nav-links">
+                    <a href="/products/add" class="nav-link">Добавить товары</a>
+                    <a href="/orders" class="nav-link">Заказы</a>
+                    <a href="/cart" class="nav-link">
+                        🛒
+                        <span class="cart-total"
+                              th:text="${cart?.totalPrice != null
                         ? (cart.totalPrice == 0 ? '0,00'
                         : #numbers.formatDecimal(cart.totalPrice, 0, 2, 'COMMA')) : '0,00'} + ' ₽'">
-                </span>
-                </a>
+                        </span>
+                    </a>
+                    <a href="/logout" class="nav-link">Выйти из аккаунта</a>
+            </div>
+
+            <div th:unless="${isAuthenticated}" class="nav-links">
+                <a href="/login" class="nav-link">Войти</a>
+                <a href="/sign-up" class="nav-link">Регистрация</a>
             </div>
         </nav>
     </div>
