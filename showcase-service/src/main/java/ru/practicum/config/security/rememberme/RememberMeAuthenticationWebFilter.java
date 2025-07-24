@@ -41,9 +41,6 @@ public class RememberMeAuthenticationWebFilter implements WebFilter {
             return chain.filter(exchange);
         }
 
-        // TODO:
-        System.err.println("Processing remember-me for path: " + path);
-
         return exchange.getPrincipal()
                 .flatMap(principal -> chain.filter(exchange))
                 .switchIfEmpty(processRememberMe(exchange, chain));

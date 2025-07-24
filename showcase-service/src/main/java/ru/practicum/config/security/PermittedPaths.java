@@ -29,7 +29,6 @@ public class PermittedPaths {
             "/templates/**",
             "/fragments/**",
             "/actuator/**"
-//            "/products/**"
     );
 
     /**

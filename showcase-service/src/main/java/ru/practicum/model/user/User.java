@@ -60,17 +60,17 @@ public class User implements UserDetails {
     private boolean enabled;
 
     /**
-     * Флаг блокировки аккаунта
+     * Флаг, указывающий, не заблокирована ли учетная запись
      */
     private boolean accountNonLocked;
 
     /**
-     * Флаг истечения срока аккаунта
+     * Флаг, указывающий, не истек ли срок действия учетной записи
      */
     private boolean accountNonExpired;
 
     /**
-     * Флаг истечения срока учетных данных
+     * Флаг, указывающий, не истек ли срок действия учетных данных (пароля)
      */
     private boolean credentialsNonExpired;
 

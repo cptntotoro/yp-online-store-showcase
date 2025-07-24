@@ -173,5 +173,4 @@ class PaymentControllerIntegrationTest {
                 .jsonPath("$.message").hasJsonPath()
                 .jsonPath("$.fieldErrors").hasJsonPath();
     }
-
 }

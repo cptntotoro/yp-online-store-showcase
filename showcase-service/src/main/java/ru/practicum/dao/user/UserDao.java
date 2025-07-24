@@ -51,8 +51,19 @@ public class UserDao {
     @Column("created_at")
     private LocalDateTime createdAt;
 
+    /**
+     * Флаг, указывающий, не заблокирована ли учетная запись
+     */
     private boolean accountNonLocked;
+
+    /**
+     * Флаг, указывающий, не истек ли срок действия учетной записи
+     */
     private boolean accountNonExpired;
+
+    /**
+     * Флаг, указывающий, не истек ли срок действия учетных данных (пароля)
+     */
     private boolean credentialsNonExpired;
 
     /**

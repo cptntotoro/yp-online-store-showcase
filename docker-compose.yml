@@ -1,8 +1,7 @@
 services:
   auth-service:
     profiles: ["prod"]
-#    restart: on-failure
-#    image: yp-auth-service
+    restart: on-failure
     container_name: "yp-auth-service"
     build:
       context: .
@@ -33,7 +32,6 @@ services:
     build:
       context: .
       dockerfile: showcase-service/Dockerfile
-#    image: yp-online-showcase
     container_name: "yp-online-showcase"
     ports:
       - "8080:8080"
@@ -68,7 +66,6 @@ services:
     build:
       context: .
       dockerfile: payment-service/Dockerfile
-#    image: yp-payment-service
     container_name: "yp-payment-service"
     ports:
       - "8081:8081"

@@ -43,8 +43,6 @@ public class RememberMeAuthenticationConverter implements ServerAuthenticationCo
                 .switchIfEmpty(Mono.defer(() ->
                         Mono.justOrEmpty(exchange.getRequest().getCookies().getFirst(COOKIE_NAME))
                                 .flatMap(cookie -> {
-                                    // TODO:
-                                    System.err.println("REMEMBER-ME cookie found: " + cookie.getValue());
                                     try {
                                         String[] tokens = tokenService.decodeCookie(cookie.getValue());
                                         return validateToken(tokens)
@@ -78,8 +76,6 @@ public class RememberMeAuthenticationConverter implements ServerAuthenticationCo
         return userDetailsService.findByUsername(username)
                 .switchIfEmpty(Mono.error(new UsernameNotFoundException("Пользователь с username " + username + " не найден")))
                 .flatMap(user -> {
-                    // TODO:
-                    System.err.println("REMEMBER-ME success for user: " + user.getUsername());
                     if (System.currentTimeMillis() > expiryTime) {
                         return Mono.error(new CredentialsExpiredException("Срок действия Remember-Me токена истек"));
                     }

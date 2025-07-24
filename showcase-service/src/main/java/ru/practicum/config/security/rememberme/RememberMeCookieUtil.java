@@ -16,7 +16,6 @@ public class RememberMeCookieUtil {
      */
     private static final String COOKIE_PATH = "/";
 
-    // TODO:
     /**
      * Политика SameSite для куки (по умолчанию Lax)
      */

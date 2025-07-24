@@ -70,7 +70,6 @@ public class SecurityConfig {
                                     return mono.map(auth -> new AuthorizationDecision(true))
                                             .defaultIfEmpty(new AuthorizationDecision(true));
                                 })
-//                        .pathMatchers(HttpMethod.GET, "/products", "/products/**").permitAll()
                         .anyExchange().authenticated()
                 )
                 .formLogin(form -> form
