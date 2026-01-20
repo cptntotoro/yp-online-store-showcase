@@ -1,7 +1,10 @@
 package ru.practicum.service.product;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
@@ -12,7 +15,13 @@ import ru.practicum.model.product.Product;
 import ru.practicum.model.product.ProductSort;
 import ru.practicum.repository.product.ProductRepository;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -29,6 +38,10 @@ public class ProductServiceImpl implements ProductService {
      * Сервис кеширования товаров
      */
     private final ProductCacheService productCacheService;
+
+    /**
+     * Маппер товаров
+     */
     private final ProductMapper productMapper;
 
     @Override

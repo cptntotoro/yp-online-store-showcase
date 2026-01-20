@@ -1,104 +1,188 @@
+# 🛍️ Online Store Showcase | Reactive Spring Boot + Java 21
+
 [![Java CI with Maven](https://github.com/cptntotoro/yp-online-store-showcase/actions/workflows/maven.yml/badge.svg)](https://github.com/cptntotoro/yp-online-store-showcase/actions/workflows/maven.yml) [![Coverage Status](https://coveralls.io/repos/github/cptntotoro/yp-online-store-showcase/badge.svg)](https://coveralls.io/github/cptntotoro/yp-online-store-showcase)
 
-# 🛍️ Витрина онлайн-магазина | Reactive Spring Boot + Java 21
+[![Static Badge](https://img.shields.io/badge/%F0%9F%8C%90_Language-Русский-blue)](README-ru.md)
+[![Static Badge](https://img.shields.io/badge/%F0%9F%8C%90_Language-English-blue)](README.md)
 
-## 🛠️ Технологии
+A modern, reactive web application demonstrating an online product catalog with full e-commerce functionality built with
+Java 21 and Spring Boot 3.
 
-| Категория      | Технологии                                                |
-|----------------|-----------------------------------------------------------|
-| Бэкенд         | Java 21, Spring Boot 3 (WebFlux, R2DBC, Security, OAuth2) |
-| Базы данных    | PostgreSQL, Redis (кеширование)                           |
-| Инфраструктура | Docker, Testcontainers                                    |
-| UI             | Thymeleaf, HTML, CSS, JavaScript                          |
-| Инструменты    | Lombok, MapStruct, OpenAPI Generator                      |
+## 📋 Table of Contents
 
-## О проекте
-Веб-приложение представляет собой витрину товаров. 
+- [Live Demo](#-live-demo--quick-overview)
+- [Technology Stack](#-technology-stack)
+- [About The Project](#-about-the-project)
+    - [User Roles & Features](#-user-roles--features)
+    - [Authentication & Security](#-authentication--security)
+    - [Payment & Balance System](#-payment--balance-system)
+    - [Technical Highlights](#-technical-highlights)
+    - [UI/UX Features](#-uiux-features)
+- [How to Run](#-how-to-run)
+    - [Using Docker (Recommended)](#using-docker-recommended)
+    - [Local Development](#local-development)
+- [Testing](#-testing)
 
-Незарегистрированный пользователь может просматривать витрину товаров и карточки товаров.
+## 🚀 Live Demo & Quick Overview
 
-Для доступа к полному функционалу приложения необходимо зарегистрироваться и авторизоваться.
+![Application Demo](demo.gif)
 
-Авторизация доступна 2 способами: 
+## 🛠️ Technology Stack
 
-- Если чекбокс "Запомнить меня" неактивен, сессия будет удалена после закрытия браузера
-- Если чекбокс "Запомнить меня" активен, сессия будет восстановлена после закрытия браузера.
+| Category           | Technologies                                              |
+|--------------------|-----------------------------------------------------------|
+| **Backend**        | Java 21, Spring Boot 3 (WebFlux, R2DBC, Security, OAuth2) |
+| **Databases**      | PostgreSQL, Redis (caching)                               |
+| **Infrastructure** | Docker, Testcontainers                                    |
+| **UI**             | Thymeleaf, HTML, CSS, JavaScript                          |
+| **Tools**          | Lombok, MapStruct, OpenAPI Generator                      |
 
-Авторизованный пользователь получает доступ к полному функционалу приложения: он может положить товар в корзину, 
-оформить, оплатить и отменить заказ, а также наполнить витрину товаров новыми товарами.
+## 📋 About The Project
 
-По умолчанию баланс счета пользователя равен 15 000 рублей (payment.default-balance).
-Если пользователь отменяет оплаченный заказ, стоимость заказа возвращается на счет пользователя. 
-Если средств на балансе счета пользователя недостаточно, оплата не совершается и отображается сообщение о недостатке средств.
+This web application serves as a fully-functional product showcase with e-commerce capabilities, built using reactive
+programming principles for better scalability and performance.
 
-### Технические особенности
-- OAuth 2.0 Authorization Server, который работает по схеме Client Credentials Flow, для авторизации доступа к сервису оплаты
-- Remember me аутентификация использует токен с Base64 шифрованием и восстанавливает полноценный Authentication объект с UserDetails.
-- Для отображения актуальной стоимости корзины и реализации UI элементов согласно её состоянию применен @ControllerAdvice. 
-- Для уменьшения нагрузки на приложение состояние корзин пользователей и список товаров кешируются с помощью Redis.
-- Клиент сервиса витрины товаров (showcase-service) для осуществления запросов в сервис платежей (payment-service) и контроллер сервиса платежей генерируются автоматически на основе OpenAPI спецификации.
-- Для исполнения @Testcontainers тестов сервиса витрины товаров (showcase-service) с помощью Docker реализована установка Docker в тестовый Docker-контейнер.
+### 👤 User Roles & Features
 
-### UI особенности
-- В случае ошибок при регистрации и аутентификации пользователь получает сообщения об ошибках. 
-- Если сервис оплаты недоступен, а пользователь хочет оплатить или отменить оплаченный(!) заказ, кнопки на соответствующих страницах блокируются и отображается сообщение о проблеме
-- Если недостаточно средств на счете для оплаты заказа, пользователь получает сообщение об ошибке.
+#### **Unauthenticated User**
 
-## Демонстрация
+- Browse product catalog
+- View product details
 
-![](demo.gif)
+#### **Authenticated User** (registration/login required)
 
-## 🚀 Как запускать приложение 
+- Full cart management (add/remove items)
+- Order placement, payment, and cancellation
+- Product creation (stock replenishment)
+- Session management with "Remember Me" functionality
 
-### В Docker
+### 🔐 Authentication & Security
 
-#### Только тесты для сервисов витрины и оплаты
+- **Two login modes:**
+    - *Temporary session*: Session expires when browser closes (default)
+    - *Persistent session*: Session restored after browser restart ("Remember Me" enabled)
+- OAuth 2.0 Authorization Server using Client Credentials Flow for payment service authorization
+- "Remember Me" authentication uses Base64-encoded tokens to reconstruct full Authentication objects with UserDetails
+
+### 💳 Payment & Balance System
+
+- Default user balance: 15,000 RUB (configurable via `payment.default-balance`)
+- Successful order cancellations refund the amount to user's balance
+- Insufficient balance prevents payment with appropriate user notification
+
+### ⚙️ Technical Highlights
+
+#### **Architecture & Performance**
+
+- Redis caching for user carts and product lists to reduce application load
+- Reactive programming model with Spring WebFlux for better scalability
+- `@ControllerAdvice` implementation for real-time cart total updates and dynamic UI state management
+
+#### **API & Integration**
+
+- Auto-generated client (showcase-service) and controller (payment-service) from OpenAPI specifications
+- Service-to-service communication between showcase and payment services
+
+#### **Testing**
+
+- Comprehensive integration tests using Testcontainers
+- Docker-in-Docker setup for executing Testcontainers tests within Docker containers
+
+### 🎨 UI/UX Features
+
+- Clear error messaging during registration and authentication
+- Graceful degradation when payment service is unavailable:
+    - Payment and cancellation buttons are disabled
+    - Informative messages displayed to users
+- Real-time balance validation with user feedback
+
+## 🚀 How to Run
+
+### Using Docker (Recommended)
+
+#### Run Only Tests (Showcase & Payment Services)
+
 ```
 docker-compose --profile test up --build --abort-on-container-exit
 ```
-Если ответ 0, все тесты прошли успешно
 
-#### Только продакшен (все 3 сервиса)
+Exit code 0 indicates all tests passed successfully.
+
+#### Run Full Application (All 3 Services)
+
 ```
 docker-compose --profile prod up -d
 ```
-Приложение будет доступно по адресу: http://localhost:8080/products.
 
-### Остановка контейнеров
+Application will be available at: http://localhost:8080/products
 
-Чтобы остановить все запущенные контейнеры, выполните:
+#### Stop Containers
+
+To stop all running containers:
 
 ```
 docker-compose down
 ```
 
-Если вы хотите также удалить тома (volumes), используйте:
+To remove volumes:
 
 ```
 docker-compose down -v
 ```
 
-### Локально
+### Local Development
 
-1. Убедитесь, что у вас установлен PostgreSQL на порту 5432
+#### Prerequisites:
 
-2. Убедитесь, что у вас устновлен Redis на порту 6379
+- PostgreSQL running on port 5432
+- Redis running on port 6379
+- Docker Desktop (for Testcontainers)
+- Maven 3.6+
+- Java 21
 
-3. Убедитесь, что у вас запущен Docker Desktop и соберите оба сервиса (+тесты):
+#### Steps:
+
+Build all services (including tests):
+
 ```
 mvn clean package
 ```
-4. (Опционально) запустите сервис авторизации: 
+
+(Optional) Build authorization service:
+
 ```
 mvn clean install -pl auth-service
 ```
-5. Запустите сервис витрины товаров:
+
+#### Run the showcase service:
+
 ```
 java -jar showcase-service/target/showcase-service.jar --spring.profiles.active=prod
 ```
-6. (Опционально) запустите сервис оплаты:
+
+(Optional) Run payment service separately:
+
 ```
 java -jar payment-service/target/payment-service.jar --spring.profiles.active=prod
 ```
 
-Приложение будет доступно по адресу: http://localhost:8080/products.
+Access the application at: http://localhost:8080/products
+
+## 🧪 Testing
+
+The project includes comprehensive testing:
+
+- Unit tests with JUnit 5 and Mockito
+- Integration tests with Testcontainers
+- End-to-end Docker-based testing
+- Code coverage tracking via Coveralls
+
+## 🤝 Contributing
+Feel free to fork the repository and submit pull requests for any improvements.
+
+## 📄 License
+This project is for demonstration purposes as part of a learning portfolio.
+
+- - -
+
+Built with ❤️ using Spring Boot, Java 21, and reactive programming principles
